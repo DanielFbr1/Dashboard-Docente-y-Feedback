@@ -3,7 +3,7 @@ import { TutorialInteractivo } from '../components/TutorialInteractivo';
 import { Grupo, Proyecto } from '../types';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { PASOS_TUTORIAL } from '../data/mockData';
+import { PASOS_TUTORIAL, GRUPOS_MOCK } from '../data/mockData';
 
 interface ProjectDetailProps {
     proyecto: Proyecto;
@@ -102,8 +102,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetail
     };
 
     const handleCargarEjemplo = async () => {
-        const mod = await import('../data/mockData');
-        const gruposEjemplo = mod.GRUPOS_MOCK.map(g => ({
+        const gruposEjemplo = GRUPOS_MOCK.map(g => ({
             nombre: g.nombre,
             departamento: g.departamento,
             progreso: g.progreso,
