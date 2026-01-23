@@ -43,7 +43,7 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando }: ModalCrearG
         miembros,
         estado: grupoEditando?.estado || 'En progreso',
         progreso: grupoEditando?.progreso || 0,
-        interaccionesIA: grupoEditando?.interaccionesIA || 0
+        interacciones_ia: grupoEditando?.interacciones_ia || 0
       });
       onClose();
     }

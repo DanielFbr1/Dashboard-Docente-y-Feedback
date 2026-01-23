@@ -1,6 +1,6 @@
 import { Brain, MessageSquare, TrendingUp, PieChart, Lightbulb, Cog, Users as UsersIcon, Sparkles, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { Grupo } from '../App';
+import { Grupo } from '../types';
 import { ChatIA } from './ChatIA';
 
 interface InteraccionesIAProps {
@@ -24,8 +24,8 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
     return null; // El estado vacío se maneja en el Dashboard
   }
 
-  const totalInteracciones = grupos.reduce((sum, g) => sum + g.interaccionesIA, 0);
-  
+  const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
+
   const tiposInteraccion: TipoInteraccion[] = [
     {
       tipo: 'Metacognitivas',
@@ -61,8 +61,8 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
     }
   ];
 
-  const gruposOrdenados = [...grupos].sort((a, b) => b.interaccionesIA - a.interaccionesIA);
-  const maxInteracciones = Math.max(...grupos.map(g => g.interaccionesIA));
+  const gruposOrdenados = [...grupos].sort((a, b) => b.interacciones_ia - a.interacciones_ia);
+  const maxInteracciones = Math.max(...grupos.map(g => g.interacciones_ia));
 
   return (
     <>
@@ -118,7 +118,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
               <div className="text-sm text-gray-600">Más activo</div>
             </div>
             <div className="text-xl font-semibold text-gray-900">{gruposOrdenados[0]?.nombre.split('–')[0]}</div>
-            <div className="text-xs text-gray-500 mt-1">{gruposOrdenados[0]?.interaccionesIA} interacciones</div>
+            <div className="text-xs text-gray-500 mt-1">{gruposOrdenados[0]?.interacciones_ia} interacciones</div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-5">
@@ -187,10 +187,10 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
                     <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-blue-500 transition-all"
-                        style={{ width: `${(grupo.interaccionesIA / maxInteracciones) * 100}%` }}
+                        style={{ width: `${(grupo.interacciones_ia / maxInteracciones) * 100}%` }}
                       />
                     </div>
-                    <div className="w-12 text-right font-semibold text-gray-900">{grupo.interaccionesIA}</div>
+                    <div className="w-12 text-right font-semibold text-gray-900">{grupo.interacciones_ia}</div>
                   </div>
                 </div>
                 <div className="flex gap-2">

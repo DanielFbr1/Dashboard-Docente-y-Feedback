@@ -93,7 +93,7 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
         <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
           <span>Interacciones IA</span>
           <span className="font-mono text-gray-600">
-            {grupo.interaccionesIA}
+            {grupo.interacciones_ia}
           </span>
         </div>
       </div>

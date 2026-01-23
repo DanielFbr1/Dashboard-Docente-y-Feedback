@@ -8,7 +8,7 @@ export const GRUPOS_MOCK: Grupo[] = [
         departamento: 'Guion',
         estado: 'En progreso',
         progreso: 60,
-        interaccionesIA: 12,
+        interacciones_ia: 12,
         miembros: ['Ana García', 'Carlos López', 'María Fernández', 'Pedro Martínez']
     },
     {
@@ -17,7 +17,7 @@ export const GRUPOS_MOCK: Grupo[] = [
         departamento: 'Locución',
         estado: 'Casi terminado',
         progreso: 85,
-        interaccionesIA: 18,
+        interacciones_ia: 18,
         miembros: ['Laura Sánchez', 'Diego Torres', 'Sofia Ruiz', 'Javier Gómez']
     },
     {
@@ -26,7 +26,7 @@ export const GRUPOS_MOCK: Grupo[] = [
         departamento: 'Edición',
         estado: 'Bloqueado',
         progreso: 35,
-        interaccionesIA: 8,
+        interacciones_ia: 8,
         miembros: ['Elena Jiménez', 'Pablo Moreno', 'Carmen Díaz', 'Luis Romero']
     }
 ];
@@ -38,7 +38,7 @@ export const PROYECTOS_MOCK: Proyecto[] = [
         descripcion: 'Creación de un programa de radio completo, desde el guion hasta la postproducción, abordando temas de actualidad escolar.',
         tipo: 'Radio/Podcast',
         estado: 'En curso',
-        codigoSala: 'RAD-2024',
+        codigo_sala: 'RAD-2024',
         fases: [
             { id: 'f1', nombre: 'Investigación y Guion', estado: 'completado' },
             { id: 'f2', nombre: 'Grabación de Locuciones', estado: 'actual' },
@@ -53,7 +53,7 @@ export const PROYECTOS_MOCK: Proyecto[] = [
         descripcion: 'Producción de documentales cortos sobre la historia local para un canal de YouTube.',
         tipo: 'Video/YouTube',
         estado: 'En preparación',
-        codigoSala: 'YT-HIST',
+        codigo_sala: 'YT-HIST',
         fases: [
             { id: 'f1', nombre: 'Investigación Documental', estado: 'actual' },
             { id: 'f2', nombre: 'Guion Técnico', estado: 'pendiente' },
@@ -68,7 +68,7 @@ export const PROYECTOS_MOCK: Proyecto[] = [
         descripcion: 'Diseño y construcción de un sistema de riego automático para el huerto escolar usando Arduino.',
         tipo: 'STEM/Robótica',
         estado: 'Finalizado',
-        codigoSala: 'ECO-BOT',
+        codigo_sala: 'ECO-BOT',
         fases: [
             { id: 'f1', nombre: 'Diseño del Circuito', estado: 'completado' },
             { id: 'f2', nombre: 'Programación', estado: 'completado' },

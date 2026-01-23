@@ -161,7 +161,7 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
                 <div className="flex flex-col gap-6">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="text-sm text-gray-600 mb-1">Total de interacciones</div>
-                    <div className="text-3xl font-semibold text-blue-600">{grupo.interaccionesIA}</div>
+                    <div className="text-3xl font-semibold text-blue-600">{grupo.interacciones_ia}</div>
                     <div className="text-xs text-gray-500 mt-1">preguntas realizadas al mentor IA</div>
                   </div>
 

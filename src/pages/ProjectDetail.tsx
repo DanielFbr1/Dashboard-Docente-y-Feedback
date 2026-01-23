@@ -107,7 +107,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetail
             departamento: g.departamento,
             progreso: g.progreso,
             estado: g.estado,
-            interacciones_ia: g.interaccionesIA,
+            interacciones_ia: g.interacciones_ia,
             miembros: g.miembros,
             proyecto_id: proyecto.id
         }));
@@ -143,7 +143,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetail
                     id: proyecto.id,
                     nombre: proyecto.nombre,
                     tipo: proyecto.tipo,
-                    codigoSala: proyecto.codigoSala
+                    codigo_sala: proyecto.codigo_sala
                 }}
             />
 

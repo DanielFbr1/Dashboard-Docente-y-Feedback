@@ -1,7 +1,7 @@
 import { ClipboardCheck, BookOpen, Target, Download, FileText, Sparkles, Users } from 'lucide-react';
 import { useState } from 'react';
 import { ListaAlumnos } from './ListaAlumnos';
-import { Grupo } from '../App';
+import { Grupo } from '../types';
 
 interface Criterio {
   nombre: string;
@@ -145,22 +145,20 @@ export function EvaluacionRubricas({ grupos = [] }: EvaluacionRubricasProps) {
       <div className="flex gap-2 p-1 bg-gray-100 rounded-lg w-fit">
         <button
           onClick={() => setVistaActiva('rubricas')}
-          className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${
-            vistaActiva === 'rubricas'
+          className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${vistaActiva === 'rubricas'
               ? 'bg-white text-blue-700 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           <ClipboardCheck className="w-4 h-4" />
           Rúbricas de evaluación
         </button>
         <button
           onClick={() => setVistaActiva('alumnos')}
-          className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${
-            vistaActiva === 'alumnos'
+          className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${vistaActiva === 'alumnos'
               ? 'bg-white text-blue-700 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           <Users className="w-4 h-4" />
           Lista de alumnado
@@ -179,7 +177,7 @@ export function EvaluacionRubricas({ grupos = [] }: EvaluacionRubricasProps) {
               <div className="flex-1">
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Sistema de evaluación ABP + IA</h2>
                 <p className="text-gray-700 mb-4">
-                  Este sistema de evaluación está diseñado para valorar no solo el producto final, sino todo el proceso de aprendizaje, 
+                  Este sistema de evaluación está diseñado para valorar no solo el producto final, sino todo el proceso de aprendizaje,
                   incluyendo cómo el alumnado utiliza la IA como herramienta de pensamiento crítico.
                 </p>
                 <div className="flex flex-wrap gap-2">

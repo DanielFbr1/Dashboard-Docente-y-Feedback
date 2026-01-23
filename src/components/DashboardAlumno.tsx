@@ -1,6 +1,7 @@
 import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2 } from 'lucide-react';
 import { useState } from 'react';
-import { Grupo, EJEMPLO_GRUPOS } from '../App';
+import { Grupo } from '../types';
+import { GRUPOS_MOCK } from '../data/mockData';
 import { ChatIA } from './ChatIA';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 
@@ -17,8 +18,8 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [vistaActiva, setVistaActiva] = useState<'perfil' | 'grupo' | 'chat' | 'progreso' | 'compartir'>('perfil');
 
   // Buscar el grupo del alumno en los datos de ejemplo
-  const grupoAlumno = EJEMPLO_GRUPOS.find(g => g.nombre === alumno.grupo) || EJEMPLO_GRUPOS[0];
-  
+  const grupoAlumno = GRUPOS_MOCK.find(g => g.nombre === alumno.grupo) || GRUPOS_MOCK[0];
+
   // Evaluación simulada del alumno
   const evaluacionAlumno = [
     { criterio: 'Colaboración y trabajo en equipo', puntos: 8, nivel: 'Notable' },
@@ -74,11 +75,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           <nav className="flex gap-1">
             <button
               onClick={() => setVistaActiva('perfil')}
-              className={`px-6 py-4 font-medium transition-all border-b-2 ${
-                vistaActiva === 'perfil'
+              className={`px-6 py-4 font-medium transition-all border-b-2 ${vistaActiva === 'perfil'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5" />
@@ -87,11 +87,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('grupo')}
-              className={`px-6 py-4 font-medium transition-all border-b-2 ${
-                vistaActiva === 'grupo'
+              className={`px-6 py-4 font-medium transition-all border-b-2 ${vistaActiva === 'grupo'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -100,11 +99,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('compartir')}
-              className={`px-6 py-4 font-medium transition-all border-b-2 ${
-                vistaActiva === 'compartir'
+              className={`px-6 py-4 font-medium transition-all border-b-2 ${vistaActiva === 'compartir'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <Share2 className="w-5 h-5" />
@@ -113,11 +111,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('progreso')}
-              className={`px-6 py-4 font-medium transition-all border-b-2 ${
-                vistaActiva === 'progreso'
+              className={`px-6 py-4 font-medium transition-all border-b-2 ${vistaActiva === 'progreso'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
@@ -126,11 +123,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('chat')}
-              className={`px-6 py-4 font-medium transition-all border-b-2 ${
-                vistaActiva === 'chat'
+              className={`px-6 py-4 font-medium transition-all border-b-2 ${vistaActiva === 'chat'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5" />
@@ -166,7 +162,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   </div>
                   <div className="text-white">
                     <div className="text-3xl font-bold">
-                      {Math.floor(grupoAlumno.interaccionesIA / grupoAlumno.miembros.length)}
+                      {Math.floor(grupoAlumno.interacciones_ia / grupoAlumno.miembros.length)}
                     </div>
                     <div className="text-sm opacity-90">Preguntas a IA</div>
                   </div>
@@ -208,12 +204,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     </div>
                     <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                       <div
-                        className={`h-full transition-all ${
-                          item.nivel === 'Sobresaliente' ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
-                          item.nivel === 'Notable' ? 'bg-gradient-to-r from-blue-500 to-cyan-600' :
-                          item.nivel === 'Suficiente' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                          'bg-gradient-to-r from-red-500 to-pink-600'
-                        }`}
+                        className={`h-full transition-all ${item.nivel === 'Sobresaliente' ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                            item.nivel === 'Notable' ? 'bg-gradient-to-r from-blue-500 to-cyan-600' :
+                              item.nivel === 'Suficiente' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                                'bg-gradient-to-r from-red-500 to-pink-600'
+                          }`}
                         style={{ width: `${(item.puntos / 10) * 100}%` }}
                       />
                     </div>
@@ -254,12 +249,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   <h2 className="text-2xl font-bold text-gray-900">{grupoAlumno.nombre}</h2>
                   <p className="text-gray-600">{grupoAlumno.departamento}</p>
                 </div>
-                <span className={`px-4 py-2 font-semibold rounded-lg ${
-                  grupoAlumno.estado === 'Casi terminado' ? 'bg-blue-500 text-white' :
-                  grupoAlumno.estado === 'En progreso' ? 'bg-yellow-500 text-white' :
-                  grupoAlumno.estado === 'Bloqueado' ? 'bg-red-500 text-white' :
-                  'bg-green-500 text-white'
-                }`}>
+                <span className={`px-4 py-2 font-semibold rounded-lg ${grupoAlumno.estado === 'Casi terminado' ? 'bg-blue-500 text-white' :
+                    grupoAlumno.estado === 'En progreso' ? 'bg-yellow-500 text-white' :
+                      grupoAlumno.estado === 'Bloqueado' ? 'bg-red-500 text-white' :
+                        'bg-green-500 text-white'
+                  }`}>
                   {grupoAlumno.estado}
                 </span>
               </div>
@@ -300,7 +294,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         )}
 
         {vistaActiva === 'compartir' && (
-          <RepositorioColaborativo grupo={grupoAlumno} todosLosGrupos={EJEMPLO_GRUPOS} />
+          <RepositorioColaborativo grupo={grupoAlumno} todosLosGrupos={GRUPOS_MOCK} />
         )}
 
         {vistaActiva === 'progreso' && (
@@ -308,14 +302,13 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Progreso de todos los grupos</h2>
               <div className="space-y-4">
-                {EJEMPLO_GRUPOS.map((grupo) => (
+                {GRUPOS_MOCK.map((grupo) => (
                   <div
                     key={grupo.id}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      grupo.nombre === alumno.grupo
+                    className={`p-4 rounded-xl border-2 transition-all ${grupo.nombre === alumno.grupo
                         ? 'bg-purple-50 border-purple-300'
                         : 'bg-gray-50 border-gray-200'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -326,12 +319,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                           </span>
                         )}
                       </div>
-                      <span className={`px-3 py-1 font-semibold text-sm rounded-lg ${
-                        grupo.estado === 'Casi terminado' ? 'bg-blue-500 text-white' :
-                        grupo.estado === 'En progreso' ? 'bg-yellow-500 text-white' :
-                        grupo.estado === 'Bloqueado' ? 'bg-red-500 text-white' :
-                        'bg-green-500 text-white'
-                      }`}>
+                      <span className={`px-3 py-1 font-semibold text-sm rounded-lg ${grupo.estado === 'Casi terminado' ? 'bg-blue-500 text-white' :
+                          grupo.estado === 'En progreso' ? 'bg-yellow-500 text-white' :
+                            grupo.estado === 'Bloqueado' ? 'bg-red-500 text-white' :
+                              'bg-green-500 text-white'
+                        }`}>
                         {grupo.estado}
                       </span>
                     </div>

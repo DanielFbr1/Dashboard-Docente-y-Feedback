@@ -47,7 +47,7 @@ export function DashboardDocente({
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
   const [mostrarCodigoSala, setMostrarCodigoSala] = useState(false);
 
-  const totalInteracciones = grupos.reduce((sum, g) => sum + g.interaccionesIA, 0);
+  const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
   const hitosCompletados = grupos.reduce((sum, g) => sum + Math.floor(g.progreso / 20), 0);
   const gruposBloqueados = grupos.filter(g => g.estado === 'Bloqueado').length;
 
@@ -194,7 +194,7 @@ export function DashboardDocente({
               <FolderOpen className="w-5 h-5 text-blue-600" />
               <div className="flex-1">
                 <div className="font-semibold text-gray-900">{proyectoActual.nombre}</div>
-                <div className="text-xs text-gray-600">Código: {proyectoActual.codigoSala}</div>
+                <div className="text-xs text-gray-600">Código: {proyectoActual.codigo_sala}</div>
               </div>
               <button
                 onClick={onCambiarProyecto}
@@ -227,7 +227,7 @@ export function DashboardDocente({
 
               {/* Contenido con scroll */}
               <div className="flex-1 overflow-y-auto p-6">
-                <SistemaCodigoSala codigoSala={proyectoActual?.codigoSala} />
+                <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
               </div>
 
               {/* Footer fijo */}

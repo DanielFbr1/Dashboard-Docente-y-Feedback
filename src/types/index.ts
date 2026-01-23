@@ -21,8 +21,9 @@ export interface Grupo {
     departamento: string;
     estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado';
     progreso: number;
-    interaccionesIA: number;
+    interacciones_ia: number;
     miembros: string[];
+    proyecto_id?: string;
     conversacionesIA?: Conversacion[];
 }
 
@@ -41,8 +42,8 @@ export interface Proyecto {
     tipo: string;
     estado: ProyectoEstado;
     fases: ProyectoFase[];
-    codigoSala: string;
-    grupos: Grupo[];
+    codigo_sala: string;
+    grupos?: Grupo[];
 }
 
 export type DashboardSection = 'resumen' | 'grupos' | 'interacciones' | 'evaluacion' | 'trabajo-compartido';
@@ -51,5 +52,5 @@ export interface ProyectoActivo {
     id: string;
     nombre: string;
     tipo: string;
-    codigoSala: string;
+    codigo_sala: string;
 }

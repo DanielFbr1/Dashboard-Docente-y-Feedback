@@ -1,5 +1,5 @@
 import { X, Award, TrendingUp, MessageSquare, Target, Brain, CheckCircle2, AlertCircle, Trophy, Star, Calendar, Clock, Flame, Users, FileText, Lightbulb } from 'lucide-react';
-import { Grupo } from '../App';
+import { Grupo } from '../types';
 
 interface PerfilAlumnoProps {
   alumno: string;
@@ -61,7 +61,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
     participacion: 87,
     racha: 7,
     entregas: { completadas: 8, totales: 10 },
-    preguntasIA: Math.floor(grupo.interaccionesIA / grupo.miembros.length),
+    preguntasIA: Math.floor(grupo.interacciones_ia / grupo.miembros.length),
     horasTrabajo: 12.5
   };
 
@@ -125,7 +125,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
         <div className={`bg-gradient-to-r ${getDepartamentoColor(grupo.departamento)} p-8 text-white relative overflow-hidden`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-6">
@@ -244,13 +244,12 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
               <div className="space-y-3">
                 {actividadReciente.map((actividad, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      actividad.tipo === 'pregunta_ia' ? 'bg-purple-600' :
-                      actividad.tipo === 'aportacion' ? 'bg-green-600' : 'bg-blue-600'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${actividad.tipo === 'pregunta_ia' ? 'bg-purple-600' :
+                        actividad.tipo === 'aportacion' ? 'bg-green-600' : 'bg-blue-600'
+                      }`}>
                       {actividad.tipo === 'pregunta_ia' ? <Brain className="w-5 h-5 text-white" /> :
-                       actividad.tipo === 'aportacion' ? <FileText className="w-5 h-5 text-white" /> :
-                       <Users className="w-5 h-5 text-white" />}
+                        actividad.tipo === 'aportacion' ? <FileText className="w-5 h-5 text-white" /> :
+                          <Users className="w-5 h-5 text-white" />}
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{actividad.descripcion}</p>
@@ -287,7 +286,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Barra de progreso */}
                     <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden">
                       <div
