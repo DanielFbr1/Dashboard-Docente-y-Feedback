@@ -1,14 +1,13 @@
-import { ArrowLeft, CheckCircle2, Circle, Brain, Cog, Users as UsersIcon, Lightbulb, TrendingUp, MessageSquare, Share2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Brain, Share2 } from 'lucide-react';
 import { useState } from 'react';
-import { Grupo } from '../App';
+import { Grupo } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { ChatIA } from './ChatIA';
-import { EJEMPLO_GRUPOS } from '../App';
 
 interface DetalleGrupoProps {
   grupo: Grupo;
   onBack: () => void;
-  onViewFeedback: () => void;
+  onViewFeedback?: () => void;
 }
 
 interface Hito {
@@ -21,12 +20,11 @@ interface TipoPregunta {
   tipo: string;
   cantidad: number;
   color: string;
-  icon: any;
+  icon: string | any;
 }
 
 export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProps) {
   const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
-
 
   const hitos: Hito[] = [
     { nombre: 'Brief', descripcion: 'Definición del proyecto y objetivos', completado: true },
@@ -38,7 +36,7 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
 
   const tiposPreguntas: TipoPregunta[] = [
     { tipo: 'Metacognitivas', cantidad: 5, color: 'bg-purple-500', icon: '💡' },
-    { tipo: 'Técnicas', cantidad: 3, color: 'bg-blue-500', icon: '🛠️' },
+    { tipo: 'Técnica', cantidad: 3, color: 'bg-blue-500', icon: '🛠️' },
     { tipo: 'Organizativas', cantidad: 2, color: 'bg-green-500', icon: '📅' },
     { tipo: 'Creativas', cantidad: 2, color: 'bg-orange-500', icon: '🎨' }
   ];
@@ -47,22 +45,16 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
 
   const getEstadoColor = (estado: Grupo['estado']) => {
     switch (estado) {
-      case 'Completado':
-        return 'bg-green-100 text-green-700 border-green-300';
-      case 'Casi terminado':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'En progreso':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-      case 'Bloqueado':
-        return 'bg-red-100 text-red-700 border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
+      case 'Completado': return 'bg-green-100 text-green-700 border-green-300';
+      case 'Casi terminado': return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'En progreso': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+      case 'Bloqueado': return 'bg-red-100 text-red-700 border-red-300';
+      default: return 'bg-gray-100 text-gray-700 border-gray-300';
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-8 py-5">
         <button
           onClick={onBack}
@@ -72,7 +64,6 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
           <span>Volver al dashboard</span>
         </button>
 
-        {/* Pestañas */}
         <div className="flex gap-4 mt-4">
           <button
             onClick={() => setVistaActiva('detalle')}
@@ -96,11 +87,9 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
         </div>
       </header>
 
-      {/* Content */}
       <main className="p-8">
         {vistaActiva === 'detalle' ? (
           <>
-            {/* Bloque superior */}
             <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
               <div className="flex flex-col gap-4">
                 <div className="flex items-start justify-between">
@@ -118,7 +107,7 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
                 <div className="flex flex-col gap-2">
                   <div className="text-sm text-gray-600">Miembros del grupo:</div>
                   <div className="flex flex-wrap gap-2">
-                    {grupo.miembros.map((miembro, index) => (
+                    {grupo.miembros && grupo.miembros.map((miembro: string, index: number) => (
                       <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
                         {miembro}
                       </span>
@@ -141,12 +130,9 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
               </div>
             </div>
 
-            {/* Dos columnas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Columna izquierda: Línea de tiempo */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Línea de tiempo del proyecto</h2>
-
                 <div className="flex flex-col gap-4">
                   {hitos.map((hito, index) => (
                     <div key={index} className="flex gap-3">
@@ -170,19 +156,15 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
                 </div>
               </div>
 
-              {/* Columna derecha: Actividad con la IA */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Actividad con la IA</h2>
-
                 <div className="flex flex-col gap-6">
-                  {/* Tarjeta de interacciones totales */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="text-sm text-gray-600 mb-1">Total de interacciones</div>
                     <div className="text-3xl font-semibold text-blue-600">{grupo.interaccionesIA}</div>
                     <div className="text-xs text-gray-500 mt-1">preguntas realizadas al mentor IA</div>
                   </div>
 
-                  {/* Tipos de preguntas */}
                   <div>
                     <div className="text-sm font-medium text-gray-700 mb-3">Tipos de preguntas más frecuentes</div>
                     <div className="flex flex-col gap-3">
@@ -206,18 +188,18 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
               </div>
             </div>
 
-            {/* Botón de ver feedback */}
             <div className="flex justify-center">
               <button
                 onClick={onViewFeedback}
                 className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={!onViewFeedback}
               >
                 Ver feedback y evaluación
               </button>
             </div>
           </>
         ) : vistaActiva === 'compartir' ? (
-          <RepositorioColaborativo grupo={grupo} todosLosGrupos={EJEMPLO_GRUPOS} />
+          <RepositorioColaborativo grupo={grupo} todosLosGrupos={[]} />
         ) : (
           <div className="max-w-4xl mx-auto">
             <ChatIA grupo={grupo} />

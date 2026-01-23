@@ -1,14 +1,46 @@
-
-import { useState } from 'react';
-import { PROYECTOS_MOCK } from '../data/mockData';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Proyecto } from '../types';
-import { Layout, ArrowRight, Users, Key, Plus } from 'lucide-react';
+import { Layout, ArrowRight, Users, Key, Plus, Loader2 } from 'lucide-react';
 
 interface ProjectsDashboardProps {
     onSelectProject: (proyecto: Proyecto) => void;
 }
 
 export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
+    const [proyectos, setProyectos] = useState<Proyecto[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProyectos = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('proyectos')
+                    .select('*');
+
+                if (error) throw error;
+                // Adaptamos el formato si es necesario (p.ej. 'grupos' en SQL es una tabla aparte, 
+                // pero el frontend espera un array en el objeto proyecto para el contador)
+                // Por ahora, traemos solo los proyectos y luego el detalle traerá los grupos.
+                setProyectos(data || []);
+            } catch (err) {
+                console.error('Error fetching projects:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProyectos();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 p-8 font-sans">
             <header className="mb-10 max-w-7xl mx-auto border-b border-gray-200 pb-6">
@@ -20,14 +52,14 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                     <div className="hidden md:block">
                         <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm text-sm text-gray-600">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span>Conectado</span>
+                            <span>Conectado a Base de Datos</span>
                         </div>
                     </div>
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                {PROYECTOS_MOCK.map((proyecto) => (
+                {proyectos.length > 0 ? proyectos.map((proyecto) => (
                     <div
                         key={proyecto.id}
                         onClick={() => onSelectProject(proyecto)}
@@ -51,14 +83,19 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                         <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <Users className="w-4 h-4" />
-                                <span>{proyecto.grupos.length} grupos</span>
+                                <span>Gestionar grupos</span>
                             </div>
                             <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-200">
                                 <ArrowRight className="w-5 h-5" />
                             </span>
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div className="col-span-full py-20 text-center bg-white rounded-xl border border-dashed border-gray-300">
+                        <Layout className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">No hay proyectos todavía. Crea el primero abajo.</p>
+                    </div>
+                )}
 
                 {/* Card para Crear Nuevo */}
                 <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group min-h-[250px]">

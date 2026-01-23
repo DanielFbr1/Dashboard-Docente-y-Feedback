@@ -5,7 +5,7 @@ import { Grupo } from '../types';
 interface GroupDetailProps {
     grupo: Grupo;
     onBack: () => void;
-    onViewFeedback: () => void;
+    onViewFeedback?: () => void;
 }
 
 export function GroupDetail({ grupo, onBack, onViewFeedback }: GroupDetailProps) {

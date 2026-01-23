@@ -1,6 +1,6 @@
 import { Upload, FileText, Video, Music, Image as ImageIcon, Download, Eye } from 'lucide-react';
 import { useState } from 'react';
-import { Grupo } from '../App';
+import { Grupo } from '../types';
 
 interface RepositorioColaborativoProps {
   grupo: Grupo;
@@ -168,9 +168,9 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
                       Haz clic para seleccionar o arrastra tu archivo aquí
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
-                      {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' : 
-                       tipoPermitido === 'video' ? 'MP4, MOV (max 100MB)' : 
-                       'JPG, PNG, SVG (max 10MB)'}
+                      {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' :
+                        tipoPermitido === 'video' ? 'MP4, MOV (max 100MB)' :
+                          'JPG, PNG, SVG (max 10MB)'}
                     </p>
                   </div>
                 )}
@@ -200,7 +200,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
       {/* Lista de recursos */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Recursos compartidos por todos los grupos</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {recursos.map((recurso) => {
             const TipoIcon = getTipoIcon(recurso.tipo);
@@ -251,10 +251,10 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
               </div>
               <p className="text-blue-100">{recursoSeleccionado.grupoNombre} - {recursoSeleccionado.departamento}</p>
             </div>
-            
+
             <div className="p-6">
               <p className="text-gray-700 mb-6">{recursoSeleccionado.descripcion}</p>
-              
+
               {recursoSeleccionado.tipo === 'texto' && recursoSeleccionado.contenido && (
                 <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
                   <p className="text-gray-800 whitespace-pre-wrap font-mono text-sm">
@@ -262,17 +262,17 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
                   </p>
                 </div>
               )}
-              
+
               {recursoSeleccionado.tipo === 'imagen' && recursoSeleccionado.url && (
                 <div className="rounded-xl overflow-hidden border-2 border-gray-200">
-                  <img 
-                    src={recursoSeleccionado.url} 
+                  <img
+                    src={recursoSeleccionado.url}
                     alt={recursoSeleccionado.titulo}
                     className="w-full h-auto"
                   />
                 </div>
               )}
-              
+
               {recursoSeleccionado.tipo === 'audio' && (
                 <div className="bg-gray-50 rounded-xl p-8 border-2 border-gray-200 text-center">
                   <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -282,7 +282,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
                   </div>
                 </div>
               )}
-              
+
               {recursoSeleccionado.tipo === 'video' && (
                 <div className="bg-gray-50 rounded-xl p-8 border-2 border-gray-200 text-center">
                   <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -292,7 +292,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => alert('Descarga iniciada (demo)')}
