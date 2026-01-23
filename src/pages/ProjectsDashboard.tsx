@@ -56,29 +56,51 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
         setIsSeeding(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('No user found');
 
-            // Adaptamos los mock data para insertarlos
-            const samples = PROYECTOS_MOCK.map(p => ({
-                nombre: p.nombre,
-                descripcion: p.descripcion,
-                tipo: p.tipo,
-                estado: p.estado,
-                codigo_sala: p.codigo_sala,
-                created_by: user?.id,
-                fases: p.fases
-            }));
+            for (const p of PROYECTOS_MOCK) {
+                // 1. Insertar Proyecto
+                const { data: projectData, error: projectError } = await supabase
+                    .from('proyectos')
+                    .insert([{
+                        nombre: p.nombre,
+                        descripcion: p.descripcion,
+                        tipo: p.tipo,
+                        estado: p.estado,
+                        codigo_sala: p.codigo_sala,
+                        created_by: user.id,
+                        fases: p.fases
+                    }])
+                    .select()
+                    .single();
 
-            const { error } = await supabase
-                .from('proyectos')
-                .insert(samples);
+                if (projectError) throw projectError;
 
-            if (error) throw error;
+                // 2. Insertar Grupos del proyecto si tiene
+                if (p.grupos && p.grupos.length > 0) {
+                    const groupsToInsert = p.grupos.map(g => ({
+                        nombre: g.nombre,
+                        departamento: g.departamento,
+                        miembros: g.miembros,
+                        progreso: g.progreso,
+                        estado: g.estado,
+                        interacciones_ia: g.interacciones_ia,
+                        proyecto_id: projectData.id
+                    }));
+
+                    const { error: groupError } = await supabase
+                        .from('grupos')
+                        .insert(groupsToInsert);
+
+                    if (groupError) console.error('Error seeding groups for project:', projectData.nombre, groupError);
+                }
+            }
 
             await fetchProyectos();
-            alert('¡Proyectos de ejemplo cargados con éxito!');
-        } catch (err) {
+            alert('¡Proyectos y grupos de ejemplo cargados con éxito!');
+        } catch (err: any) {
             console.error('Error seeding samples:', err);
-            alert('Hubo un error al cargar los ejemplos.');
+            alert(`Hubo un error al cargar los ejemplos: ${err.message}`);
         } finally {
             setIsSeeding(false);
         }

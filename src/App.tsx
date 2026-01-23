@@ -4,10 +4,11 @@ import { LoginPage } from './components/LoginPage';
 import { ProjectsDashboard } from './pages/ProjectsDashboard';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { GroupDetail } from './pages/GroupDetail';
+import { DashboardAlumno } from './components/DashboardAlumno';
 import { Proyecto, Grupo } from './types';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, guestUser, loading, setGuestUser } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<'projects' | 'project-detail' | 'group-detail'>('projects');
   const [selectedProject, setSelectedProject] = useState<Proyecto | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<Grupo | null>(null);
@@ -37,12 +38,23 @@ function AppContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Iniciando sesión segura...</p>
+          <p className="text-gray-600 font-medium">Iniciando sesión segura...</p>
         </div>
       </div>
     );
   }
 
+  // Si es un alumno (invitado/guest)
+  if (guestUser) {
+    return (
+      <DashboardAlumno
+        alumno={guestUser}
+        onLogout={() => setGuestUser(null)}
+      />
+    );
+  }
+
+  // Si no hay usuario ni invitado
   if (!user) {
     return <LoginPage />;
   }
