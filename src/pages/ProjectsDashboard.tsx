@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Proyecto } from '../types';
-import { Layout, ArrowRight, Users, Key, Plus, Loader2, Sparkles, LogOut } from 'lucide-react';
+import { Layout, ArrowRight, Users, Key, Plus, Loader2, Sparkles, LogOut, RefreshCw } from 'lucide-react';
 import { PROYECTOS_MOCK } from '../data/mockData';
+import { ModalCrearProyecto } from '../components/ModalCrearProyecto';
 
 interface ProjectsDashboardProps {
     onSelectProject: (proyecto: Proyecto) => void;
@@ -12,6 +13,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSeeding, setIsSeeding] = useState(false);
+    const [showModalProyecto, setShowModalProyecto] = useState(false);
 
     useEffect(() => {
         fetchProyectos();
@@ -33,6 +35,21 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
         }
     };
 
+    const handleCrearProyecto = async (nuevoProyecto: Omit<Proyecto, 'id' | 'grupos'>) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { error } = await supabase
+                .from('proyectos')
+                .insert([{ ...nuevoProyecto, created_by: user?.id }]);
+
+            if (error) throw error;
+            await fetchProyectos();
+        } catch (err) {
+            console.error('Error creating project:', err);
+            alert('Error al crear el proyecto.');
+        }
+    };
+
     const handleLoadSamples = async () => {
         if (!confirm('¿Quieres cargar los proyectos de ejemplo? Esto poblará tu base de datos con contenido de prueba.')) return;
 
@@ -47,7 +64,8 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                 tipo: p.tipo,
                 estado: p.estado,
                 codigo_sala: p.codigo_sala,
-                profesor_id: user?.id
+                created_by: user?.id,
+                fases: p.fases
             }));
 
             const { error } = await supabase
@@ -87,6 +105,13 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                         <p className="text-gray-500 mt-1 text-lg">Selecciona un proyecto para gestionar.</p>
                     </div>
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={fetchProyectos}
+                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Refrescar"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
                         <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm text-sm text-gray-600">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span>Base de Datos Activa</span>
@@ -157,14 +182,22 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                 )}
 
                 {/* Card para Crear Nuevo */}
-                {proyectos.length > 0 && (
-                    <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group min-h-[250px]">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-200 group-hover:border-blue-200">
-                            <Plus className="w-6 h-6 text-gray-400 group-hover:text-blue-500" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">Nuevo Proyecto</h3>
-                        <p className="text-sm text-gray-500 mt-1">Crear un nuevo espacio real</p>
+                <div
+                    onClick={() => setShowModalProyecto(true)}
+                    className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group min-h-[250px]"
+                >
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-200 group-hover:border-blue-200">
+                        <Plus className="w-6 h-6 text-gray-400 group-hover:text-blue-500" />
                     </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nuevo Proyecto</h3>
+                    <p className="text-sm text-gray-500 mt-1">Crear un nuevo espacio real</p>
+                </div>
+
+                {showModalProyecto && (
+                    <ModalCrearProyecto
+                        onClose={() => setShowModalProyecto(false)}
+                        onCrear={handleCrearProyecto}
+                    />
                 )}
             </div>
         </div>
