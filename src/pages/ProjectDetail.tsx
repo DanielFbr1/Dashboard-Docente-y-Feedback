@@ -9,9 +9,10 @@ interface ProjectDetailProps {
     proyecto: Proyecto;
     onSelectGrupo: (grupo: Grupo) => void;
     onBack: () => void;
+    onSwitchProject: (proyecto: Proyecto) => void;
 }
 
-export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetailProps) {
+export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject }: ProjectDetailProps) {
     const [localGrupos, setLocalGrupos] = useState<Grupo[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('resumen');
@@ -26,6 +27,28 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetail
     useEffect(() => {
         fetchGrupos();
     }, [proyecto.id]);
+
+    const handleClaseChange = async (nuevaClase: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('proyectos')
+                .select('*')
+                .eq('clase', nuevaClase)
+                .single();
+
+            if (error || !data) {
+                if (confirm(`No hay ningún proyecto creado para la clase ${nuevaClase}. ¿Quieres crear uno nuevo?`)) {
+                    onBack(); // Volver al dashboard para crear uno
+                }
+                return;
+            }
+
+            // Cambiar al proyecto encontrado
+            onSwitchProject(data);
+        } catch (err) {
+            console.error('Error switching class:', err);
+        }
+    };
 
     const fetchGrupos = async () => {
         setLoading(true);
@@ -140,6 +163,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack }: ProjectDetail
                 onEliminarGrupo={handleEliminarGrupo}
                 onIniciarTutorial={() => setShowTutorial(true)}
                 onCambiarProyecto={onBack}
+                onClaseChange={handleClaseChange}
                 proyectoActual={{
                     id: proyecto.id,
                     nombre: proyecto.nombre,

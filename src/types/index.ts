@@ -43,7 +43,15 @@ export interface Proyecto {
     estado: ProyectoEstado;
     fases: ProyectoFase[];
     codigo_sala: string;
+    clase?: string;
     grupos?: Grupo[];
+}
+
+export interface AlumnoConectado {
+    id: string;
+    proyecto_id: string;
+    nombre_alumno: string;
+    last_active: string;
 }
 
 export type DashboardSection = 'resumen' | 'grupos' | 'interacciones' | 'evaluacion' | 'trabajo-compartido';
@@ -53,4 +61,5 @@ export interface ProyectoActivo {
     nombre: string;
     tipo: string;
     codigo_sala: string;
+    clase?: string;
 }

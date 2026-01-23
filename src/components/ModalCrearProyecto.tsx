@@ -11,6 +11,7 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [tipo, setTipo] = useState('Radio/Podcast');
+    const [clase, setClase] = useState('5.º Primaria - A');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,6 +20,7 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                 nombre: nombre.trim(),
                 descripcion: descripcion.trim(),
                 tipo,
+                clase,
                 estado: 'En preparación' as ProyectoEstado,
                 codigo_sala: Math.random().toString(36).substring(2, 8).toUpperCase(),
                 fases: [
@@ -79,6 +81,21 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                             <option value="STEM/Robótica">STEM / Robótica</option>
                             <option value="Investigación">Investigación</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Clase / Curso</label>
+                        <select
+                            value={clase}
+                            onChange={(e) => setClase(e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                        >
+                            <option value="5.º Primaria - A">5.º Primaria - A</option>
+                            <option value="5.º Primaria - B">5.º Primaria - B</option>
+                            <option value="6.º Primaria - A">6.º Primaria - A</option>
+                            <option value="6.º Primaria - B">6.º Primaria - B</option>
+                        </select>
+                        <p className="text-[10px] text-gray-400 mt-2 ml-1 uppercase font-bold tracking-tighter">🔒 El proyecto se vinculará a esta clase en tu panel</p>
                     </div>
 
                     <div className="pt-4 flex gap-3">

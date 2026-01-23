@@ -70,6 +70,7 @@ function AppContent() {
           proyecto={selectedProject}
           onSelectGrupo={handleSelectGrupo}
           onBack={handleBackToProjects}
+          onSwitchProject={setSelectedProject}
         />
       )}
 

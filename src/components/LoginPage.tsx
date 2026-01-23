@@ -62,16 +62,34 @@ export function LoginPage() {
         }
     };
 
-    const handleFinalStudentAccess = (e: React.FormEvent) => {
+    const handleFinalStudentAccess = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!studentName.trim()) return;
 
-        setGuestUser({
-            nombre: studentName.trim(),
-            clase: 'General', // Opcional: podrías pedirla también
-            grupo: 'Sin asignar',
-            proyectoId: foundProject.id
-        });
+        setLoading(true);
+        try {
+            // Registrar presencia del alumno
+            const { error: presenceError } = await supabase
+                .from('alumnos_conectados')
+                .insert([{
+                    proyecto_id: foundProject.id,
+                    nombre_alumno: studentName.trim(),
+                    last_active: new Date().toISOString()
+                }]);
+
+            if (presenceError) console.error('Error recording presence:', presenceError);
+
+            setGuestUser({
+                nombre: studentName.trim(),
+                clase: foundProject.clase || 'General',
+                grupo: 'Sin asignar',
+                proyectoId: foundProject.id
+            });
+        } catch (err) {
+            console.error('Error in student access:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (view === 'selection') {

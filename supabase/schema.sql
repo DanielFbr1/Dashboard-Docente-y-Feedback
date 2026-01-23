@@ -18,6 +18,7 @@ create table public.proyectos (
   tipo text, -- 'Radio/Podcast', 'Video/YouTube', etc.
   estado text check (estado in ('En curso', 'Finalizado', 'En preparación')),
   codigo_sala text unique,
+  clase text, -- '5ºA', '6ºB', etc.
   fases jsonb default '[]'::jsonb, -- Array de fases {id, nombre, estado}
   created_by uuid references public.profiles(id),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -46,18 +47,27 @@ create table public.mensajes_chat (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- ALUMNOS CONECTADOS (Real-time presence)
+create table public.alumnos_conectados (
+  id uuid default uuid_generate_v4() primary key,
+  proyecto_id uuid references public.proyectos(id) on delete cascade,
+  nombre_alumno text not null,
+  last_active timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- RLS (Row Level Security) - Políticas de seguridad básicas
 alter table public.profiles enable row level security;
 alter table public.proyectos enable row level security;
 alter table public.grupos enable row level security;
 alter table public.mensajes_chat enable row level security;
+alter table public.alumnos_conectados enable row level security;
 
 -- Política: Todos pueden leer todo (para simplificar en este MVP)
--- En producción, deberías restringir 'proyectos' y 'grupos' solo al profesor o alumnos asignados.
 create policy "Public access" on public.profiles for all using (true);
 create policy "Public access" on public.proyectos for all using (true);
 create policy "Public access" on public.grupos for all using (true);
 create policy "Public access" on public.mensajes_chat for all using (true);
+create policy "Public access" on public.alumnos_conectados for all using (true);
 
 -- TRIGGER PARA CREAR PERFIL AUTOMÁTICAMENTE AL REGISTRARSE
 create or replace function public.handle_new_user()

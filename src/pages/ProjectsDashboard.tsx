@@ -68,6 +68,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                         tipo: p.tipo,
                         estado: p.estado,
                         codigo_sala: p.codigo_sala,
+                        clase: p.clase || '5.º Primaria - A',
                         created_by: user.id,
                         fases: p.fases
                     }])
