@@ -8,7 +8,7 @@ import { DashboardAlumno } from './components/DashboardAlumno';
 import { Proyecto, Grupo } from './types';
 
 function AppContent() {
-  const { user, guestUser, loading, setGuestUser } = useAuth();
+  const { user, perfil, loading, signOut } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<'projects' | 'project-detail' | 'group-detail'>('projects');
   const [selectedProject, setSelectedProject] = useState<Proyecto | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<Grupo | null>(null);
@@ -44,19 +44,19 @@ function AppContent() {
     );
   }
 
-  // Si es un alumno (invitado/guest)
-  if (guestUser) {
-    return (
-      <DashboardAlumno
-        alumno={guestUser}
-        onLogout={() => setGuestUser(null)}
-      />
-    );
-  }
-
-  // Si no hay usuario ni invitado
+  // Si no hay usuario, mostramos login
   if (!user) {
     return <LoginPage />;
+  }
+
+  // Si es un alumno identificado
+  if (perfil && perfil.rol === 'alumno') {
+    return (
+      <DashboardAlumno
+        alumno={perfil}
+        onLogout={signOut}
+      />
+    );
   }
 
   return (

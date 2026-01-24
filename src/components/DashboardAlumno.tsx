@@ -9,10 +9,13 @@ import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 
 interface DashboardAlumnoProps {
   alumno: {
+    id: string;
     nombre: string;
-    clase: string;
-    grupo: string; // Este es el Código de Sala
-    proyectoId?: string; // ID único del proyecto
+    rol: 'profesor' | 'alumno';
+    clase?: string;
+    grupo_id?: number;
+    proyecto_id?: string;
+    codigo_sala?: string;
   };
   onLogout: () => void;
 }
@@ -25,12 +28,12 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   // Estado del tutorial para Alumnos
-  const tutorialKey = `tutorial_alumno_seen_${alumno.nombre}_${alumno.grupo}`;
+  const tutorialKey = `tutorial_alumno_seen_${alumno.id}`;
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem(tutorialKey));
 
   useEffect(() => {
     fetchDatosAlumno();
-  }, []);
+  }, [alumno.id]);
 
   const fetchDatosAlumno = async () => {
     try {
@@ -39,12 +42,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       console.log("🔍 Iniciando carga de datos para alumno:", alumno.nombre);
 
-      // 1. Obtener ID del proyecto (Priorizamos ID directo, si no, buscamos por código)
-      let targetProjectId = (alumno as any).proyectoId || (alumno as any).proyecto_id;
-      let projectName = "Proyecto";
+      let targetProjectId = alumno.proyecto_id;
+      let roomCode = alumno.codigo_sala || '';
 
-      if (!targetProjectId) {
-        const roomCode = (alumno.grupo || '').trim().toUpperCase();
+      if (!targetProjectId && roomCode) {
         console.log("📡 Buscando proyecto por código:", roomCode);
 
         const { data: proyecto, error: errorProyecto } = await supabase
@@ -59,7 +60,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           return;
         }
         targetProjectId = proyecto.id;
-        projectName = proyecto.nombre;
+      }
+
+      if (!targetProjectId) {
+        setErrorStatus('ERROR_TECNICO');
+        return;
       }
 
       console.log("✅ Proyecto identificado:", targetProjectId);
@@ -193,7 +198,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               </div>
               <div>
                 <h1 className="text-xl font-black text-slate-800 tracking-tight">¡Hola, {alumno.nombre.split(' ')[0]}!</h1>
-                <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase} • {grupoReal.nombre}</p>
+                <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase || 'Clase'} • {grupoReal?.nombre || 'Mi grupo'}</p>
               </div>
             </div>
 
@@ -287,7 +292,13 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {vistaActiva === 'perfil' && (
+        {!grupoReal && (
+          <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-amber-700 font-medium mb-6">
+            Cargando los detalles de tu equipo...
+          </div>
+        )}
+
+        {vistaActiva === 'perfil' && grupoReal && (
           <div className="flex flex-col gap-6">
             {/* Estadísticas personales */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -391,7 +402,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'grupo' && (
+        {vistaActiva === 'grupo' && grupoReal && (
           <div className="flex flex-col gap-6">
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
               <div className="flex items-center justify-between mb-8">
@@ -443,11 +454,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'compartir' && (
+        {vistaActiva === 'compartir' && grupoReal && (
           <RepositorioColaborativo grupo={grupoReal} todosLosGrupos={todosLosGrupos} />
         )}
 
-        {vistaActiva === 'progreso' && (
+        {vistaActiva === 'progreso' && grupoReal && (
           <div className="flex flex-col gap-6">
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
               <h2 className="text-2xl font-black text-slate-800 mb-8 tracking-tight uppercase">Progreso de la sesión</h2>
@@ -497,7 +508,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'chat' && (
+        {vistaActiva === 'chat' && grupoReal && (
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 min-h-[600px]">
             <ChatIA grupo={grupoReal} />
           </div>

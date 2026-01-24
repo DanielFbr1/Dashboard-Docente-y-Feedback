@@ -16,6 +16,7 @@ interface Mensaje {
 interface ChatIAProps {
   grupo: Grupo;
   onNuevoMensaje?: (mensaje: Mensaje) => void;
+  readOnly?: boolean;
 }
 
 const preguntasSugeridas = [
@@ -25,8 +26,9 @@ const preguntasSugeridas = [
   { texto: "¿Qué hemos aprendido hasta ahora del proyecto?", categoria: 'Metacognitiva' as const }
 ];
 
-export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
-  const { user } = useAuth();
+export function ChatIA({ grupo, onNuevoMensaje, readOnly }: ChatIAProps) {
+  const { user, perfil } = useAuth();
+  const isReadOnly = readOnly || perfil?.rol === 'profesor';
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [inputMensaje, setInputMensaje] = useState('');
   const [categoriaMensaje, setCategoriaMensaje] = useState<Mensaje['categoria']>('Creativa');
@@ -111,15 +113,12 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
 
       if (errorAlumno) throw errorAlumno;
 
-      // 3. Obtener respuesta de IA con MEMORIA (Historial completo + nuevo mensaje)
-      // Usamos la lista de mensajes actual más el nuevo que acabamos de añadir
-      const historialParaIA = [
-        ...mensajes.map(m => ({
-          role: (m.tipo === 'ia' ? 'assistant' : 'user') as 'assistant' | 'user' | 'system',
-          content: m.contenido
-        })),
-        { role: 'user' as const, content: mensajeTexto }
-      ];
+      // 3. Obtener respuesta de IA con MEMORIA (Historial completo)
+      // Pasamos el historial previo. generarRespuestaIA añadirá el mensajeUsuario al final automáticamente.
+      const historialParaIA = mensajes.map(m => ({
+        role: (m.tipo === 'ia' ? 'assistant' : 'user') as 'assistant' | 'user' | 'system',
+        content: m.contenido
+      }));
 
       const respuestaTexto = await generarRespuestaIA(mensajeTexto, historialParaIA);
 
@@ -130,18 +129,12 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
         contenido: respuestaTexto
       }]);
 
-      if (errorIA) throw errorIA;
-
-      // 5. ACTUALIZAR MÉTRICA: Incrementar interacciones_ia del grupo
-      // Esto hace que el "backend" sea coherente con lo que el profesor ve en los dashboards
-      await supabase.rpc('incrementar_interacciones_ia', { grupo_id_param: grupo.id });
-      // Fallback si la function RPC no existe (aunque lo ideal es que esté en Supabase)
-      if (false) { // Bloque desactivado si confiamos en el RPC, pero dejo la lógica de seguridad
-        await supabase
-          .from('grupos')
-          .update({ interacciones_ia: (grupo.interacciones_ia || 0) + 1 })
-          .eq('id', grupo.id);
+      if (errorIA) {
+        console.error("Error guardando IA en DB:", errorIA);
       }
+
+      // 5. ACTUALIZAR MÉTRICA: Incrementar interacciones_ia del grupo RPC
+      await supabase.rpc('incrementar_interacciones_ia', { grupo_id_param: grupo.id });
 
       // 6. Mensaje real de IA en local
       const mensajeIA: Mensaje = {
@@ -208,25 +201,32 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-4">
               <Sparkles className="w-10 h-10 text-white" />
             </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">¡Hola! Soy tu Mentor IA</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              {isReadOnly ? 'Aún no hay mensajes' : '¡Hola! Soy tu Mentor IA'}
+            </h4>
             <p className="text-gray-600 mb-6 max-w-md text-sm">
-              Estoy aquí para ayudaros a reflexionar sobre vuestro proyecto. ¿En qué puedo ayudaros hoy?
+              {isReadOnly
+                ? 'El grupo todavía no ha iniciado la conversación con el mentor socrático.'
+                : 'Estoy aquí para ayudaros a reflexionar sobre vuestro proyecto. ¿En qué puedo ayudaros hoy?'}
             </p>
-            <div className="w-full max-w-md">
-              <div className="grid grid-cols-1 gap-2">
-                {preguntasSugeridas.map((pregunta, index) => (
-                  <button
-                    key={index}
-                    onClick={() => enviarMensaje(pregunta.texto, pregunta.categoria)}
-                    className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all text-xs text-gray-700 shadow-sm"
-                  >
-                    {pregunta.texto}
-                  </button>
-                ))}
+            {!isReadOnly && (
+              <div className="w-full max-w-md">
+                <div className="grid grid-cols-1 gap-2">
+                  {preguntasSugeridas.map((pregunta, index) => (
+                    <button
+                      key={index}
+                      onClick={() => enviarMensaje(pregunta.texto, pregunta.categoria)}
+                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all text-xs text-gray-700 shadow-sm"
+                    >
+                      {pregunta.texto}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
+          /* ... list messages logic ... */
           <>
             {mensajes.map((mensaje) => (
               <div
@@ -252,6 +252,7 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
               </div>
             ))}
             {escribiendo && (
+              /* ... bounce animation ... */
               <div className="flex justify-start mb-4">
                 <div className="max-w-[80%]">
                   <div className="flex items-center gap-2 mb-1">
@@ -273,26 +274,33 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
         )}
       </div>
 
-      {/* Input */}
+      {/* Input / ReadOnly Banner */}
       <div className="border-t border-gray-100 p-4 bg-white">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputMensaje}
-            onChange={(e) => setInputMensaje(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && enviarMensaje()}
-            placeholder="Escribe una pregunta al mentor..."
-            className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
-            disabled={escribiendo}
-          />
-          <button
-            onClick={() => enviarMensaje()}
-            disabled={!inputMensaje.trim() || escribiendo}
-            className="w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center disabled:opacity-50"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
+        {isReadOnly ? (
+          <div className="flex items-center justify-center gap-3 py-2 text-slate-400 italic text-sm">
+            <Bot className="w-4 h-4 opacity-50" />
+            <span>Modo supervisión: Estás viendo la conversación del grupo</span>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputMensaje}
+              onChange={(e) => setInputMensaje(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && enviarMensaje()}
+              placeholder="Escribe una pregunta al mentor..."
+              className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
+              disabled={escribiendo}
+            />
+            <button
+              onClick={() => enviarMensaje()}
+              disabled={!inputMensaje.trim() || escribiendo}
+              className="w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center disabled:opacity-50"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

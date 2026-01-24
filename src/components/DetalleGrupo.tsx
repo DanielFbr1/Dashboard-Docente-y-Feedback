@@ -84,6 +84,16 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
             <Share2 className="w-4 h-4" />
             Trabajo compartido
           </button>
+          <button
+            onClick={() => setVistaActiva('chat')}
+            className={`px-4 py-2 font-medium transition-all border-b-2 flex items-center gap-2 ${vistaActiva === 'chat'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+          >
+            <Brain className="w-4 h-4" />
+            Control IA
+          </button>
         </div>
       </header>
 
@@ -202,7 +212,16 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
           <RepositorioColaborativo grupo={grupo} todosLosGrupos={[]} />
         ) : (
           <div className="max-w-4xl mx-auto">
-            <ChatIA grupo={grupo} />
+            <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+              <div className="flex items-center gap-3 mb-6">
+                <Brain className="w-8 h-8 text-purple-600" />
+                <div>
+                  <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Supervisión del Mentor IA</h2>
+                  <p className="text-sm text-slate-400 font-medium">Observando el diálogo socrático del equipo {grupo.nombre}</p>
+                </div>
+              </div>
+              <ChatIA grupo={grupo} readOnly={true} />
+            </div>
           </div>
         )}
       </main>
