@@ -235,23 +235,26 @@ export function DashboardDocente({
           </div>
 
           {proyectoActual && (
-            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 mt-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm text-blue-600">
+            <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 mt-4 shadow-sm">
+              <div className="w-12 h-12 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm text-blue-600">
                 <FolderOpen className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Proyecto Activo</div>
-                <div className="font-black text-gray-900 text-lg leading-tight">{proyectoActual.nombre}</div>
-                <div className="text-xs text-blue-600 font-bold bg-blue-100 px-2 py-0.5 rounded-full inline-block mt-1">Código: {proyectoActual.codigo_sala}</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Proyecto Activo</div>
+                <div className="font-bold text-slate-900 text-xl leading-tight">{proyectoActual.nombre}</div>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 uppercase tracking-tighter">Código: {proyectoActual.codigo_sala}</div>
+                </div>
               </div>
               <button
                 onClick={onCambiarProyecto}
-                className="px-4 py-2 bg-white text-blue-600 border-2 border-blue-100 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all text-sm font-bold shadow-sm"
+                className="px-6 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all text-sm font-bold shadow-sm"
               >
                 Cambiar Proyecto
               </button>
             </div>
           )}
+
         </header>
 
         {/* Main scroll area */}

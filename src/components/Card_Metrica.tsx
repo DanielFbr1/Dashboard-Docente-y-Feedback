@@ -4,33 +4,30 @@ interface CardMetricaProps {
   titulo: string;
   numero: string | number;
   descripcion: string;
-  color?: 'blue' | 'green' | 'yellow' | 'red';
+  color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple';
   icon?: LucideIcon;
 }
 
 export function Card_Metrica({ titulo, numero, descripcion, color = 'blue', icon }: CardMetricaProps) {
   const styles = {
-    blue: {
-      container: 'bg-blue-50 border-blue-200 text-blue-900',
-      icon: 'bg-blue-100 text-blue-600',
-      label: 'text-blue-500'
-    },
-    green: {
-      container: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-      icon: 'bg-emerald-100 text-emerald-600',
-      label: 'text-emerald-500'
-    },
-    yellow: {
-      container: 'bg-amber-50 border-amber-200 text-amber-900',
-      icon: 'bg-amber-100 text-amber-600',
-      label: 'text-amber-500'
-    },
-    red: {
-      container: 'bg-rose-50 border-rose-200 text-rose-900',
-      icon: 'bg-rose-100 text-rose-600',
-      label: 'text-rose-500'
-    },
+    blue: { iconBg: 'bg-blue-50', iconText: 'text-blue-500' },
+    green: { iconBg: 'bg-emerald-50', iconText: 'text-emerald-500' },
+    yellow: { iconBg: 'bg-amber-50', iconText: 'text-amber-500' },
+    red: { iconBg: 'bg-rose-50', iconText: 'text-rose-500' },
+    purple: { iconBg: 'bg-purple-50', iconText: 'text-purple-500' }
   };
+
+  // Map incoming colors to a slightly more specific palette if needed, 
+  // but keep it flexible. The image shows blue, green, purple, orange/red.
+  const colorMap: Record<string, keyof typeof styles> = {
+    blue: 'blue',
+    green: 'green',
+    yellow: 'yellow',
+    red: 'red',
+    purple: 'purple'
+  };
+
+  const currentStyle = styles[colorMap[color] || 'blue'];
 
   const getDefaultIcon = () => {
     if (icon) return icon;
@@ -39,6 +36,7 @@ export function Card_Metrica({ titulo, numero, descripcion, color = 'blue', icon
       case 'green': return MessageSquare;
       case 'yellow': return Target;
       case 'red': return AlertCircle;
+      case 'purple': return Users; // Default for purple if not specified
       default: return Users;
     }
   };
@@ -46,17 +44,17 @@ export function Card_Metrica({ titulo, numero, descripcion, color = 'blue', icon
   const Icon = getDefaultIcon();
 
   return (
-    <div className={`${styles[color].container} rounded-[2rem] border-2 p-8 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all group`}>
-      <div className="flex items-center justify-between">
-        <span className={`text-xs font-black uppercase tracking-widest ${styles[color].label}`}>{titulo}</span>
-        <div className={`p-2.5 rounded-xl ${styles[color].icon}`}>
+    <div className="bg-white border border-slate-200 rounded-[1.25rem] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-lg ${currentStyle.iconBg} ${currentStyle.iconText}`}>
           <Icon className="w-5 h-5" />
         </div>
+        <span className="text-sm font-medium text-slate-500">{titulo}</span>
       </div>
 
-      <div className="flex flex-col">
-        <div className="text-4xl font-black tracking-tight">{numero}</div>
-        <div className="text-sm font-bold opacity-60 italic">{descripcion}</div>
+      <div className="flex flex-col gap-1">
+        <div className="text-4xl font-bold text-slate-900 leading-none">{numero}</div>
+        <div className="text-xs font-medium text-slate-400">{descripcion}</div>
       </div>
     </div>
   );

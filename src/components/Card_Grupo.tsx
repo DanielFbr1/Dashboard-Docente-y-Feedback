@@ -35,7 +35,7 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
 
   return (
     <div
-      className="flex flex-col gap-6 p-7 bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300 relative group overflow-hidden"
+      className="flex flex-col gap-6 p-7 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
     >
       {/* Botones de acción rápidos */}
       {(mostrarBotonEditar || mostrarBotonBorrar) && (

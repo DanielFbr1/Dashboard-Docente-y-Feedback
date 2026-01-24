@@ -29,7 +29,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
   const tiposInteraccion: TipoInteraccion[] = [
     {
       tipo: 'Metacognitivas',
-      color: 'bg-purple-100 border-purple-300 text-purple-700',
+      color: 'border-purple-200 bg-purple-50 text-purple-700',
       icon: Brain,
       total: Math.floor(totalInteracciones * 0.35),
       descripcion: 'Preguntas sobre el proceso de pensamiento y aprendizaje',
@@ -37,7 +37,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
     },
     {
       tipo: 'Técnicas',
-      color: 'bg-blue-100 border-blue-300 text-blue-700',
+      color: 'border-blue-200 bg-blue-50 text-blue-700',
       icon: Cog,
       total: Math.floor(totalInteracciones * 0.25),
       descripcion: 'Consultas sobre herramientas y procedimientos',
@@ -45,7 +45,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
     },
     {
       tipo: 'Organizativas',
-      color: 'bg-green-100 border-green-300 text-green-700',
+      color: 'border-emerald-200 bg-emerald-50 text-emerald-700',
       icon: UsersIcon,
       total: Math.floor(totalInteracciones * 0.20),
       descripcion: 'Preguntas sobre coordinación y gestión del equipo',
@@ -53,7 +53,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
     },
     {
       tipo: 'Creativas',
-      color: 'bg-orange-100 border-orange-300 text-orange-700',
+      color: 'border-orange-200 bg-orange-50 text-orange-700',
       icon: Lightbulb,
       total: Math.floor(totalInteracciones * 0.20),
       descripcion: 'Preguntas que estimulan el pensamiento creativo',
@@ -67,151 +67,117 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
   return (
     <>
       {grupoChat && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Chat con Mentor IA - {grupoChat.nombre}</h3>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h3 className="font-bold text-slate-800">Chat con Mentor IA - {grupoChat.nombre}</h3>
               <button
                 onClick={() => setGrupoChat(null)}
-                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors"
               >
-                ×
+                <Plus className="rotate-45 w-6 h-6" />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-4 bg-white">
               <ChatIA grupo={grupoChat} />
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col gap-8">
-        {/* Header con estadísticas generales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="text-sm text-gray-600">Total interacciones</div>
+      <div className="flex flex-col gap-10">
+        {/* Tipos de interacciones (Mover arriba como en la imagen si es necesario, 
+            pero la imagen muestra métricas arriba y tipos abajo) */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+              <PieChart className="w-5 h-5" />
             </div>
-            <div className="text-3xl font-semibold text-gray-900">{totalInteracciones}</div>
-            <div className="text-xs text-gray-500 mt-1">preguntas realizadas</div>
+            <h2 className="text-xl font-bold text-slate-800">Tipos de preguntas (metodología socrática)</h2>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="text-sm text-gray-600">Promedio por grupo</div>
-            </div>
-            <div className="text-3xl font-semibold text-gray-900">{Math.round(totalInteracciones / grupos.length)}</div>
-            <div className="text-xs text-gray-500 mt-1">interacciones por grupo</div>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Brain className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="text-sm text-gray-600">Más activo</div>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">{gruposOrdenados[0]?.nombre.split('–')[0]}</div>
-            <div className="text-xs text-gray-500 mt-1">{gruposOrdenados[0]?.interacciones_ia} interacciones</div>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Sparkles className="w-5 h-5 text-orange-600" />
-              </div>
-              <div className="text-sm text-gray-600">Esta semana</div>
-            </div>
-            <div className="text-3xl font-semibold text-gray-900">{Math.floor(totalInteracciones * 0.4)}</div>
-            <div className="text-xs text-gray-500 mt-1">nuevas preguntas</div>
-          </div>
-        </div>
-
-        {/* Tipos de interacciones */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <PieChart className="w-5 h-5 text-blue-600" />
-            Tipos de preguntas (metodología socrática)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {tiposInteraccion.map((tipo) => {
               const Icon = tipo.icon;
               return (
-                <div key={tipo.tipo} className={`border rounded-lg p-5 ${tipo.color}`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-6 h-6" />
+                <div key={tipo.tipo} className={`border-2 rounded-2xl p-6 ${tipo.color} transition-all`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-white rounded-xl shadow-sm">
+                        <Icon className="w-6 h-6" />
+                      </div>
                       <div>
-                        <div className="font-semibold text-lg">{tipo.tipo}</div>
-                        <div className="text-xs mt-1">{tipo.descripcion}</div>
+                        <div className="font-bold text-xl">{tipo.tipo}</div>
+                        <div className="text-sm opacity-80 font-medium">{tipo.descripcion}</div>
                       </div>
                     </div>
-                    <div className="text-2xl font-bold">{tipo.total}</div>
+                    <div className="text-4xl font-black opacity-80">{tipo.total}</div>
                   </div>
-                  <div className="bg-white bg-opacity-50 rounded p-3 text-sm italic">
-                    <span className="font-medium">Ejemplo:</span> "{tipo.ejemplo}"
+
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                    <div className="flex gap-2">
+                      <span className="font-bold text-sm whitespace-nowrap">Ejemplo:</span>
+                      <span className="text-sm italic opacity-90 leading-relaxed font-medium">"{tipo.ejemplo}"</span>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
+        </section>
 
         {/* Ranking de grupos por interacciones */}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            Actividad por grupo
-          </h2>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">Actividad por grupo</h2>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             {gruposOrdenados.map((grupo, index) => (
               <div
                 key={grupo.id}
-                className="flex items-center gap-4 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-b-0"
+                className="flex items-center gap-4 p-5 border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-b-0"
               >
-                <div className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full font-semibold text-sm">
+                <div className="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-500 rounded-full font-bold text-sm">
                   {index + 1}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">{grupo.nombre}</div>
-                  <div className="text-sm text-gray-500">{grupo.departamento}</div>
+                  <div className="font-bold text-slate-900 leading-tight">{grupo.nombre}</div>
+                  <div className="text-xs font-medium text-slate-500 mt-0.5">{grupo.departamento}</div>
                 </div>
-                <div className="flex-1 max-w-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="flex-1 max-w-xs hidden sm:block">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 transition-all"
+                        className="h-full bg-blue-500 transition-all duration-1000"
                         style={{ width: `${(grupo.interacciones_ia / maxInteracciones) * 100}%` }}
                       />
                     </div>
-                    <div className="w-12 text-right font-semibold text-gray-900">{grupo.interacciones_ia}</div>
+                    <div className="w-10 text-right font-bold text-slate-900 text-sm">{grupo.interacciones_ia}</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setGrupoChat(grupo)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-bold shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
-                    Chat con IA
+                    <span className="hidden xs:inline">Chat IA</span>
                   </button>
                   <button
                     onClick={() => onSelectGrupo(grupo)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors text-sm font-bold"
                   >
-                    Ver detalles
+                    Detalles
                   </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </>
   );

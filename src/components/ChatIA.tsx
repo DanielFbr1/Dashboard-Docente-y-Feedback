@@ -165,17 +165,18 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
   return (
     <div className="flex flex-col h-[600px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+      <div className="bg-slate-900 p-4 text-white">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-semibold">Mentor IA</h3>
-            <p className="text-xs text-blue-100">Chat interactivo para {grupo.nombre}</p>
+            <h3 className="font-bold text-sm">Mentor IA</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>
       </div>
+
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">

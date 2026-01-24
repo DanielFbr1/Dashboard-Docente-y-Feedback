@@ -223,50 +223,42 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{proyectosClase.length} {proyectosClase.length === 1 ? 'PROYECTO' : 'PROYECTOS'}</span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {proyectosClase.map((proyecto) => (
                                     <div
                                         key={proyecto.id}
                                         onClick={() => onSelectProject(proyecto)}
-                                        className="group relative bg-white rounded-[2.5rem] p-9 flex flex-col border-2 border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 cursor-pointer overflow-hidden"
+                                        className="group relative bg-white rounded-[1.25rem] p-8 flex flex-col border border-slate-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden"
                                     >
-                                        <div className="flex justify-between items-start mb-8 relative z-10">
-                                            <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest border-2
+                                        <div className="flex justify-between items-start mb-6 relative z-10">
+                                            <span className={`px-3 py-1 text-[10px] font-bold rounded-md uppercase tracking-widest border
                                                 ${proyecto.estado === 'En curso' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                                     proyecto.estado === 'Finalizado' ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                                                 {proyecto.estado}
                                             </span>
                                             <button
                                                 onClick={(e) => handleDeleteProject(e, proyecto.id, proyecto.nombre)}
-                                                className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <div className="flex flex-col gap-2 mb-6 relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
-                                                    <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
-                                                </div>
-                                                <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight leading-tight uppercase">{proyecto.nombre}</h3>
-                                            </div>
-                                            <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest opacity-70 ml-12">{proyecto.tipo}</p>
+                                        <div className="flex flex-col mb-4 relative z-10">
+                                            <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight leading-tight">{proyecto.nombre}</h3>
+                                            <p className="text-slate-400 font-medium text-[11px] uppercase tracking-widest mt-1 opacity-70">{proyecto.tipo}</p>
                                         </div>
 
-                                        <p className="text-slate-500 font-medium text-sm mb-10 line-clamp-2 leading-relaxed relative z-10 ml-12">{proyecto.descripcion}</p>
+                                        <p className="text-slate-500 font-medium text-sm mb-8 line-clamp-2 leading-relaxed relative z-10">{proyecto.descripcion}</p>
 
-                                        <div className="mt-auto pt-8 border-t border-slate-50 flex justify-between items-center relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex -space-x-3">
-                                                    {[1, 2, 3].map(i => (
-                                                        <div key={i} className="w-9 h-9 rounded-full border-4 border-white bg-slate-50 flex items-center justify-center text-slate-300">
-                                                            <Users className="w-4 h-4" />
-                                                        </div>
-                                                    ))}
+                                        <div className="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center relative z-10">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 bg-slate-50 rounded-lg">
+                                                    <Users className="w-4 h-4 text-slate-400" />
                                                 </div>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestionar</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-black text-[10px] text-slate-400 bg-slate-50 px-4 py-2 rounded-2xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors tracking-widest uppercase">
+                                            <div className="flex items-center gap-2 font-bold text-[10px] text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-100 group-hover:bg-blue-100 transition-colors tracking-widest uppercase">
                                                 <Key className="w-3 h-3" />
                                                 {proyecto.codigo_sala}
                                             </div>
@@ -274,6 +266,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                                     </div>
                                 ))}
                             </div>
+
                         </section>
                     ))
                 ) : (
