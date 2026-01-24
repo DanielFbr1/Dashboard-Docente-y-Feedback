@@ -239,19 +239,15 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     );
   }
 
-  // Si no hay código ni proyecto, mostramos pantalla para unirse
-  if (errorStatus === 'CODIGO_INVALIDO' || (!alumno.proyecto_id && !alumno.codigo_sala)) {
-    return (
-      <UnirseClaseScreen
-        alumnoId={alumno.id}
-        onJoinSuccess={handleJoinSuccess}
-        onLogout={onLogout}
-      />
-    );
-  }
+  // Si no hay código ni proyecto, mostramos el modal para unirse a clase automáticamente,
+  // pero NO bloqueamos la vista principal.
+  useEffect(() => {
+    if (!alumno.proyecto_id && !alumno.codigo_sala && !loading && !showExample) {
+      setModalUnirseOpen(true);
+    }
+  }, [alumno.proyecto_id, alumno.codigo_sala, loading, showExample]);
 
-  // Errores técnicos reales
-  if (errorStatus === 'ERROR_TECNICO') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
@@ -393,8 +389,14 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {!grupoDisplay && (
-          <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-amber-700 font-medium mb-6">
-            Cargando los detalles de tu equipo...
+          <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-amber-700 font-medium mb-6 flex justify-between items-center">
+            <span>No estás asignado a ninguna clase o grupo todavía.</span>
+            <button
+              onClick={() => setModalUnirseOpen(true)}
+              className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm font-bold transition-colors"
+            >
+              Unirse a una clase
+            </button>
           </div>
         )}
 
@@ -515,7 +517,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
                       'bg-emerald-50 text-emerald-600 border-emerald-200'
                   }`}>
-                  {grupoReal.estado}
+                  {grupoDisplay.estado}
                 </span>
               </div>
 
@@ -527,7 +529,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
                   <div
                     className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-1000"
-                    style={{ width: `${grupoReal.progreso}%` }}
+                    style={{ width: `${grupoDisplay.progreso}%` }}
                   />
                 </div>
               </div>
