@@ -42,7 +42,7 @@ export function LoginPage() {
                 if (error) throw error;
 
                 // Forzamos el rol de sesión según por dónde entró
-                setSessionRole(targetRole);
+                setSessionRole(targetRole, targetRole === 'alumno' ? roomCode : undefined);
 
                 // Refrescamos el perfil para que el context sepa quién es
                 await refreshPerfil();

@@ -17,9 +17,10 @@ interface AuthContextType {
     user: User | null;
     perfil: Perfil | null;
     sessionRole: 'profesor' | 'alumno' | null;
+    sessionRoomCode: string | null;
     loading: boolean;
     signOut: () => Promise<void>;
-    setSessionRole: (rol: 'profesor' | 'alumno' | null) => void;
+    setSessionRole: (rol: 'profesor' | 'alumno' | null, roomCode?: string) => void;
     refreshPerfil: () => Promise<void>;
 }
 
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     perfil: null,
     sessionRole: null,
+    sessionRoomCode: null,
     loading: true,
     signOut: async () => { },
     setSessionRole: () => { },
@@ -40,6 +42,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [perfil, setPerfil] = useState<Perfil | null>(null);
     const [sessionRole, setSessionRole] = useState<'profesor' | 'alumno' | null>(() => {
         return localStorage.getItem('session_rol') as any;
+    });
+    const [sessionRoomCode, setSessionRoomCode] = useState<string | null>(() => {
+        return localStorage.getItem('session_room_code');
     });
     const [loading, setLoading] = useState(true);
 
@@ -61,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // Si no hay rol de sesión forzado, usamos el del perfil
                 if (!localStorage.getItem('session_rol')) {
-                    handleSetSessionRole(metadata.rol);
+                    handleSetSessionRole(metadata.rol, metadata.codigo_sala);
                 }
 
                 console.log("✅ Perfil recuperado del metadata:", metadata.rol);
@@ -82,10 +87,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const handleSetSessionRole = (rol: 'profesor' | 'alumno' | null) => {
+    const handleSetSessionRole = (rol: 'profesor' | 'alumno' | null, roomCode?: string) => {
         setSessionRole(rol);
         if (rol) localStorage.setItem('session_rol', rol);
         else localStorage.removeItem('session_rol');
+
+        if (roomCode) {
+            setSessionRoomCode(roomCode);
+            localStorage.setItem('session_room_code', roomCode);
+        } else if (!rol) {
+            setSessionRoomCode(null);
+            localStorage.removeItem('session_room_code');
+        }
     };
 
     useEffect(() => {
@@ -155,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, perfil, sessionRole, loading, signOut, setSessionRole: handleSetSessionRole, refreshPerfil }}>
+        <AuthContext.Provider value={{ session, user, perfil, sessionRole, sessionRoomCode, loading, signOut, setSessionRole: handleSetSessionRole, refreshPerfil }}>
             {children}
         </AuthContext.Provider>
     );
