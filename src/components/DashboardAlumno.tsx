@@ -577,7 +577,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         )}
 
         {vistaActiva === 'compartir' && grupoDisplay && (
-          <RepositorioColaborativo grupo={grupoDisplay} todosLosGrupos={todosLosGrupos} />
+          <RepositorioColaborativo
+            grupo={grupoDisplay}
+            todosLosGrupos={todosLosGrupos}
+            mostrarEjemplo={showExample}
+          />
         )}
 
         {vistaActiva === 'progreso' && grupoDisplay && (
@@ -698,7 +702,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
         {vistaActiva === 'chat' && grupoDisplay && (
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 min-h-[600px]">
-            <ChatIA grupo={grupoDisplay} />
+            <ChatIA
+              grupo={grupoDisplay}
+              mostrarEjemplo={showExample}
+            />
           </div>
         )}
       </main>

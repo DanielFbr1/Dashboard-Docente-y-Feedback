@@ -4,6 +4,7 @@ import { Grupo } from '../types';
 import { generarRespuestaIA } from '../services/ai';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 interface Mensaje {
   id: string;
@@ -17,7 +18,39 @@ interface ChatIAProps {
   grupo: Grupo;
   onNuevoMensaje?: (mensaje: Mensaje) => void;
   readOnly?: boolean;
+  mostrarEjemplo?: boolean;
 }
+
+const mensajesEjemplo: Mensaje[] = [
+  {
+    id: 'ex-1',
+    tipo: 'alumno',
+    contenido: '¿Cómo podemos empezar a organizar el podcast sobre cambio climático?',
+    categoria: 'Organizativa',
+    timestamp: new Date(Date.now() - 3600000)
+  },
+  {
+    id: 'ex-2',
+    tipo: 'ia',
+    contenido: 'Es una gran pregunta. Antes de dividir tareas, ¿habéis pensado qué impacto queréis causar en vuestros oyentes? ¿Qué es lo más importante que deberían aprender?',
+    categoria: 'Creativa',
+    timestamp: new Date(Date.now() - 3500000)
+  },
+  {
+    id: 'ex-3',
+    tipo: 'alumno',
+    contenido: 'Queremos que entiendan que reciclar no es suficiente, hay que reducir el consumo.',
+    categoria: 'Metacognitiva',
+    timestamp: new Date(Date.now() - 3400000)
+  },
+  {
+    id: 'ex-4',
+    tipo: 'ia',
+    contenido: 'Interesante enfoque. ¿Cómo creéis que podríais estructurar el guion para que ese mensaje sea el corazón del episodio sin que parezca un simple sermón?',
+    categoria: 'Creativa',
+    timestamp: new Date(Date.now() - 3300000)
+  }
+];
 
 const preguntasSugeridas = [
   { texto: "¿Cómo podemos enganchar a nuestra audiencia desde el inicio?", categoria: 'Creativa' as const },
@@ -26,7 +59,7 @@ const preguntasSugeridas = [
   { texto: "¿Qué hemos aprendido hasta ahora del proyecto?", categoria: 'Metacognitiva' as const }
 ];
 
-export function ChatIA({ grupo, onNuevoMensaje, readOnly }: ChatIAProps) {
+export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo }: ChatIAProps) {
   const { user, perfil } = useAuth();
   const isReadOnly = readOnly || perfil?.rol === 'profesor';
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -38,13 +71,19 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly }: ChatIAProps) {
 
   useEffect(() => {
     fetchMensajes();
-  }, [grupo.id]);
+  }, [grupo.id, mostrarEjemplo]);
 
   useEffect(() => {
     scrollToBottom();
   }, [mensajes]);
 
   const fetchMensajes = async () => {
+    if (mostrarEjemplo) {
+      setMensajes(mensajesEjemplo);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -84,6 +123,11 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly }: ChatIAProps) {
   };
 
   const enviarMensaje = async (texto?: string, categoria?: Mensaje['categoria']) => {
+    if (mostrarEjemplo) {
+      toast.info("¡Buen intento! Pero esto es solo una demostración interactiva. El chat real estará disponible cuando te unas a un grupo.");
+      return;
+    }
+
     const mensajeTexto = texto || inputMensaje.trim();
     if (!mensajeTexto) return;
 
@@ -120,7 +164,12 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly }: ChatIAProps) {
         content: m.contenido
       }));
 
-      const respuestaTexto = await generarRespuestaIA(mensajeTexto, historialParaIA);
+      const respuestaTexto = await generarRespuestaIA(
+        mensajeTexto,
+        grupo.departamento,
+        grupo.nombre, // Usamos el nombre del grupo como contexto del proyecto/grupo
+        historialParaIA
+      );
 
       // 4. Guardar mensaje de IA en Base de Datos
       const { error: errorIA } = await supabase.from('mensajes_chat').insert([{
