@@ -23,8 +23,10 @@ export function LoginPage() {
         try {
             const targetRole = (view === 'teacher-auth') ? 'profesor' : 'alumno';
 
+            let sessionData = null;
+
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -36,11 +38,22 @@ export function LoginPage() {
                     }
                 });
                 if (error) throw error;
-                alert('¡Cuenta creada! Revisa tu email para confirmar tu cuenta y entrar.');
-            } else {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
 
+                // Si hay sesión, es que no requiere confirmación o se autoconfirmó
+                if (data.session) {
+                    sessionData = data.session;
+                } else {
+                    // Si no hay sesión, probablemente requiere verificar email
+                    alert('Cuenta creada. Si no entras automáticamente, revisa tu email para confirmar.');
+                    return;
+                }
+            } else {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                sessionData = data.session;
+            }
+
+            if (sessionData) {
                 // Forzar refresco de perfil en el context
                 await refreshPerfil();
 
