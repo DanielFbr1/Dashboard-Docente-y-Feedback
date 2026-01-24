@@ -26,6 +26,13 @@ export function LoginPage() {
             let sessionData = null;
 
             if (isSignUp) {
+                // Pre-set flags to avoid race condition with auto-login/redirect
+                if (view === 'teacher-auth') {
+                    localStorage.setItem('isNewTeacher', 'true');
+                } else {
+                    localStorage.setItem('isNewStudent', 'true');
+                }
+
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -56,15 +63,6 @@ export function LoginPage() {
             if (sessionData) {
                 // Forzar refresco de perfil en el context
                 await refreshPerfil();
-
-                // Marcar que es un nuevo registro para mostrar el tutorial
-                if (isSignUp) {
-                    if (view === 'teacher-auth') {
-                        localStorage.setItem('isNewTeacher', 'true');
-                    } else {
-                        localStorage.setItem('isNewStudent', 'true');
-                    }
-                }
             }
         } catch (error: any) {
             setError(error.message);
