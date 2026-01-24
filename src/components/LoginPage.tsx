@@ -286,13 +286,24 @@ export function LoginPage() {
                     >
                         {loading ? 'Cargando...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
                     </button>
-                    <div className="mt-4 text-center">
+                    <div className="mt-4 text-center space-y-4">
                         <button
                             type="button"
                             onClick={() => setIsSignUp(!isSignUp)}
-                            className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors"
+                            className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors block w-full"
                         >
                             {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.clear();
+                                window.location.reload();
+                            }}
+                            className="text-slate-300 hover:text-rose-400 text-[9px] uppercase tracking-widest transition-colors"
+                        >
+                            Restablecer datos / Borrar historial
                         </button>
                     </div>
                 </form>
