@@ -9,11 +9,14 @@ import { ModalCrearGrupo } from './ModalCrearGrupo';
 import { SistemaCodigoSala } from './SistemaCodigoSala';
 import { ListaAlumnosEnLinea } from './ListaAlumnosEnLinea';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
+import { LivingTree } from './LivingTree';
 import { Grupo, DashboardSection, ProyectoActivo } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { ModalPerfilDocente } from './ModalPerfilDocente';
 import { ModalConfiguracionIA } from './ModalConfiguracionIA';
+import { ModalRevisionHitos } from './ModalRevisionHitos';
+import { HitoGrupo } from '../types';
 
 interface DashboardDocenteProps {
   onSelectGrupo: (grupo: Grupo) => void;
@@ -54,7 +57,48 @@ export function DashboardDocente({
   const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
   const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
   const [modalAjustesIAAbierto, setModalAjustesIAAbierto] = useState(false);
+  const [modalRevisionAbierto, setModalRevisionAbierto] = useState(false);
   const { signOut, perfil, user } = useAuth();
+
+  const numPendientes = grupos.reduce((acc, g) =>
+    acc + (g.hitos || []).filter(h => h.estado === 'revision').length, 0
+  );
+
+  const handleUpdateMilestone = async (grupoId: string | number, hitoId: string, nuevoEstado: 'aprobado' | 'rechazado') => {
+    const grupo = grupos.find(g => g.id === grupoId);
+    if (!grupo) return;
+
+    try {
+      // 1. Actualizar el estado del hito en el array local
+      const nuevosHitos = (grupo.hitos || []).map(h =>
+        h.id === hitoId ? { ...h, estado: nuevoEstado } : h
+      );
+
+      // 2. Recalcular el progreso si se aprueba
+      // Asumimos que cada fase es un hito importante. 
+      // Si el proyecto tiene 5 fases, cada una es un 20%.
+      // Para este cálculo usaremos los hitos marcados como 'aprobado'.
+      const numFases = proyectoActual ? 5 : 5; // Default 5 phases if not specified
+      const hitosAprobados = nuevosHitos.filter(h => h.estado === 'aprobado').length;
+      const nuevoProgreso = Math.min(100, Math.round((hitosAprobados / numFases) * 100));
+
+      // 3. Persistir cambios usando el prop onEditarGrupo
+      await onEditarGrupo(grupoId, {
+        nombre: grupo.nombre,
+        departamento: grupo.departamento,
+        miembros: grupo.miembros,
+        estado: nuevoProgreso >= 100 ? 'Completado' : 'En progreso',
+        progreso: nuevoProgreso,
+        interacciones_ia: grupo.interacciones_ia,
+        hitos: nuevosHitos
+      });
+
+      toast.success(nuevoEstado === 'aprobado' ? "¡Hito aprobado y progreso actualizado!" : "Hito rechazado.");
+    } catch (err) {
+      console.error("Error al revisar hito:", err);
+      toast.error("Hubo un fallo al guardar la revisión.");
+    }
+  };
 
   const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
   const hitosCompletados = grupos.reduce((sum, g) => sum + Math.floor(g.progreso / 20), 0);
@@ -104,6 +148,14 @@ export function DashboardDocente({
           grupoEditando={grupoEditando}
           proyectoId={proyectoActual?.id}
           codigoSala={proyectoActual?.codigo_sala}
+        />
+      )}
+
+      {modalRevisionAbierto && (
+        <ModalRevisionHitos
+          grupos={grupos}
+          onClose={() => setModalRevisionAbierto(false)}
+          onUpdateGrupo={handleUpdateMilestone}
         />
       )}
 
@@ -201,6 +253,19 @@ export function DashboardDocente({
                 <span>{proyectoActual?.codigo_sala || '---'}</span>
               </div>
 
+              {numPendientes > 0 && (
+                <button
+                  onClick={() => setModalRevisionAbierto(true)}
+                  className="relative p-2.5 bg-amber-50 text-amber-600 border-2 border-amber-200 rounded-xl hover:bg-amber-100 transition-all font-black text-xs uppercase tracking-widest flex items-center gap-2 group"
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                  </span>
+                  <span>{numPendientes} {numPendientes === 1 ? 'Revisión' : 'Revisiones'}</span>
+                </button>
+              )}
+
               {mostrandoEjemplo && (
                 <button
                   onClick={onLimpiarDatos}
@@ -284,6 +349,36 @@ export function DashboardDocente({
                   </div>
                 ) : (
                   <>
+                    {/* Árbol del Proyecto Global */}
+                    <div className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-10 overflow-hidden relative">
+                      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+
+                      <div className="relative z-10 shrink-0">
+                        <LivingTree
+                          progress={grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length}
+                          health={100}
+                          size={240}
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-4 text-center md:text-left">
+                        <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Estado Global del Proyecto</h2>
+                        <p className="text-slate-500 font-medium leading-relaxed max-w-xl">
+                          Este árbol representa el crecimiento conjunto de toda la clase. Cada hito aprobado en los grupos nutre el progreso general de la sala. ¡Seguid así!
+                        </p>
+                        <div className="flex gap-6 justify-center md:justify-start">
+                          <div className="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100">
+                            <div className="text-2xl font-black text-blue-600">{(grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length).toFixed(0)}%</div>
+                            <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Crecimiento Medio</div>
+                          </div>
+                          <div className="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100">
+                            <div className="text-2xl font-black text-emerald-600">Saludable</div>
+                            <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Estado Vital</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
                       <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />

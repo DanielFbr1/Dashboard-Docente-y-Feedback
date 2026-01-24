@@ -14,6 +14,7 @@ import { RoadmapView } from './RoadmapView';
 import { LivingTree } from './LivingTree';
 import { PROYECTOS_MOCK } from '../data/mockData';
 import { HitoGrupo } from '../types';
+import { toast } from 'sonner';
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -621,29 +622,45 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || (PROYECTOS_MOCK[0]?.fases || []))
                     : (PROYECTOS_MOCK[0]?.fases || [])
                 }
-                hitosGrupo={grupoDisplay.hitos || []}
+                hitosGrupo={grupoReal?.hitos || []}
                 onToggleHito={async (faseId, hitoTitulo, currentEstado) => {
-                  // Logic to toggle Hito
-                  console.log("Toggle Hito:", faseId, hitoTitulo, currentEstado);
+                  if (!grupoReal || !alumno) return;
 
-                  // Optimistic update logic would go here
-                  // For now, we simulate user interaction showing a toast or alert if needed
-                  if (currentEstado === 'pendiente') {
-                    // Call supabase to set to 'revision'
-                    // await supabase...
-
-                    // For demo (Mock update):
-                    const newHitos = [...(grupoDisplay.hitos || [])];
-                    newHitos.push({
-                      id: Date.now().toString(),
+                  try {
+                    // Preparamos el nuevo estado del hito
+                    const nuevoHito: HitoGrupo = {
+                      id: `${faseId}_${hitoTitulo.replace(/\s+/g, '_')}`,
                       fase_id: faseId,
                       titulo: hitoTitulo,
                       estado: 'revision'
-                    });
+                    };
 
-                    // Update local state (We need a setGrupoDisplay wrapper or refresh)
-                    // For this demo, just alert user as we are in 'view only' mode mostly
-                    alert("¡Hito marcado! El profesor lo revisará pronto para que el árbol crezca.");
+                    // Obtenemos los hitos actuales y actualizamos/añadimos
+                    const hitosActuales = [...(grupoReal.hitos || [])];
+                    const index = hitosActuales.findIndex(h => h.fase_id === faseId && h.titulo === hitoTitulo);
+
+                    if (index >= 0) {
+                      hitosActuales[index] = nuevoHito;
+                    } else {
+                      hitosActuales.push(nuevoHito);
+                    }
+
+                    // Guardamos en Supabase
+                    const { error } = await supabase
+                      .from('grupos')
+                      .update({ hitos: hitosActuales })
+                      .eq('id', grupoReal.id);
+
+                    if (error) throw error;
+
+                    // Actualizamos estado local para feedback instantáneo
+                    const grupoActualizado = { ...grupoReal, hitos: hitosActuales };
+                    setGrupoReal(grupoActualizado);
+
+                    toast.success("¡Hito enviado a revisión! El profesor lo verá pronto.");
+                  } catch (err: any) {
+                    console.error("Error al actualizar hito:", err);
+                    toast.error("No se pudo enviar el hito: " + err.message);
                   }
                 }}
               />

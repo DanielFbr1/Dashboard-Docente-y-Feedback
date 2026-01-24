@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Users, MessageSquare, ArrowRight } from 'lucide-react';
+import { Edit2, Trash2, Users, MessageSquare, Clock, ArrowRight } from 'lucide-react';
 import { Grupo } from '../types';
 
 interface CardGrupoProps {
@@ -75,6 +75,12 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
           <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border-2 ${getEstadoStyles(grupo.estado)}`}>
             {grupo.estado}
           </span>
+          {(grupo.hitos || []).some(h => h.estado === 'revision') && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-amber-200 animate-bounce">
+              <Clock className="w-3 h-3" />
+              <span>Pendiente</span>
+            </div>
+          )}
         </div>
 
         <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors tracking-tight uppercase">
