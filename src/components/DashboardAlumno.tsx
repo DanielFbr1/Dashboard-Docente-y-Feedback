@@ -258,23 +258,36 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
           <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-rose-100">
-            <User className="w-10 h-10 text-rose-500" />
+            <CircleHelp className="w-10 h-10 text-rose-500" />
           </div>
 
           <h2 className="text-2xl font-black text-slate-800 mb-4 uppercase tracking-tight">
-            Error de conexión
+            {errorStatus === 'CODIGO_INVALIDO' ? 'Código no encontrado' : 'Error de carga'}
           </h2>
 
           <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-            Ha habido un problema al conectar con el servidor. Inténtalo de nuevo en unos momentos.
+            {errorStatus === 'CODIGO_INVALIDO'
+              ? 'El código de sala que tienes asignado ya no existe. Posiblemente el proyecto haya sido borrado.'
+              : 'Ha habido un problema al conectar con el servidor o cargar tu perfil.'}
           </p>
 
-          <button
-            onClick={onLogout}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-lg"
-          >
-            Volver al inicio
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-lg"
+            >
+              Reintentar Limpiando
+            </button>
+            <button
+              onClick={onLogout}
+              className="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold uppercase tracking-widest text-xs hover:text-slate-600 transition-all"
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -605,8 +618,8 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 fases={
                   // Buscar las fases del proyecto actual. Si no hay (ej. mock), usamos las del mock p1
                   (todosLosGrupos.length > 0 && alumno.proyecto_id)
-                    ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0].fases)
-                    : PROYECTOS_MOCK[0].fases
+                    ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || (PROYECTOS_MOCK[0]?.fases || []))
+                    : (PROYECTOS_MOCK[0]?.fases || [])
                 }
                 hitosGrupo={grupoDisplay.hitos || []}
                 onToggleHito={async (faseId, hitoTitulo, currentEstado) => {

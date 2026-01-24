@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
 import { ProyectoFase, HitoGrupo } from '../types';
 
