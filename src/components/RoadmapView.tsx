@@ -10,8 +10,8 @@ interface RoadmapViewProps {
     readOnly?: boolean;
 }
 
-export function RoadmapView({ fases, hitosGrupo, onToggleHito, currentPhaseId, readOnly = false }: RoadmapViewProps) {
-    const [activePhase, setActivePhase] = useState<string>(currentPhaseId || (fases[0]?.id));
+export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhaseId, readOnly = false }: RoadmapViewProps) {
+    const [activePhase, setActivePhase] = useState<string>(currentPhaseId || (fases.length > 0 ? fases[0].id : ''));
 
     // Helper to find the status of a specific milestone for this group
     const getHitoStatus = (faseId: string, hitoTitulo: string) => {
@@ -23,17 +23,17 @@ export function RoadmapView({ fases, hitosGrupo, onToggleHito, currentPhaseId, r
         <div className="w-full">
             {/* Phases Timeline Scrollable */}
             <div className="flex overflow-x-auto pb-6 gap-2 no-scrollbar">
-                {fases.map((fase) => (
+                {(fases || []).map((fase) => (
                     <button
                         key={fase.id}
                         onClick={() => setActivePhase(fase.id)}
                         className={`flex-shrink-0 px-6 py-4 rounded-2xl border-2 transition-all flex flex-col items-start gap-2 min-w-[160px] ${activePhase === fase.id
-                                ? 'bg-white border-purple-600 shadow-xl shadow-purple-100 ring-4 ring-purple-50'
-                                : 'bg-white border-slate-100 text-slate-400 hover:border-purple-200'
+                            ? 'bg-white border-purple-600 shadow-xl shadow-purple-100 ring-4 ring-purple-50'
+                            : 'bg-white border-slate-100 text-slate-400 hover:border-purple-200'
                             }`}
                     >
                         <span className={`text-[10px] font-black uppercase tracking-widest ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                            fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
                             }`}>
                             {fase.estado}
                         </span>
@@ -48,7 +48,7 @@ export function RoadmapView({ fases, hitosGrupo, onToggleHito, currentPhaseId, r
             {/* Milestones List for Active Phase */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                    Hitos de {fases.find(f => f.id === activePhase)?.nombre}
+                    Hitos de {fases.find(f => f.id === activePhase)?.nombre || 'esta fase'}
                 </h3>
 
                 <div className="space-y-3">
@@ -59,8 +59,8 @@ export function RoadmapView({ fases, hitosGrupo, onToggleHito, currentPhaseId, r
                             <div
                                 key={index}
                                 className={`flex items-center justify-between p-4 rounded-xl border transition-all ${status === 'aprobado' ? 'bg-emerald-50 border-emerald-100' :
-                                        status === 'revision' ? 'bg-amber-50 border-amber-100' :
-                                            'bg-slate-50 border-slate-100 hover:bg-white hover:shadow-md'
+                                    status === 'revision' ? 'bg-amber-50 border-amber-100' :
+                                        'bg-slate-50 border-slate-100 hover:bg-white hover:shadow-md'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">

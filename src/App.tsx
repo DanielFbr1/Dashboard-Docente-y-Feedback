@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './components/LoginPage';
 import { ProjectsDashboard } from './pages/ProjectsDashboard';
@@ -6,9 +6,22 @@ import { ProjectDetail } from './pages/ProjectDetail';
 import { GroupDetail } from './pages/GroupDetail';
 import { DashboardAlumno } from './components/DashboardAlumno';
 import { Proyecto, Grupo } from './types';
+import { supabase } from './lib/supabase';
 
 function AppContent() {
   const { user, perfil, loading, signOut } = useAuth();
+
+  // Efecto para "Limpieza de Emergencia" si la pantalla se queda en blanco
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === 'true') {
+      console.log("🧹 Limpieza de emergencia activada...");
+      localStorage.clear();
+      supabase.auth.signOut().then(() => {
+        window.location.href = window.location.origin;
+      });
+    }
+  }, []);
   const [currentScreen, setCurrentScreen] = useState<'projects' | 'project-detail' | 'group-detail'>('projects');
   const [selectedProject, setSelectedProject] = useState<Proyecto | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<Grupo | null>(null);

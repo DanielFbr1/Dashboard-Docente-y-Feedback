@@ -148,7 +148,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       // 3. Identificar el grupo del alumno por su nombre en los miembros
       // Normalizamos nombres para evitar fallos por tildes o espacios extras
-      const normalizar = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      const normalizar = (t: string) => (t || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
       const nombreAlumnoNorm = normalizar(alumno.nombre);
 
       const miGrupo = (grupos || []).find(g =>
@@ -253,7 +253,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     }
   }, [alumno.proyecto_id, alumno.codigo_sala, loading, showExample]);
 
-  if (loading) {
+  if (errorStatus) {
     return (
       <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
