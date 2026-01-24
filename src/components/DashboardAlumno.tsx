@@ -76,26 +76,36 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       }
       setTodosLosGrupos(grupos || []);
 
-      if (!grupos || grupos.length === 0) {
-        setErrorStatus('PROYECTO_VACIO');
-        return;
-      }
-
       // 3. Identificar el grupo del alumno por su nombre en los miembros
       // Normalizamos nombres para evitar fallos por tildes o espacios extras
       const normalizar = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
       const nombreAlumnoNorm = normalizar(alumno.nombre);
 
-      const miGrupo = grupos.find(g =>
+      const miGrupo = (grupos || []).find(g =>
         g.miembros?.some((m: string) => normalizar(m).includes(nombreAlumnoNorm))
       );
 
       if (miGrupo) {
         setGrupoReal(miGrupo);
-      } else {
-        // Si no está asignado explícitamente, le asignamos el primero para que pueda trabajar
-        // pero le daremos un aviso de que no está en la lista oficial.
+      } else if (grupos && grupos.length > 0) {
+        // Si hay grupos pero no aparece en ninguno, le asignamos el primero como failover
         setGrupoReal(grupos[0]);
+      } else {
+        // CASO CRÍTICO: El proyecto no tiene grupos creados aún.
+        // Creamos un grupo placeholder para que el alumno no se quede bloqueado.
+        const placeholderGrupo: Grupo = {
+          id: 0,
+          nombre: 'Equipo de Bienvenida',
+          departamento: 'Pendiente',
+          estado: 'En progreso',
+          progreso: 0,
+          interacciones_ia: 0,
+          miembros: [alumno.nombre],
+          proyecto_id: targetProjectId
+        };
+        setGrupoReal(placeholderGrupo);
+        setTodosLosGrupos([placeholderGrupo]);
+        // No bloqueamos con errorStatus para que pueda entrar al tutorial
       }
     } catch (err) {
       console.error('Error fetching student data:', err);
@@ -134,14 +144,15 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 font-bold">Cargando tu espacio de trabajo...</p>
+          <p className="text-gray-500 font-bold">Iniciando sesión segura...</p>
         </div>
       </div>
     );
   }
 
-  // Pantallas de error amigables
-  if (errorStatus || !grupoReal) {
+  // Solo bloqueamos si el código de sala es realmente inválido. 
+  // Si el proyecto está vacío, ahora le dejamos pasar con el placeholder.
+  if (errorStatus === 'CODIGO_INVALIDO' || errorStatus === 'ERROR_TECNICO') {
     return (
       <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
@@ -150,22 +161,20 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
 
           <h2 className="text-2xl font-black text-slate-800 mb-4 uppercase tracking-tight">
-            {errorStatus === 'CODIGO_INVALIDO' ? 'Código no encontrado' :
-              errorStatus === 'PROYECTO_VACIO' ? 'Proyecto sin equipos' :
-                'Acceso restringido'}
+            {errorStatus === 'CODIGO_INVALIDO' ? 'Código no encontrado' : 'Error de conexión'}
           </h2>
 
           <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-            {errorStatus === 'CODIGO_INVALIDO' ? 'El código de sala que has introducido no existe. Por favor, compruébalo con tu profesor.' :
-              errorStatus === 'PROYECTO_VACIO' ? 'El proyecto existe, pero tu profesor aún no ha creado los equipos de trabajo.' :
-                'Parece que tu nombre no está en la lista de ningún equipo para este proyecto todavía.'}
+            {errorStatus === 'CODIGO_INVALIDO'
+              ? 'El código de sala que has introducido no existe. Por favor, compruébalo con tu profesor.'
+              : 'Ha habido un problema al conectar con el servidor. Inténtalo de nuevo en unos momentos.'}
           </p>
 
           <button
             onClick={onLogout}
             className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-lg"
           >
-            Volver a intentar
+            Volver al inicio
           </button>
         </div>
       </div>
