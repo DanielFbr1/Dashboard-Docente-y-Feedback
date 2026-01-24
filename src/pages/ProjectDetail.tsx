@@ -112,7 +112,6 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
     };
 
     const handleLimpiarDatos = async () => {
-        if (!confirm('¿Borrar todos los grupos del proyecto?')) return;
         try {
             const { error } = await supabase
                 .from('grupos')

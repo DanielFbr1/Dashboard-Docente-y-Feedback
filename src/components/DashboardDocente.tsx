@@ -61,14 +61,12 @@ export function DashboardDocente({
   const gruposBloqueados = grupos.filter(g => g.estado === 'Bloqueado').length;
 
   const handleLogout = async () => {
-    if (window.confirm('¿Seguro que quieres cerrar sesión?')) {
-      try {
-        await signOut();
-        // La redirección la maneja el AuthContext o el estado de usuario en App.tsx
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        toast.error('Error al cerrar sesión');
-      }
+    try {
+      await signOut();
+      // La redirección la maneja el AuthContext o el estado de usuario en App.tsx
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      toast.error('Error al cerrar sesión');
     }
   };
 
