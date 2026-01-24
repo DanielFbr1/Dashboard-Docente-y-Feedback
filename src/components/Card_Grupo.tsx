@@ -35,18 +35,18 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
 
   return (
     <div
-      className="flex flex-col gap-6 p-8 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border-2 border-transparent hover:border-blue-500/10 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative group overflow-hidden"
+      className="flex flex-col gap-6 p-7 bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300 relative group overflow-hidden"
     >
       {/* Botones de acción rápidos */}
       {(mostrarBotonEditar || mostrarBotonBorrar) && (
-        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-[-10px] group-hover:translate-y-0 z-20">
+        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
           {mostrarBotonEditar && onEdit && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit();
               }}
-              className="p-3 bg-white shadow-lg border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 hover:scale-110 transition-all"
+              className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 transition-all"
               title="Editar grupo"
             >
               <Edit2 className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
                 e.stopPropagation();
                 onDelete();
               }}
-              className="p-3 bg-white shadow-lg border border-slate-100 rounded-2xl text-slate-400 hover:text-red-500 hover:scale-110 transition-all"
+              className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-xl text-slate-400 hover:text-red-500 transition-all"
               title="Eliminar grupo"
             >
               <Trash2 className="w-4 h-4" />
@@ -71,44 +71,45 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
         onClick={onClick}
         className="cursor-pointer relative z-10 h-full flex flex-col"
       >
-        <div className="flex justify-between items-start mb-6">
-          <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border-2 ${getEstadoStyles(grupo.estado)}`}>
+        <div className="flex justify-between items-start mb-5">
+          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border-2 ${getEstadoStyles(grupo.estado)}`}>
             {grupo.estado}
           </span>
-          <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-            <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
         </div>
 
-        <h3 className="text-2xl font-black text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
+        <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors tracking-tight uppercase">
           {grupo.nombre}
         </h3>
 
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 italic">
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">
           {grupo.departamento}
         </p>
 
-        <div className="space-y-3 mb-8">
-          <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-widest">
-            <span>Progreso del equipo</span>
-            <span className="text-slate-900">{grupo.progreso}%</span>
+        <div className="space-y-2 mb-6">
+          <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <span>Progreso</span>
+            <span className="text-slate-600 font-black">{grupo.progreso}%</span>
           </div>
-          <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px]">
+          <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden p-[2px] border border-slate-100">
             <div
-              className={`h-full rounded-full transition-all duration-1000 ease-out shadow-inner ${getProgresoColor(grupo.progreso)}`}
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${getProgresoColor(grupo.progreso)}`}
               style={{ width: `${grupo.progreso}%` }}
             />
           </div>
         </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl text-slate-500">
-            <Users className="w-4 h-4" />
-            <span className="text-xs font-black tracking-widest">{grupo.miembros.length}</span>
+        <div className="mt-auto pt-5 border-t border-slate-50 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-400">
+            <div className="p-1.5 bg-slate-50 rounded-lg">
+              <Users className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-tighter">{grupo.miembros.length} Miembros</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl text-blue-600">
-            <MessageSquare className="w-4 h-4" />
-            <span className="text-xs font-black tracking-widest">{grupo.interacciones_ia}</span>
+          <div className="flex items-center gap-2 text-blue-500/70">
+            <div className="p-1.5 bg-blue-50 rounded-lg">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-tighter">{grupo.interacciones_ia} Consultas</span>
           </div>
         </div>
       </div>

@@ -11,24 +11,24 @@ interface CardMetricaProps {
 export function Card_Metrica({ titulo, numero, descripcion, color = 'blue', icon }: CardMetricaProps) {
   const styles = {
     blue: {
-      bg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-      light: 'bg-blue-400/20 text-blue-50',
-      border: 'border-blue-400/30'
+      container: 'bg-blue-50 border-blue-200 text-blue-900',
+      icon: 'bg-blue-100 text-blue-600',
+      label: 'text-blue-500'
     },
     green: {
-      bg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
-      light: 'bg-emerald-400/20 text-emerald-50',
-      border: 'border-emerald-400/30'
+      container: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+      icon: 'bg-emerald-100 text-emerald-600',
+      label: 'text-emerald-500'
     },
     yellow: {
-      bg: 'bg-gradient-to-br from-amber-500 to-orange-600',
-      light: 'bg-amber-400/20 text-amber-50',
-      border: 'border-amber-400/30'
+      container: 'bg-amber-50 border-amber-200 text-amber-900',
+      icon: 'bg-amber-100 text-amber-600',
+      label: 'text-amber-500'
     },
     red: {
-      bg: 'bg-gradient-to-br from-rose-500 to-red-600',
-      light: 'bg-rose-400/20 text-rose-50',
-      border: 'border-rose-400/30'
+      container: 'bg-rose-50 border-rose-200 text-rose-900',
+      icon: 'bg-rose-100 text-rose-600',
+      label: 'text-rose-500'
     },
   };
 
@@ -46,19 +46,17 @@ export function Card_Metrica({ titulo, numero, descripcion, color = 'blue', icon
   const Icon = getDefaultIcon();
 
   return (
-    <div className={`${styles[color].bg} rounded-[2.5rem] shadow-xl p-8 flex flex-col gap-4 border-2 ${styles[color].border} text-white relative overflow-hidden group hover:scale-[1.02] transition-all`}>
-      <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-
-      <div className="flex items-center justify-between relative z-10">
-        <span className="text-sm font-black uppercase tracking-widest text-white/70">{titulo}</span>
-        <div className={`p-3 rounded-2xl ${styles[color].light} backdrop-blur-md`}>
-          <Icon className="w-6 h-6" />
+    <div className={`${styles[color].container} rounded-[2rem] border-2 p-8 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all group`}>
+      <div className="flex items-center justify-between">
+        <span className={`text-xs font-black uppercase tracking-widest ${styles[color].label}`}>{titulo}</span>
+        <div className={`p-2.5 rounded-xl ${styles[color].icon}`}>
+          <Icon className="w-5 h-5" />
         </div>
       </div>
 
-      <div className="flex flex-col relative z-10">
-        <div className="text-5xl font-black tracking-tighter mb-1">{numero}</div>
-        <div className="text-sm font-bold text-white/80 italic">{descripcion}</div>
+      <div className="flex flex-col">
+        <div className="text-4xl font-black tracking-tight">{numero}</div>
+        <div className="text-sm font-bold opacity-60 italic">{descripcion}</div>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ const generarRespuestaMock = async (): Promise<string> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             const indiceAleatorio = Math.floor(Math.random() * RESPUESTAS_SOCRATICAS_MOCK.length);
-            resolve(RESPUESTAS_SOCRATICAS_MOCK[indiceAleatorio] + " (Modo Mentor Local - Sin API Key en Vercel)");
+            resolve(RESPUESTAS_SOCRATICAS_MOCK[indiceAleatorio]);
         }, 1000);
     });
 };

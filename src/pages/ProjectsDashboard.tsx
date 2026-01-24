@@ -135,82 +135,92 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
         return acc;
     }, {} as Record<string, Proyecto[]>);
 
-    const getClaseColor = (clase: string) => {
-        if (clase.includes('5.º')) return 'from-blue-600 to-indigo-700';
-        if (clase.includes('6.º')) return 'from-purple-600 to-pink-700';
-        return 'from-gray-600 to-slate-700';
+    const getClaseStyles = (clase: string) => {
+        if (clase.includes('5.º')) return {
+            header: 'bg-blue-50 border-blue-200 text-blue-700',
+            bg: 'bg-blue-500',
+            light: 'bg-blue-50'
+        };
+        if (clase.includes('6.º')) return {
+            header: 'bg-purple-50 border-purple-200 text-purple-700',
+            bg: 'bg-purple-500',
+            light: 'bg-purple-50'
+        };
+        return {
+            header: 'bg-slate-50 border-slate-200 text-slate-700',
+            bg: 'bg-slate-500',
+            light: 'bg-slate-50'
+        };
     };
 
     const getClaseIcon = (clase: string) => {
-        if (clase.includes('5.º')) return <School className="w-6 h-6" />;
-        if (clase.includes('6.º')) return <GraduationCap className="w-6 h-6" />;
-        return <Folder className="w-6 h-6" />;
+        if (clase.includes('5.º')) return <School className="w-5 h-5" />;
+        if (clase.includes('6.º')) return <GraduationCap className="w-5 h-5" />;
+        return <Folder className="w-5 h-5" />;
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-500 font-bold animate-pulse">Cargando tus proyectos...</p>
+                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Cargando proyectos...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8 font-sans">
+        <div className="min-h-screen bg-[#fcfdff] p-8 font-sans">
             <header className="mb-12 max-w-7xl mx-auto">
-                <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] shadow-xl border border-white/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-blue-200">
-                            <Layout className="w-8 h-8 text-white" />
+                <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-100/50">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border-2 border-blue-100">
+                            <Layout className="w-7 h-7" />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Mis Proyectos</h1>
-                            <p className="text-slate-500 font-bold flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                Dashboard Docente • {proyectos.length} proyectos activos
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">Mis Proyectos</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Dashboard Activo • {proyectos.length} proyectos
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={fetchProyectos}
-                            className="p-4 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-white hover:shadow-md rounded-2xl transition-all group"
-                            title="Refrescar"
+                            className="p-3.5 bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all"
                         >
-                            <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                         <button
                             onClick={() => setShowModalProyecto(true)}
-                            className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+                            className="flex items-center gap-3 px-7 py-3.5 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-widest"
                         >
-                            <Plus className="w-6 h-6" />
-                            <span>Nuevo Proyecto</span>
+                            <Plus className="w-5 h-5" />
+                            <span>Nuevo</span>
                         </button>
                         <button
                             onClick={handleLogout}
-                            className="p-4 bg-red-50 text-red-400 hover:text-red-600 hover:bg-white hover:shadow-md rounded-2xl transition-all"
-                            title="Cerrar sesión"
+                            className="p-3.5 bg-rose-50 text-rose-400 hover:text-rose-600 hover:bg-rose-100 rounded-2xl transition-all"
                         >
-                            <LogOut className="w-6 h-6" />
+                            <LogOut className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto space-y-16">
+            <div className="max-w-7xl mx-auto space-y-20">
                 {proyectos.length > 0 ? (
                     Object.entries(proyectosPorClase).map(([clase, proyectosClase]) => (
-                        <section key={clase} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <section key={clase} className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 bg-gradient-to-br ${getClaseColor(clase)} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 ${getClaseStyles(clase).header}`}>
                                     {getClaseIcon(clase)}
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-800 tracking-tight">{clase}</h2>
-                                <div className="h-[2px] flex-1 bg-gradient-to-r from-slate-200 to-transparent"></div>
-                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest">{proyectosClase.length} {proyectosClase.length === 1 ? 'PROYECTO' : 'PROYECTOS'}</span>
+                                <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">{clase}</h2>
+                                <div className="h-[2px] flex-1 bg-slate-100 ml-4"></div>
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{proyectosClase.length} {proyectosClase.length === 1 ? 'PROYECTO' : 'PROYECTOS'}</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -218,46 +228,45 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                                     <div
                                         key={proyecto.id}
                                         onClick={() => onSelectProject(proyecto)}
-                                        className="group relative bg-white rounded-[2rem] p-8 flex flex-col border-2 border-transparent hover:border-blue-500/20 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 cursor-pointer overflow-hidden"
+                                        className="group relative bg-white rounded-[2.5rem] p-9 flex flex-col border-2 border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 cursor-pointer overflow-hidden"
                                     >
-                                        {/* Decoración de fondo */}
-                                        <div className={`absolute -right-4 -top-4 w-32 h-32 bg-gradient-to-br ${getClaseColor(clase)} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity`}></div>
-
-                                        <div className="flex justify-between items-start mb-6 relative z-10">
-                                            <span className={`px-4 py-1.5 text-xs font-black rounded-full uppercase tracking-tighter
-                                                ${proyecto.estado === 'En curso' ? 'bg-emerald-50 text-emerald-600' :
-                                                    proyecto.estado === 'Finalizado' ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-600'}`}>
+                                        <div className="flex justify-between items-start mb-8 relative z-10">
+                                            <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest border-2
+                                                ${proyecto.estado === 'En curso' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                    proyecto.estado === 'Finalizado' ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                                                 {proyecto.estado}
                                             </span>
                                             <button
                                                 onClick={(e) => handleDeleteProject(e, proyecto.id, proyecto.nombre)}
-                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-2.5 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <div className="flex items-center gap-3 mb-4 relative z-10">
-                                            <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
-                                                <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                                        <div className="flex flex-col gap-2 mb-6 relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
+                                                    <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                                                </div>
+                                                <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight leading-tight uppercase">{proyecto.nombre}</h3>
                                             </div>
-                                            <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight leading-tight">{proyecto.nombre}</h3>
+                                            <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest opacity-70 ml-12">{proyecto.tipo}</p>
                                         </div>
 
-                                        <p className="text-slate-500 font-medium text-sm mb-8 line-clamp-2 leading-relaxed relative z-10">{proyecto.descripcion}</p>
+                                        <p className="text-slate-500 font-medium text-sm mb-10 line-clamp-2 leading-relaxed relative z-10 ml-12">{proyecto.descripcion}</p>
 
-                                        <div className="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center relative z-10">
+                                        <div className="mt-auto pt-8 border-t border-slate-50 flex justify-between items-center relative z-10">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex -space-x-2">
+                                                <div className="flex -space-x-3">
                                                     {[1, 2, 3].map(i => (
-                                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center">
-                                                            <Users className="w-4 h-4 text-slate-400" />
+                                                        <div key={i} className="w-9 h-9 rounded-full border-4 border-white bg-slate-50 flex items-center justify-center text-slate-300">
+                                                            <Users className="w-4 h-4" />
                                                         </div>
                                                     ))}
                                                 </div>
-                                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Gestionar</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-mono text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                            <div className="flex items-center gap-2 font-black text-[10px] text-slate-400 bg-slate-50 px-4 py-2 rounded-2xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors tracking-widest uppercase">
                                                 <Key className="w-3 h-3" />
                                                 {proyecto.codigo_sala}
                                             </div>
@@ -268,24 +277,22 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                         </section>
                     ))
                 ) : (
-                    <div className="py-24 text-center bg-white rounded-[3rem] border-4 border-dashed border-slate-100 flex flex-col items-center shadow-inner">
-                        <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-8">
-                            <Sparkles className="w-16 h-16 text-slate-200" />
+                    <div className="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center shadow-sm">
+                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-8 border-2 border-slate-100">
+                            <Sparkles className="w-10 h-10 text-slate-200" />
                         </div>
-                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Tu Dashboard está listo</h2>
-                        <p className="text-slate-500 max-w-md mb-12 text-xl font-medium leading-relaxed">
-                            No tienes proyectos todavía. Comienza creando uno real o carga los ejemplos de demostración.
+                        <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight uppercase">Tu Dashboard está listo</h2>
+                        <p className="text-slate-400 max-w-sm mb-12 text-sm font-bold uppercase tracking-widest leading-loose">
+                            Comienza creando tu primer proyecto real para trabajar con tus alumnos.
                         </p>
-                        <div className="flex gap-4">
-                            <button
-                                onClick={handleLoadSamples}
-                                disabled={isSeeding}
-                                className="flex items-center gap-4 px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[2rem] font-black shadow-2xl shadow-blue-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-                            >
-                                {isSeeding ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6 text-yellow-300 fill-yellow-300" />}
-                                {isSeeding ? 'Cargando ejemplos...' : 'Cargar proyectos de ejemplo'}
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleLoadSamples}
+                            disabled={isSeeding}
+                            className="flex items-center gap-4 px-10 py-5 bg-blue-600 text-white rounded-[2rem] font-black shadow-xl shadow-blue-100 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-sm"
+                        >
+                            {isSeeding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-white" />}
+                            {isSeeding ? 'Cargando...' : 'Cargar ejemplos'}
+                        </button>
                     </div>
                 )}
             </div>

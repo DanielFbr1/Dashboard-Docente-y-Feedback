@@ -9,7 +9,6 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export const callGroq = async (messages: GroqMessage[]): Promise<string> => {
     if (!GROQ_API_KEY) {
-        alert("⚠️ DEBUG: VITE_GROQ_API_KEY no encontrada. Comprueba las variables en Vercel.");
         throw new Error('GROQ_API_KEY no configurada en las variables de entorno.');
     }
 
