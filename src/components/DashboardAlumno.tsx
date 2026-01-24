@@ -12,6 +12,7 @@ interface DashboardAlumnoProps {
     nombre: string;
     clase: string;
     grupo: string; // Este es el Código de Sala
+    proyectoId?: string; // ID único del proyecto
   };
   onLogout: () => void;
 }
@@ -36,26 +37,43 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       setLoading(true);
       setErrorStatus(null);
 
-      // 1. Buscar el proyecto por código de sala (limpiando espacios)
-      const roomCode = (alumno.grupo || '').trim().toUpperCase();
-      const { data: proyecto, error: errorProyecto } = await supabase
-        .from('proyectos')
-        .select('id, nombre')
-        .eq('codigo_sala', roomCode)
-        .single();
+      console.log("🔍 Iniciando carga de datos para alumno:", alumno.nombre);
 
-      if (errorProyecto || !proyecto) {
-        setErrorStatus('CODIGO_INVALIDO');
-        return;
+      // 1. Obtener ID del proyecto (Priorizamos ID directo, si no, buscamos por código)
+      let targetProjectId = (alumno as any).proyectoId || (alumno as any).proyecto_id;
+      let projectName = "Proyecto";
+
+      if (!targetProjectId) {
+        const roomCode = (alumno.grupo || '').trim().toUpperCase();
+        console.log("📡 Buscando proyecto por código:", roomCode);
+
+        const { data: proyecto, error: errorProyecto } = await supabase
+          .from('proyectos')
+          .select('id, nombre')
+          .eq('codigo_sala', roomCode)
+          .single();
+
+        if (errorProyecto || !proyecto) {
+          console.error("❌ Proyecto no encontrado por código:", roomCode, errorProyecto);
+          setErrorStatus('CODIGO_INVALIDO');
+          return;
+        }
+        targetProjectId = proyecto.id;
+        projectName = proyecto.nombre;
       }
+
+      console.log("✅ Proyecto identificado:", targetProjectId);
 
       // 2. Buscar todos los grupos de ese proyecto
       const { data: grupos, error: errorGrupos } = await supabase
         .from('grupos')
         .select('*')
-        .eq('proyecto_id', proyecto.id);
+        .eq('proyecto_id', targetProjectId);
 
-      if (errorGrupos) throw errorGrupos;
+      if (errorGrupos) {
+        console.error("❌ Error al obtener grupos:", errorGrupos);
+        throw errorGrupos;
+      }
       setTodosLosGrupos(grupos || []);
 
       if (!grupos || grupos.length === 0) {
