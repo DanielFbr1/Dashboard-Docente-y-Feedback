@@ -118,7 +118,7 @@ export function LoginPage() {
                         {/* Alumno */}
                         <button
                             onClick={() => {
-                                setView('student-verify');
+                                setView('student-auth');
                                 setIsSignUp(false);
                             }}
                             className="group relative bg-white rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden text-left"
@@ -168,100 +168,63 @@ export function LoginPage() {
                 <p className="text-gray-500 text-center mb-10 font-medium leading-relaxed">
                     {view === 'teacher-auth'
                         ? (isSignUp ? 'Crea tu cuenta profesional' : 'Inicia sesión para gestionar tus clases')
-                        : (view === 'student-verify' ? 'Introduce el código de tu sala' : `Únete al proyecto: ${foundProject?.nombre}`)}
+                        : 'Accede para unirte a tu clase'}
                 </p>
 
-                {view === 'student-verify' ? (
-                    <form onSubmit={handleVerifyCode} className="space-y-6">
+                <form onSubmit={handleAuth} className="space-y-6">
+                    {isSignUp && (
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Código de Sala</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Nombre Completo</label>
                             <input
                                 type="text"
-                                value={roomCode}
-                                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                                className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white outline-none transition-all text-center text-3xl font-black tracking-[0.2em]"
-                                placeholder="XXXXXX"
-                                required
-                                autoFocus
-                            />
-                        </div>
-                        {error && <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-sm font-bold border border-rose-100">{error}</div>}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:opacity-90 transition-all disabled:opacity-50 shadow-xl"
-                        >
-                            {loading ? 'Verificando...' : 'Verificar Sala'}
-                        </button>
-                        <div className="text-center pt-4">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setView('student-auth');
-                                    setIsSignUp(false);
-                                }}
-                                className="text-slate-400 hover:text-slate-900 text-xs font-black uppercase tracking-widest transition-colors"
-                            >
-                                Ya tengo cuenta de alumno
-                            </button>
-                        </div>
-                    </form>
-                ) : (
-                    <form onSubmit={handleAuth} className="space-y-6">
-                        {isSignUp && (
-                            <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Nombre Completo</label>
-                                <input
-                                    type="text"
-                                    value={studentName}
-                                    onChange={(e) => setStudentName(e.target.value)}
-                                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
-                                    placeholder="Ej: Juan Pérez"
-                                    required={isSignUp}
-                                />
-                            </div>
-                        )}
-                        <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={studentName}
+                                onChange={(e) => setStudentName(e.target.value)}
                                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
-                                placeholder="tu@email.com"
-                                required
+                                placeholder="Ej: Juan Pérez"
+                                required={isSignUp}
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Contraseña</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                        {error && <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-sm font-bold border border-rose-100">{error}</div>}
+                    )}
+                    <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
+                            placeholder="tu@email.com"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Contraseña</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+                    {error && <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-sm font-bold border border-rose-100">{error}</div>}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
+                    >
+                        {loading ? 'Cargando...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
+                    </button>
+                    <div className="mt-6 text-center">
                         <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
+                            type="button"
+                            onClick={() => setIsSignUp(!isSignUp)}
+                            className="text-slate-400 hover:text-slate-900 text-xs font-black uppercase tracking-widest transition-colors"
                         >
-                            {loading ? 'Cargando...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
+                            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                         </button>
-                        <div className="mt-6 text-center">
-                            <button
-                                type="button"
-                                onClick={() => setIsSignUp(!isSignUp)}
-                                className="text-slate-400 hover:text-slate-900 text-xs font-black uppercase tracking-widest transition-colors"
-                            >
-                                {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-                            </button>
-                        </div>
-                    </form>
-                )}
+                    </div>
+                </form>
             </div>
         </div>
     );

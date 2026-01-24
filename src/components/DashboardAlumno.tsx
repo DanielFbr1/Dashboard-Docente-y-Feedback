@@ -7,6 +7,7 @@ import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { TutorialInteractivo } from './TutorialInteractivo';
 import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { UnirseClaseScreen } from './UnirseClaseScreen';
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -145,6 +146,12 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     }
   };
 
+  const handleJoinSuccess = async () => {
+    // Recargar datos tras unirse
+    await fetchDatosAlumno();
+    setLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -156,9 +163,19 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     );
   }
 
-  // Solo bloqueamos si el código de sala es realmente inválido. 
-  // Si el proyecto está vacío, ahora le dejamos pasar con el placeholder.
-  if (errorStatus === 'CODIGO_INVALIDO' || errorStatus === 'ERROR_TECNICO') {
+  // Si no hay código ni proyecto, mostramos pantalla para unirse
+  if (errorStatus === 'CODIGO_INVALIDO' || (!alumno.proyecto_id && !alumno.codigo_sala)) {
+    return (
+      <UnirseClaseScreen
+        alumnoId={alumno.id}
+        onJoinSuccess={handleJoinSuccess}
+        onLogout={onLogout}
+      />
+    );
+  }
+
+  // Errores técnicos reales
+  if (errorStatus === 'ERROR_TECNICO') {
     return (
       <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
@@ -167,13 +184,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
 
           <h2 className="text-2xl font-black text-slate-800 mb-4 uppercase tracking-tight">
-            {errorStatus === 'CODIGO_INVALIDO' ? 'Código no encontrado' : 'Error de conexión'}
+            Error de conexión
           </h2>
 
           <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-            {errorStatus === 'CODIGO_INVALIDO'
-              ? 'El código de sala que has introducido no existe. Por favor, compruébalo con tu profesor.'
-              : 'Ha habido un problema al conectar con el servidor. Inténtalo de nuevo en unos momentos.'}
+            Ha habido un problema al conectar con el servidor. Inténtalo de nuevo en unos momentos.
           </p>
 
           <button
