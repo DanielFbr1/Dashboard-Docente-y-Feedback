@@ -36,47 +36,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [perfil, setPerfil] = useState<Perfil | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchPerfil = async (userId: string) => {
+    const fetchPerfil = (user: User) => {
         try {
-            console.log("👤 Cargando perfil para:", userId);
-            const { data: { user } } = await supabase.auth.getUser();
-            const metadata = user?.user_metadata;
+            console.log("👤 Analizando metadata para:", user.id);
+            const metadata = user.user_metadata;
 
             if (metadata?.rol) {
                 setPerfil({
-                    id: userId,
-                    nombre: metadata.nombre || user?.email?.split('@')[0] || 'Usuario',
+                    id: user.id,
+                    nombre: metadata.nombre || user.email?.split('@')[0] || 'Usuario',
                     rol: metadata.rol,
                     clase: metadata.clase,
                     codigo_sala: metadata.codigo_sala,
                     proyecto_id: metadata.proyecto_id
                 });
-                console.log("✅ Perfil cargado:", metadata.rol);
+                console.log("✅ Perfil recuperado del metadata:", metadata.rol);
             } else {
-                console.warn("⚠️ Usuario sin rol en metadata");
+                console.warn("⚠️ Usuario sin rol en metadata - Defaulting to teacher");
+                // Si no tiene rol, asumimos que es un usuario antiguo (Profesor)
+                setPerfil({
+                    id: user.id,
+                    nombre: user.email?.split('@')[0] || 'Profesor',
+                    rol: 'profesor'
+                });
             }
         } catch (err) {
-            console.error("❌ Error cargando perfil:", err);
+            console.error("❌ Error analizando perfil:", err);
         }
     };
 
     useEffect(() => {
         let isMounted = true;
 
-        // 1. Obtener sesión inicial
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            if (!isMounted) return;
-            console.log("🔑 Sesión inicial:", session ? "Presente" : "Nula");
+        const initializeAuth = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!isMounted) return;
 
-            setSession(session);
-            setUser(session?.user ?? null);
+                console.log("🔑 Sesión inicial:", session ? "Presente" : "Nula");
+                setSession(session);
+                setUser(session?.user ?? null);
 
-            if (session?.user) {
-                await fetchPerfil(session.user.id);
+                if (session?.user) {
+                    fetchPerfil(session.user);
+                }
+            } catch (err) {
+                console.error("❌ Error en initializeAuth:", err);
+            } finally {
+                if (isMounted) setLoading(false);
             }
+        };
 
-            setLoading(false);
-        });
+        initializeAuth();
 
         // 2. Escuchar cambios de auth
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -87,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                await fetchPerfil(session.user.id);
+                fetchPerfil(session.user);
             } else {
                 setPerfil(null);
             }
@@ -117,7 +128,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const refreshPerfil = async () => {
-        if (user) await fetchPerfil(user.id);
+        if (user) fetchPerfil(user);
     };
 
     return (
