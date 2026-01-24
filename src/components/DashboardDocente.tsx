@@ -1,4 +1,4 @@
-import { Settings, ChevronDown, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, HelpCircle, Key, FolderOpen, Share2, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, HelpCircle, Key, FolderOpen, Share2, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Card_Metrica } from './Card_Metrica';
 import { Card_Grupo } from './Card_Grupo';
@@ -197,31 +197,10 @@ export function DashboardDocente({
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1 text-center">Clave de Clase</label>
-                <div className="relative group">
-                  <select
-                    value={proyectoActual?.clase || ''}
-                    onChange={(e) => onClaseChange(e.target.value)}
-                    className="appearance-none bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-sm font-bold text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
-                  >
-                    <option value="" disabled>📌 Seleccionar Clase</option>
-                    <option value="5.º Primaria - A">5.º Primaria - A</option>
-                    <option value="5.º Primaria - B">5.º Primaria - B</option>
-                    <option value="6.º Primaria - A">6.º Primaria - A</option>
-                    <option value="6.º Primaria - B">6.º Primaria - B</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-blue-500 transition-colors" />
-                </div>
+              <div className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-black shadow-md hover:shadow-lg transition-all tracking-widest text-lg">
+                <Key className="w-5 h-5" />
+                <span>{proyectoActual?.codigo_sala || '---'}</span>
               </div>
-
-              <button
-                onClick={() => setMostrarCodigoSala(!mostrarCodigoSala)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-md hover:shadow-lg"
-              >
-                <Key className="w-4 h-4" />
-                Mostrar código de clase
-              </button>
 
               {mostrandoEjemplo && (
                 <button
