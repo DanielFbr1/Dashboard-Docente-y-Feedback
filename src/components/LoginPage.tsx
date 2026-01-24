@@ -164,111 +164,111 @@ export function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 relative">
+            <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-8 relative">
                 <button
                     onClick={() => {
                         if (view === 'student-auth' && isSignUp) setView('student-verify');
                         else setView('selection');
                         setError('');
                     }}
-                    className="absolute top-8 left-8 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-6 left-6 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                     <ArrowRight className="w-6 h-6 rotate-180" />
                 </button>
 
-                <div className="flex justify-center mb-8">
-                    <div className={`w-20 h-20 bg-gradient-to-br rounded-3xl flex items-center justify-center shadow-2xl ${view === 'teacher-auth' ? 'from-blue-500 to-purple-600' : 'from-pink-500 to-rose-600'}`}>
-                        {view === 'teacher-auth' ? <GraduationCap className="w-12 h-12 text-white" /> : (view === 'student-verify' ? <Key className="w-12 h-12 text-white" /> : <User className="w-12 h-12 text-white" />)}
+                <div className="flex justify-center mb-6">
+                    <div className={`w-16 h-16 bg-gradient-to-br rounded-2xl flex items-center justify-center shadow-lg ${view === 'teacher-auth' ? 'from-blue-500 to-purple-600' : 'from-pink-500 to-rose-600'}`}>
+                        {view === 'teacher-auth' ? <GraduationCap className="w-8 h-8 text-white" /> : (view === 'student-verify' ? <Key className="w-8 h-8 text-white" /> : <User className="w-8 h-8 text-white" />)}
                     </div>
                 </div>
 
-                <h1 className="text-3xl font-black text-gray-900 text-center mb-2 uppercase tracking-tight">
+                <h1 className="text-2xl font-black text-gray-900 text-center mb-2 uppercase tracking-tight">
                     {view === 'teacher-auth' ? 'Panel Docente' : 'Acceso Alumno'}
                 </h1>
-                <p className="text-gray-500 text-center mb-10 font-medium leading-relaxed">
+                <p className="text-gray-500 text-center mb-6 font-medium leading-relaxed text-sm">
                     {view === 'teacher-auth'
                         ? (isSignUp ? 'Crea tu cuenta profesional' : 'Inicia sesión para gestionar tus clases')
                         : 'Accede para unirte a tu clase'}
                 </p>
 
-                <form onSubmit={handleAuth} className="space-y-6">
+                <form onSubmit={handleAuth} className="space-y-4">
                     {/* Social Login Buttons */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-2 gap-3 mb-4">
                         <button
                             type="button"
                             onClick={() => handleSocialLogin('google')}
-                            className="flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
                         >
-                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
                             Google
                         </button>
                         <button
                             type="button"
                             onClick={() => handleSocialLogin('azure')}
-                            className="flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
                         >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="w-5 h-5" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="w-4 h-4" />
                             Microsoft
                         </button>
                     </div>
 
-                    <div className="relative mb-6">
+                    <div className="relative mb-4">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-slate-200"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-slate-400 font-bold uppercase tracking-widest text-xs">O usa tu email</span>
+                            <span className="px-2 bg-white text-slate-400 font-bold uppercase tracking-widest text-[10px]">O usa tu email</span>
                         </div>
                     </div>
 
                     {isSignUp && (
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Nombre Completo</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre Completo</label>
                             <input
                                 type="text"
                                 value={studentName}
                                 onChange={(e) => setStudentName(e.target.value)}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
+                                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
                                 placeholder="Ej: Juan Pérez"
                                 required={isSignUp}
                             />
                         </div>
                     )}
                     <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Email</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
+                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
                             placeholder="tu@email.com"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Contraseña</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Contraseña</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold"
+                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
                             placeholder="••••••••"
                             required
                         />
                     </div>
-                    {error && <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-sm font-bold border border-rose-100">{error}</div>}
+                    {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold border border-rose-100">{error}</div>}
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
+                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
                     >
                         {loading ? 'Cargando...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
                     </button>
-                    <div className="mt-6 text-center">
+                    <div className="mt-4 text-center">
                         <button
                             type="button"
                             onClick={() => setIsSignUp(!isSignUp)}
-                            className="text-slate-400 hover:text-slate-900 text-xs font-black uppercase tracking-widest transition-colors"
+                            className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors"
                         >
                             {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                         </button>
