@@ -16,11 +16,8 @@ interface AuthContextType {
     session: Session | null;
     user: User | null;
     perfil: Perfil | null;
-    sessionRole: 'profesor' | 'alumno' | null;
-    sessionRoomCode: string | null;
     loading: boolean;
     signOut: () => Promise<void>;
-    setSessionRole: (rol: 'profesor' | 'alumno' | null, roomCode?: string) => void;
     refreshPerfil: () => Promise<void>;
 }
 
@@ -28,11 +25,8 @@ const AuthContext = createContext<AuthContextType>({
     session: null,
     user: null,
     perfil: null,
-    sessionRole: null,
-    sessionRoomCode: null,
     loading: true,
     signOut: async () => { },
-    setSessionRole: () => { },
     refreshPerfil: async () => { },
 });
 
@@ -40,12 +34,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [perfil, setPerfil] = useState<Perfil | null>(null);
-    const [sessionRole, setSessionRole] = useState<'profesor' | 'alumno' | null>(() => {
-        return localStorage.getItem('session_rol') as any;
-    });
-    const [sessionRoomCode, setSessionRoomCode] = useState<string | null>(() => {
-        return localStorage.getItem('session_room_code');
-    });
     const [loading, setLoading] = useState(true);
 
     const fetchPerfil = (user: User) => {
@@ -64,40 +52,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 };
                 setPerfil(fetchedPerfil);
 
-                // Si no hay rol de sesión forzado, usamos el del perfil
-                if (!localStorage.getItem('session_rol')) {
-                    handleSetSessionRole(metadata.rol, metadata.codigo_sala);
-                }
-
-                console.log("✅ Perfil recuperado del metadata:", metadata.rol);
+                console.log("✅ Perfil cargado:", metadata.rol);
             } else {
                 console.warn("⚠️ Usuario sin rol en metadata - Defaulting to teacher");
-                const defaultPerfil: Perfil = {
+                setPerfil({
                     id: user.id,
                     nombre: user.email?.split('@')[0] || 'Profesor',
                     rol: 'profesor'
-                };
-                setPerfil(defaultPerfil);
-                if (!localStorage.getItem('session_rol')) {
-                    handleSetSessionRole('profesor');
-                }
+                });
             }
         } catch (err) {
             console.error("❌ Error analizando perfil:", err);
-        }
-    };
-
-    const handleSetSessionRole = (rol: 'profesor' | 'alumno' | null, roomCode?: string) => {
-        setSessionRole(rol);
-        if (rol) localStorage.setItem('session_rol', rol);
-        else localStorage.removeItem('session_rol');
-
-        if (roomCode) {
-            setSessionRoomCode(roomCode);
-            localStorage.setItem('session_room_code', roomCode);
-        } else if (!rol) {
-            setSessionRoomCode(null);
-            localStorage.removeItem('session_room_code');
         }
     };
 
@@ -136,7 +101,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 fetchPerfil(session.user);
             } else {
                 setPerfil(null);
-                handleSetSessionRole(null);
             }
 
             setLoading(false);
@@ -154,7 +118,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(true);
             await supabase.auth.signOut();
             setPerfil(null);
-            handleSetSessionRole(null);
             console.log("👋 Sesión cerrada correctamente");
         } catch (err) {
             console.error("❌ Error en signOut:", err);
@@ -168,7 +131,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, perfil, sessionRole, sessionRoomCode, loading, signOut, setSessionRole: handleSetSessionRole, refreshPerfil }}>
+        <AuthContext.Provider value={{ session, user, perfil, loading, signOut, refreshPerfil }}>
             {children}
         </AuthContext.Provider>
     );

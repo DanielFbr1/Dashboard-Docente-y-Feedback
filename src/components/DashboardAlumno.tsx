@@ -22,7 +22,6 @@ interface DashboardAlumnoProps {
 }
 
 export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
-  const { sessionRoomCode } = useAuth(); // Importar useAuth si no está
   const [vistaActiva, setVistaActiva] = useState<'perfil' | 'grupo' | 'chat' | 'progreso' | 'compartir'>('grupo');
   const [grupoReal, setGrupoReal] = useState<Grupo | null>(null);
   const [todosLosGrupos, setTodosLosGrupos] = useState<Grupo[]>([]);
@@ -45,7 +44,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       console.log("🔍 Iniciando carga de datos para alumno:", alumno.nombre);
 
       let targetProjectId = alumno.proyecto_id;
-      let roomCode = alumno.codigo_sala || sessionRoomCode || '';
+      let roomCode = alumno.codigo_sala || '';
 
       if (!targetProjectId && roomCode) {
         console.log("📡 Buscando proyecto por código:", roomCode);

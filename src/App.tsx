@@ -8,7 +8,7 @@ import { DashboardAlumno } from './components/DashboardAlumno';
 import { Proyecto, Grupo } from './types';
 
 function AppContent() {
-  const { user, perfil, sessionRole, loading, signOut } = useAuth();
+  const { user, perfil, loading, signOut } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<'projects' | 'project-detail' | 'group-detail'>('projects');
   const [selectedProject, setSelectedProject] = useState<Proyecto | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<Grupo | null>(null);
@@ -49,11 +49,11 @@ function AppContent() {
     return <LoginPage />;
   }
 
-  // Si el rol activo de la sesión es alumno
-  if (sessionRole === 'alumno') {
+  // Si es un alumno identificado
+  if (perfil && perfil.rol === 'alumno') {
     return (
       <DashboardAlumno
-        alumno={perfil || { id: user.id, nombre: user.email?.split('@')[0] || 'Alumno', rol: 'alumno' }}
+        alumno={perfil}
         onLogout={signOut}
       />
     );

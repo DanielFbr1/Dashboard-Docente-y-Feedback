@@ -4,7 +4,7 @@ import { Brain, User, GraduationCap, ArrowRight, Key, Check } from 'lucide-react
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
-    const { refreshPerfil, setSessionRole } = useAuth();
+    const { refreshPerfil } = useAuth();
     const [view, setView] = useState<'selection' | 'teacher-auth' | 'student-verify' | 'student-auth'>('selection');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -41,10 +41,7 @@ export function LoginPage() {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
 
-                // Forzamos el rol de sesión según por dónde entró
-                setSessionRole(targetRole, targetRole === 'alumno' ? roomCode : undefined);
-
-                // Refrescamos el perfil para que el context sepa quién es
+                // Forzar refresco de perfil en el context
                 await refreshPerfil();
             }
         } catch (error: any) {
