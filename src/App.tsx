@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './components/LoginPage';
-import { ProjectsDashboard } from './pages/ProjectsDashboard';
+import { TeacherHub } from './components/TeacherHub';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { GroupDetail } from './pages/GroupDetail';
 import { DashboardAlumno } from './components/DashboardAlumno';
@@ -62,7 +62,10 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {currentScreen === 'projects' && (
-        <ProjectsDashboard onSelectProject={handleSelectProject} />
+        <TeacherHub
+          onSelectProject={handleSelectProject}
+          onLogout={signOut}
+        />
       )}
 
       {currentScreen === 'project-detail' && selectedProject && (
