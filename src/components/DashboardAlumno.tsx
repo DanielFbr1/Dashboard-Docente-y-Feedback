@@ -8,6 +8,8 @@ import { TutorialInteractivo } from './TutorialInteractivo';
 import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { UnirseClaseScreen } from './UnirseClaseScreen';
+import { ModalUnirseClase } from './ModalUnirseClase';
+import { Key } from 'lucide-react';
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -28,6 +30,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [todosLosGrupos, setTodosLosGrupos] = useState<Grupo[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+  const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
 
   // Estado del tutorial para Alumnos
   const tutorialKey = `tutorial_alumno_seen_${alumno.id}`;
@@ -219,6 +222,13 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </div>
 
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setModalUnirseOpen(true)}
+                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                title="Unirse a otra clase"
+              >
+                <Key className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setShowTutorial(true)}
                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
@@ -537,6 +547,14 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           pasos={PASOS_TUTORIAL_ALUMNO}
           onComplete={handleTutorialComplete}
           onSkip={() => setShowTutorial(false)}
+        />
+      )}
+
+      {/* Modal Unirse a Clase */}
+      {modalUnirseOpen && (
+        <ModalUnirseClase
+          onClose={() => setModalUnirseOpen(false)}
+          onJoinSuccess={handleJoinSuccess}
         />
       )}
     </div>
