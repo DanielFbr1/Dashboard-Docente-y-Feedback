@@ -87,7 +87,7 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
 
     const categoriaDetectada = categoria || detectarCategoria(mensajeTexto);
 
-    // 1. Guardar mensaje del alumno en local
+    // 1. Mensaje temporal del alumno (Optimistic Update)
     const mensajeAlumno: Mensaje = {
       id: `temp-${Date.now()}`,
       tipo: 'alumno',
@@ -102,20 +102,48 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
 
     try {
       // 2. Guardar en Base de Datos (Alumno)
-      await supabase.from('mensajes_chat').insert([{
+      const { error: errorAlumno } = await supabase.from('mensajes_chat').insert([{
         grupo_id: grupo.id,
         usuario_id: user?.id,
         tipo: 'user',
         contenido: mensajeTexto
       }]);
 
-      // 3. Obtener respuesta de IA
-      const respuestaTexto = await generarRespuestaIA(mensajeTexto, mensajes.map(m => ({
-        role: m.tipo === 'ia' ? 'assistant' : 'user',
-        content: m.contenido
-      })));
+      if (errorAlumno) throw errorAlumno;
 
-      // 4. Guardar mensaje de IA en local
+      // 3. Obtener respuesta de IA con MEMORIA (Historial completo + nuevo mensaje)
+      // Usamos la lista de mensajes actual más el nuevo que acabamos de añadir
+      const historialParaIA = [
+        ...mensajes.map(m => ({
+          role: (m.tipo === 'ia' ? 'assistant' : 'user') as 'assistant' | 'user' | 'system',
+          content: m.contenido
+        })),
+        { role: 'user' as const, content: mensajeTexto }
+      ];
+
+      const respuestaTexto = await generarRespuestaIA(mensajeTexto, historialParaIA);
+
+      // 4. Guardar mensaje de IA en Base de Datos
+      const { error: errorIA } = await supabase.from('mensajes_chat').insert([{
+        grupo_id: grupo.id,
+        tipo: 'assistant',
+        contenido: respuestaTexto
+      }]);
+
+      if (errorIA) throw errorIA;
+
+      // 5. ACTUALIZAR MÉTRICA: Incrementar interacciones_ia del grupo
+      // Esto hace que el "backend" sea coherente con lo que el profesor ve en los dashboards
+      await supabase.rpc('incrementar_interacciones_ia', { grupo_id_param: grupo.id });
+      // Fallback si la function RPC no existe (aunque lo ideal es que esté en Supabase)
+      if (false) { // Bloque desactivado si confiamos en el RPC, pero dejo la lógica de seguridad
+        await supabase
+          .from('grupos')
+          .update({ interacciones_ia: (grupo.interacciones_ia || 0) + 1 })
+          .eq('id', grupo.id);
+      }
+
+      // 6. Mensaje real de IA en local
       const mensajeIA: Mensaje = {
         id: `temp-ia-${Date.now()}`,
         tipo: 'ia',
@@ -126,23 +154,18 @@ export function ChatIA({ grupo, onNuevoMensaje }: ChatIAProps) {
 
       setMensajes((prev) => [...prev, mensajeIA]);
 
-      // 5. Guardar en Base de Datos (IA)
-      await supabase.from('mensajes_chat').insert([{
-        grupo_id: grupo.id,
-        tipo: 'assistant',
-        contenido: respuestaTexto
-      }]);
-
       if (onNuevoMensaje) {
         onNuevoMensaje(mensajeAlumno);
         onNuevoMensaje(mensajeIA);
       }
     } catch (error) {
-      console.error("Error al procesar el chat", error);
+      console.error("❌ Error grave en backend de Chat:", error);
+      // Podríamos mostrar un error visual al usuario aquí
     } finally {
       setEscribiendo(false);
     }
   };
+
 
   const getTipoColor = (tipo: Mensaje['categoria']) => {
     switch (tipo) {

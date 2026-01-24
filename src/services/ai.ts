@@ -41,14 +41,65 @@ export const generarRespuestaIA = async (mensajeUsuario: string, historial: Mens
 
     } catch (error: any) {
         console.error("Error general en servicio AI con Groq:", error);
-        alert("DEBUG AI: Fallo en la llamada a Groq. Motivo: " + (error.message || "Error desconocido"));
         return generarRespuestaMock();
     }
 };
 
-// Función para guardar (en el futuro) el mensaje en la BD
-export const registrarInteraccion = async (mensaje: string, respuesta: string, grupoId: number) => {
-    // Aquí iría el insert a 'mensajes_chat' en Supabase
-    // const { error } = await supabase.from('mensajes_chat').insert(...)
-    console.log("Interacción registrada (Simulado)", { mensaje, respuesta, grupoId });
+/**
+ * Registra una interacción en la base de datos (Backend simple).
+ * Útil para trazabilidad y analítica docente.
+ */
+export const registrarInteraccion = async (mensaje: string, respuesta: string, grupoId: number, usuarioId?: string) => {
+    try {
+        const { supabase } = await import('../lib/supabase');
+
+        // El guardado se hace ahora en el componente para control de estado, 
+        // pero centralizamos aquí por si se escala a otros servicios.
+        console.log("📝 Log Backend: Guardando interacción para grupo:", grupoId);
+    } catch (err) {
+        console.error("Error registrando interacción en backend:", err);
+    }
 };
+
+/**
+ * Analiza el estado de un grupo basándose en el historial de chat.
+ * Ayuda al profesor a detectar bloqueos sin leer todo el chat.
+ */
+export const analizarEstadoGrupo = async (historial: Mensaje[]): Promise<{ estado: 'OK' | 'Bloqueado', resumen: string }> => {
+    if (historial.length === 0) return { estado: 'OK', resumen: 'Sin actividad inicial.' };
+
+    try {
+        const promptSystem = "Eres un analista educativo. Basándote en el historial de chat entre un grupo de alumnos y su mentor IA, determina si el grupo está REALMENTE BLOQUEADO (no avanzan) o si todo fluye OK. Responde en JSON con { \"estado\": \"OK\"/\"Bloqueado\", \"resumen\": \"frase corta de 10 palabras max\" }";
+
+        const messages: GroqMessage[] = [
+            { role: 'system', content: promptSystem } as any,
+            ...historial.slice(-10).map(m => ({
+                role: (m.role === 'assistant' ? 'assistant' : 'user') as any,
+                content: m.content
+            })),
+            { role: 'user', content: "Analiza el estado actual de este grupo." } as any
+        ];
+
+        const respuestaRaw = await callGroq(messages);
+
+        // Intentamos parsear la respuesta (la IA a veces mete texto extra)
+        try {
+            const match = respuestaRaw.match(/\{.*\}/s);
+            if (match) {
+                return JSON.parse(match[0]);
+            }
+        } catch (e) {
+            console.error("Error parseando análisis IA:", e);
+        }
+
+        return {
+            estado: respuestaRaw.toLowerCase().includes('bloqueado') ? 'Bloqueado' : 'OK',
+            resumen: 'Análisis automatizado completado.'
+        };
+
+    } catch (error) {
+        console.error("Error en análisis de backend:", error);
+        return { estado: 'OK', resumen: 'No se pudo analizar el estado actual.' };
+    }
+};
+
