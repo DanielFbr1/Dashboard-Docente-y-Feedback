@@ -43,6 +43,11 @@ export function LoginPage() {
 
                 // Forzar refresco de perfil en el context
                 await refreshPerfil();
+
+                // Marcar que es un nuevo registro para mostrar el tutorial
+                if (isSignUp) {
+                    localStorage.setItem('isNewTeacher', 'true');
+                }
             }
         } catch (error: any) {
             setError(error.message);

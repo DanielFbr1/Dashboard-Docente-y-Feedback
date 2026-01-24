@@ -327,7 +327,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">
-                    {recurso.fechaSubida.toLocaleDateString('es-ES')}
+                    {recurso.fechaSubida.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
                     <Eye className="w-4 h-4" />

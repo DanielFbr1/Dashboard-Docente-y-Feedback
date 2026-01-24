@@ -17,11 +17,17 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
     const [loading, setLoading] = useState(true);
     const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('resumen');
 
-    // Estado del tutorial: Mostrar si no se ha visto NUNCA (Global para el docente)
-    const tutorialKey = `tutorial_docente_seen`;
+    // Estado del tutorial: Mostrar SOLO si acaba de registrarse (isNewTeacher)
+    // O si nunca lo ha visto y queremos forzarlo (opcional, pero el usuario pidió solo al registrarse)
     const [showTutorial, setShowTutorial] = useState(() => {
-        // Solo mostramos si no existe la marca global
-        return !localStorage.getItem(tutorialKey);
+        const isNewTeacher = localStorage.getItem('isNewTeacher') === 'true';
+        if (isNewTeacher) {
+            // Es nuevo registro, mostramos y limpiamos la marca de "nuevo"
+            // (La marca de "visto" se pondrá cuando lo termine o cierre)
+            localStorage.removeItem('isNewTeacher');
+            return true;
+        }
+        return false;
     });
 
     useEffect(() => {
@@ -67,7 +73,8 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
     };
 
     const handleTutorialComplete = () => {
-        localStorage.setItem(tutorialKey, 'true');
+        // Marcamos como visto por si acaso queremos usarlo en el futuro
+        localStorage.setItem('tutorial_docente_seen', 'true');
         setShowTutorial(false);
     };
 

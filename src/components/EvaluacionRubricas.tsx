@@ -146,8 +146,8 @@ export function EvaluacionRubricas({ grupos = [] }: EvaluacionRubricasProps) {
         <button
           onClick={() => setVistaActiva('rubricas')}
           className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${vistaActiva === 'rubricas'
-              ? 'bg-white text-blue-700 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+            ? 'bg-white text-blue-700 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'
             }`}
         >
           <ClipboardCheck className="w-4 h-4" />
@@ -156,8 +156,8 @@ export function EvaluacionRubricas({ grupos = [] }: EvaluacionRubricasProps) {
         <button
           onClick={() => setVistaActiva('alumnos')}
           className={`px-6 py-2 rounded-md font-medium transition-all flex items-center gap-2 ${vistaActiva === 'alumnos'
-              ? 'bg-white text-blue-700 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+            ? 'bg-white text-blue-700 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'
             }`}
         >
           <Users className="w-4 h-4" />
@@ -228,9 +228,30 @@ export function EvaluacionRubricas({ grupos = [] }: EvaluacionRubricasProps) {
                 <Target className="w-5 h-5 text-blue-600" />
                 Rúbrica analítica detallada
               </h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+              <button
+                onClick={() => {
+                  const content = criterios.map(c =>
+                    `CRITERIO: ${c.nombre}\n${c.descripcion}\n\n` +
+                    `NIVELES:\n` +
+                    `- Insuficiente (${c.niveles.insuficiente.puntos}): ${c.niveles.insuficiente.descripcion}\n` +
+                    `- Suficiente (${c.niveles.suficiente.puntos}): ${c.niveles.suficiente.descripcion}\n` +
+                    `- Notable (${c.niveles.notable.puntos}): ${c.niveles.notable.descripcion}\n` +
+                    `- Sobresaliente (${c.niveles.sobresaliente.puntos}): ${c.niveles.sobresaliente.descripcion}\n` +
+                    `---------------------------------------------------\n`
+                  ).join('\n');
+
+                  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'Rubrica_Evaluacion_ABP.txt';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
                 <Download className="w-4 h-4" />
-                Descargar rúbrica (PDF)
+                Descargar rúbrica (TXT)
               </button>
             </div>
 
