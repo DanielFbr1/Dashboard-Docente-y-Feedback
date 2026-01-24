@@ -1,5 +1,6 @@
 import { Upload, FileText, Video, Music, Image as ImageIcon, Download, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { Grupo } from '../types';
 
 interface RepositorioColaborativoProps {
@@ -62,6 +63,83 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
   const [recursos, setRecursos] = useState<Recurso[]>(recursosEjemplo);
   const [mostrarSubir, setMostrarSubir] = useState(false);
   const [recursoSeleccionado, setRecursoSeleccionado] = useState<Recurso | null>(null);
+
+  // Estados para el formulario de subida
+  const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [contenidoTexto, setContenidoTexto] = useState('');
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setArchivo(e.target.files[0]);
+    }
+  };
+
+  const handleSubirRecurso = () => {
+    if (!titulo || !descripcion) {
+      toast.error('Completa el título y la descripción');
+      return;
+    }
+
+    const tipoPermitido = getTipoPermitido(grupo.departamento);
+
+    if (tipoPermitido !== 'texto' && !archivo) {
+      toast.error('Debes seleccionar un archivo');
+      return;
+    }
+
+    if (tipoPermitido === 'texto' && !contenidoTexto) {
+      toast.error('Debes escribir el contenido');
+      return;
+    }
+
+    const nuevoRecurso: Recurso = {
+      id: Date.now().toString(),
+      grupoId: grupo.id as number, // Asumimos id numérico o conversión segura
+      grupoNombre: grupo.nombre,
+      departamento: grupo.departamento,
+      tipo: tipoPermitido,
+      titulo,
+      descripcion,
+      fechaSubida: new Date(),
+      url: archivo ? URL.createObjectURL(archivo) : undefined,
+      contenido: tipoPermitido === 'texto' ? contenidoTexto : undefined
+    };
+
+    setRecursos([nuevoRecurso, ...recursos]);
+    toast.success('Recurso publicado con éxito');
+    setMostrarSubir(false);
+
+    // Reset form
+    setTitulo('');
+    setDescripcion('');
+    setContenidoTexto('');
+    setArchivo(null);
+  };
+
+  const handleDescargar = (recurso: Recurso) => {
+    if (recurso.tipo === 'texto' && recurso.contenido) {
+      const blob = new Blob([recurso.contenido], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${recurso.titulo}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Descarga iniciada');
+    } else if (recurso.url) {
+      const a = document.createElement('a');
+      a.href = recurso.url;
+      a.download = recurso.url.split('/').pop() || 'archivo';
+      a.setAttribute('download', ''); // Forzar descarga si es posible
+      a.click();
+      toast.success('Descarga iniciada');
+    } else {
+      toast.error('No hay archivo para descargar');
+    }
+  };
 
   const getTipoIcon = (tipo: Recurso['tipo']) => {
     switch (tipo) {
@@ -139,6 +217,8 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
                   </label>
                   <input
                     type="text"
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
                     placeholder={`Ej: ${tipoPermitido === 'texto' ? 'Guion episodio 1' : tipoPermitido === 'audio' ? 'Locución introducción' : tipoPermitido === 'video' ? 'Video final editado' : 'Diseño de portada'}`}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -148,6 +228,8 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
                     Descripción
                   </label>
                   <textarea
+                    value={descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
                     placeholder="Describe brevemente tu aportación..."
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     rows={3}
@@ -159,15 +241,27 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
                   </label>
                   {tipoPermitido === 'texto' ? (
                     <textarea
+                      value={contenidoTexto}
+                      onChange={(e) => setContenidoTexto(e.target.value)}
                       placeholder="Escribe o pega tu texto aquí..."
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
                       rows={6}
                     />
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                      <Icon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <div
+                      className={`border-2 border-dashed rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer ${archivo ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept={tipoPermitido === 'audio' ? 'audio/*' : tipoPermitido === 'video' ? 'video/*' : 'image/*'}
+                      />
+                      <Icon className={`w-12 h-12 mx-auto mb-3 ${archivo ? 'text-green-500' : 'text-gray-400'}`} />
                       <p className="text-gray-600 font-medium">
-                        Haz clic para seleccionar o arrastra tu archivo aquí
+                        {archivo ? `Archivo seleccionado: ${archivo.name}` : 'Haz clic para seleccionar o arrastra tu archivo aquí'}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
                         {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' :
@@ -185,10 +279,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
                     Cancelar
                   </button>
                   <button
-                    onClick={() => {
-                      alert('¡Recurso subido! (Funcionalidad de demostración)');
-                      setMostrarSubir(false);
-                    }}
+                    onClick={handleSubirRecurso}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg"
                   >
                     Publicar
@@ -298,11 +389,11 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => alert('Descarga iniciada (demo)')}
+                  onClick={() => handleDescargar(recursoSeleccionado)}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
                 >
                   <Download className="w-5 h-5" />
-                  Descargar
+                  Descargar {recursoSeleccionado.tipo === 'texto' ? 'PDF (Demo)' : ''}
                 </button>
                 <button
                   onClick={() => setRecursoSeleccionado(null)}

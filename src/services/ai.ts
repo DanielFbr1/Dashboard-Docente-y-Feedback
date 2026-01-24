@@ -7,19 +7,19 @@ export interface Mensaje {
     content: string;
 }
 
-const RESPUESTAS_SOCRATICAS_MOCK = [
-    "Interesante punto de vista. ¿Cómo podrías relacionar esto con el objetivo principal de tu proyecto?",
-    "Entiendo lo que propones. ¿Has considerado qué impacto tendría esto en la audiencia a la que te diriges?",
-    "Es una buena idea inicial. ¿Qué otros recursos crees que necesitarías para llevarla a cabo?",
-    "Bien. Si tuvieras que explicar esto a alguien que no sabe nada del tema, ¿cómo lo harías?"
+const RESPUESTAS_MOCK = [
+    "¡Buena idea! 🌟 Pensad también: ¿cómo encaja esto con lo que están haciendo los otros equipos? ¿Creeis que les gustará?",
+    "¡Muy interesante! Antes de lanzaros, ¿habéis comprobado si el equipo de Diseño necesita saber esto? Recordad que trabajamos todos juntos.",
+    "¡Genial! 🚀 Si hacéis eso, ¿haréis el trabajo más fácil o más difícil para el siguiente grupo? ¡La colaboración es la clave!",
+    "¡Me gusta vuestra energía! ¿Estáis seguros de que esto sigue el tema principal del proyecto? Hablemos un momento sobre ello."
 ];
 
 // Fallback Mock Function (Client-side failover)
 const generarRespuestaMock = async (): Promise<string> => {
     return new Promise((resolve) => {
         setTimeout(() => {
-            const indiceAleatorio = Math.floor(Math.random() * RESPUESTAS_SOCRATICAS_MOCK.length);
-            resolve(RESPUESTAS_SOCRATICAS_MOCK[indiceAleatorio]);
+            const indiceAleatorio = Math.floor(Math.random() * RESPUESTAS_MOCK.length);
+            resolve(RESPUESTAS_MOCK[indiceAleatorio]);
         }, 1000);
     });
 };
@@ -27,10 +27,35 @@ const generarRespuestaMock = async (): Promise<string> => {
 /**
  * Obtiene respuesta de Groq AI.
  */
-export const generarRespuestaIA = async (mensajeUsuario: string, historial: Mensaje[] = []): Promise<string> => {
+export const generarRespuestaIA = async (mensajeUsuario: string, departamento: string, contexto: string, historial: Mensaje[] = []): Promise<string> => {
     try {
+        const promptSystem = `
+        Eres un PROFESOR de primaria (8-12 años) guiando un PROYECTO COLABORATIVO (ABP) llamado "${contexto}".
+        Estás hablando con el equipo de "${departamento}". SU TRABAJO ES SOLO UNA PIEZA DEL PUZZLE.
+        
+        TUS REGLAS DE ORO:
+        1. CONCIENCIA DE GRUPO: Recuérdales a menudo que lo que hacen afecta a los demás equipos. ¡No están solos!
+        2. SÉ BREVE Y CONVERSA: Respuestas cortas (max 3 frases). Haz preguntas para que ellos piensen.
+        3. PARA NIÑOS SIEMPRE:
+           - Usa emojis 🌟 para ser amigable.
+           - Vocabulario SENCILLO (como si hablaras con un niño de 9 años).
+           - NUNCA uses palabras complicadas o corporativas.
+        4. MÉTODO:
+           - Paso A: Valida su idea.
+           - Paso B: CONÉCTALO con el resto del proyecto o haz una pregunta para guiarles.
+        
+        EJEMPLO 1 (Conexión):
+        Alumno: "Ya tenemos el guion."
+        Tú: "¡Fantástico! 📜 ¿Habéis hablado con el equipo de 'Locución' para ver si les parece fácil de leer? Recordad que ellos tendrán que grabarlo."
+        
+        EJEMPLO 2 (Guía):
+        Alumno: "No sabemos qué dibujar."
+        Tú: "Pensad en el tema general del proyecto: ${contexto}. 🎨 ¿Qué imagen se os viene a la cabeza al pensar en eso? ¿Algo colorido o más serio?"
+        `.trim();
+
         // Adaptar historial al formato de Groq
         const messages: GroqMessage[] = [
+            { role: 'system', content: promptSystem },
             ...historial.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: mensajeUsuario }
         ];

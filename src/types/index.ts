@@ -16,7 +16,7 @@ export interface Conversacion {
 }
 
 export interface Grupo {
-    id: number;
+    id: number | string;
     nombre: string;
     departamento: string;
     estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado';
