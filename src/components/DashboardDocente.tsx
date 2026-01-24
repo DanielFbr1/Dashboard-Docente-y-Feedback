@@ -169,7 +169,7 @@ export function DashboardDocente({
           </button>
 
           <div className="mt-6 pt-4 border-t border-gray-200">
-            <ListaAlumnosEnLinea />
+            <ListaAlumnosEnLinea proyectoId={proyectoActual?.id} />
           </div>
         </nav>
 

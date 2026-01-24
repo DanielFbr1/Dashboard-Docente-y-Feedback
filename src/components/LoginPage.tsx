@@ -51,6 +51,26 @@ export function LoginPage() {
         }
     };
 
+    const handleSocialLogin = async (provider: 'google' | 'azure') => {
+        try {
+            setLoading(true);
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: {
+                    redirectTo: window.location.origin,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
+                },
+            });
+            if (error) throw error;
+        } catch (error: any) {
+            setError(error.message);
+            setLoading(false);
+        }
+    };
+
     const handleVerifyCode = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -172,6 +192,35 @@ export function LoginPage() {
                 </p>
 
                 <form onSubmit={handleAuth} className="space-y-6">
+                    {/* Social Login Buttons */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => handleSocialLogin('google')}
+                            className="flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                        >
+                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                            Google
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSocialLogin('azure')}
+                            className="flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                        >
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="w-5 h-5" />
+                            Microsoft
+                        </button>
+                    </div>
+
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-200"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-slate-400 font-bold uppercase tracking-widest text-xs">O usa tu email</span>
+                        </div>
+                    </div>
+
                     {isSignUp && (
                         <div>
                             <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Nombre Completo</label>

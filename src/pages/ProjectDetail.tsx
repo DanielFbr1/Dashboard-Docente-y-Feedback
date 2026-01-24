@@ -17,10 +17,10 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
     const [loading, setLoading] = useState(true);
     const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('resumen');
 
-    // Estado del tutorial: Mostrar si no se ha visto NUNCA en este proyecto
-    const tutorialKey = `tutorial_seen_${proyecto.id}`;
+    // Estado del tutorial: Mostrar si no se ha visto NUNCA (Global para el docente)
+    const tutorialKey = `tutorial_docente_seen`;
     const [showTutorial, setShowTutorial] = useState(() => {
-        // Si es un proyecto nuevo (sin clave en localstorage), mostramos tutorial
+        // Solo mostramos si no existe la marca global
         return !localStorage.getItem(tutorialKey);
     });
 

@@ -130,6 +130,29 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     setShowTutorial(false);
   };
 
+  // 4. Conexión Realtime y Presencia
+  useEffect(() => {
+    if (!grupoReal || !alumno) return;
+
+    const channel = supabase.channel(`room:${grupoReal.proyecto_id}`)
+      .on('presence', { event: 'sync' }, () => {
+        // Aquí podríamos recibir el estado global si quisiéramos
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            id: alumno.id,
+            nombre: alumno.nombre,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [grupoReal, alumno]);
+
   // Evaluación simulada del alumno (esto podría venir de la BD también en el futuro)
   const evaluacionAlumno = [
     { criterio: 'Colaboración y trabajo en equipo', puntos: 8, nivel: 'Notable' },
