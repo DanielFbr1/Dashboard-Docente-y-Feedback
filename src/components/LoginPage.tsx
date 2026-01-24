@@ -46,7 +46,11 @@ export function LoginPage() {
 
                 // Marcar que es un nuevo registro para mostrar el tutorial
                 if (isSignUp) {
-                    localStorage.setItem('isNewTeacher', 'true');
+                    if (view === 'teacher-auth') {
+                        localStorage.setItem('isNewTeacher', 'true');
+                    } else {
+                        localStorage.setItem('isNewStudent', 'true');
+                    }
                 }
             }
         } catch (error: any) {

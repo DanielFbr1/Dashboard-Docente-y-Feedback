@@ -33,12 +33,66 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
 
   // Estado del tutorial para Alumnos
-  const tutorialKey = `tutorial_alumno_seen_${alumno.id}`;
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem(tutorialKey));
+  // Mostrar SOLO si acaba de registrarse (isNewStudent)
+  const [showTutorial, setShowTutorial] = useState(() => {
+    const isNewStudent = localStorage.getItem('isNewStudent') === 'true';
+    if (isNewStudent) {
+      localStorage.removeItem('isNewStudent');
+      return true; // Mostrar tutorial
+    }
+    return false;
+  });
+
+  // Estado para el Ejemplo Completo (se muestra mientras el tutorial está activo o el usuario es nuevo)
+  const [showExample, setShowExample] = useState(showTutorial);
+
+  // Sincronizar ejemplo con tutorial (si se cierra tutorial, quitamos ejemplo - OPCIONAL, según petición)
+  useEffect(() => {
+    // El usuario pidió: "desaparezca conforme van pasando" -> "y tambien desaparezca"
+    // Lo vinculamos a showTutorial para que al cerrarlo (completar o saltar) se limpie.
+    if (!showTutorial) {
+      setShowExample(false);
+    }
+  }, [showTutorial]);
+
 
   useEffect(() => {
     fetchDatosAlumno();
   }, [alumno.id]);
+
+  // Clave para marcar como visto (aunque usamos la lógica de creación de cuenta principalmente)
+  const tutorialKey = `tutorial_alumno_seen_${alumno.id}`;
+
+  // Ejemplo de Grupo para el tutorial
+  const grupoEjemplo: Grupo = {
+    id: 999,
+    nombre: 'Beta Test Team',
+    departamento: 'Investigación',
+    estado: 'Casi terminado',
+    progreso: 85,
+    interacciones_ia: 42,
+    miembros: [alumno.nombre || 'Tú', 'Sofía', 'Marco', 'Elena'],
+    proyecto_id: 'demo'
+  };
+
+  // Grupo a mostrar: Real o Ejemplo
+  const grupoDisplay = showExample ? grupoEjemplo : grupoReal;
+
+  // ... (fetchDatosAlumno logic remains same, not touching it yet)
+
+  // ... (handleTutorialComplete logic remains same)
+
+  // ... (Realtime effect remains same)
+
+  // Evaluación simulada del alumno (Solo visible en Modo Ejemplo)
+  const evaluacionEjemplo = [
+    { criterio: 'Colaboración y trabajo en equipo', puntos: 8, nivel: 'Notable' },
+    { criterio: 'Uso crítico de la IA', puntos: 9, nivel: 'Sobresaliente' },
+    { criterio: 'Aportación al producto', puntos: 8, nivel: 'Notable' },
+    { criterio: 'Reflexión metacognitiva', puntos: 6, nivel: 'Suficiente' }
+  ];
+
+  const evaluacionAlumno = showExample ? evaluacionEjemplo : [];
 
   const fetchDatosAlumno = async () => {
     try {
@@ -154,14 +208,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   }, [grupoReal, alumno]);
 
   // Evaluación simulada del alumno (esto podría venir de la BD también en el futuro)
-  const evaluacionAlumno = [
-    { criterio: 'Colaboración y trabajo en equipo', puntos: 8, nivel: 'Notable' },
-    { criterio: 'Uso crítico de la IA', puntos: 9, nivel: 'Sobresaliente' },
-    { criterio: 'Aportación al producto', puntos: 8, nivel: 'Notable' },
-    { criterio: 'Reflexión metacognitiva', puntos: 6, nivel: 'Suficiente' }
-  ];
-
-  const notaMedia = evaluacionAlumno.reduce((sum, e) => sum + e.puntos, 0) / evaluacionAlumno.length;
+  // Se calcula nota media solo si hay evaluación
+  const notaMedia = evaluacionAlumno.length > 0
+    ? evaluacionAlumno.reduce((sum, e) => sum + e.puntos, 0) / evaluacionAlumno.length
+    : 0;
 
   const getNivelColor = (nivel: string) => {
     switch (nivel) {
@@ -240,17 +290,18 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               </div>
               <div>
                 <h1 className="text-xl font-black text-slate-800 tracking-tight">¡Hola, {alumno.nombre.split(' ')[0]}!</h1>
-                <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase || 'Clase'} • {grupoReal?.nombre || 'Mi grupo'}</p>
+                <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase || 'Clase'} • {grupoDisplay?.nombre || 'Mi grupo'}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setModalUnirseOpen(true)}
-                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all font-bold text-sm"
                 title="Unirse a otra clase"
               >
-                <Key className="w-5 h-5" />
+                <Key className="w-4 h-4" />
+                <span>Unirse a clase</span>
               </button>
               <button
                 onClick={() => setShowTutorial(true)}
@@ -341,13 +392,13 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {!grupoReal && (
+        {!grupoDisplay && (
           <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-amber-700 font-medium mb-6">
             Cargando los detalles de tu equipo...
           </div>
         )}
 
-        {vistaActiva === 'perfil' && grupoReal && (
+        {vistaActiva === 'perfil' && grupoDisplay && (
           <div className="flex flex-col gap-6">
             {/* Estadísticas personales */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -370,7 +421,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   </div>
                   <div className="text-white">
                     <div className="text-3xl font-bold">
-                      {Math.floor((grupoReal.interacciones_ia || 0) / (grupoReal.miembros?.length || 1))}
+                      {Math.floor((grupoDisplay.interacciones_ia || 0) / (grupoDisplay.miembros?.length || 1))}
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-widest opacity-90">Preguntas a IA</div>
                   </div>
@@ -383,7 +434,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     <TrendingUp className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-white">
-                    <div className="text-3xl font-bold">{grupoReal.progreso}%</div>
+                    <div className="text-3xl font-bold">{grupoDisplay.progreso}%</div>
                     <div className="text-[10px] font-bold uppercase tracking-widest opacity-90">Progreso grupo</div>
                   </div>
                 </div>
@@ -451,17 +502,17 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'grupo' && grupoReal && (
+        {vistaActiva === 'grupo' && grupoDisplay && (
           <div className="flex flex-col gap-6">
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">{grupoReal.nombre}</h2>
-                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">{grupoReal.departamento}</p>
+                  <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">{grupoDisplay.nombre}</h2>
+                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">{grupoDisplay.departamento}</p>
                 </div>
-                <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoReal.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                  grupoReal.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                    grupoReal.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoDisplay.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                  grupoDisplay.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                    grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
                       'bg-emerald-50 text-emerald-600 border-emerald-200'
                   }`}>
                   {grupoReal.estado}
@@ -471,7 +522,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               <div className="mb-10">
                 <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">
                   <span>Progreso del equipo</span>
-                  <span className="text-slate-800">{grupoReal.progreso}%</span>
+                  <span className="text-slate-800">{grupoDisplay.progreso}%</span>
                 </div>
                 <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
                   <div
@@ -484,7 +535,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros de equipo</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {grupoReal.miembros.map((miembro: string, index: number) => (
+                  {grupoDisplay.miembros.map((miembro: string, index: number) => (
                     <div key={index} className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-purple-200 transition-colors">
                       <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-purple-600 font-bold shadow-sm">
                         {miembro.charAt(0).toUpperCase()}
@@ -503,11 +554,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'compartir' && grupoReal && (
-          <RepositorioColaborativo grupo={grupoReal} todosLosGrupos={todosLosGrupos} />
+        {vistaActiva === 'compartir' && grupoDisplay && (
+          <RepositorioColaborativo grupo={grupoDisplay} todosLosGrupos={todosLosGrupos} />
         )}
 
-        {vistaActiva === 'progreso' && grupoReal && (
+        {vistaActiva === 'progreso' && grupoDisplay && (
           <div className="flex flex-col gap-6">
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
               <h2 className="text-2xl font-black text-slate-800 mb-8 tracking-tight uppercase">Progreso de la sesión</h2>
@@ -515,7 +566,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 {todosLosGrupos.map((grupo) => (
                   <div
                     key={grupo.id}
-                    className={`p-6 rounded-2xl border-2 transition-all ${grupo.id === grupoReal.id
+                    className={`p-6 rounded-2xl border-2 transition-all ${grupo.id === grupoDisplay.id
                       ? 'bg-purple-50 border-purple-200 ring-4 ring-purple-600/5'
                       : 'bg-white border-slate-100'
                       }`}
@@ -524,7 +575,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                       <div className="flex items-start flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-800 tracking-tight">{grupo.nombre}</h3>
-                          {grupo.id === grupoReal.id && (
+                          {grupo.id === grupoDisplay.id && (
                             <span className="px-2 py-0.5 bg-purple-600 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
                               TU EQUIPO
                             </span>
@@ -546,7 +597,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     </div>
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className={`h-full transition-all duration-1000 ${grupo.id === grupoReal.id ? 'bg-purple-600' : 'bg-slate-300'}`}
+                        className={`h-full transition-all duration-1000 ${grupo.id === grupoDisplay.id ? 'bg-purple-600' : 'bg-slate-300'}`}
                         style={{ width: `${grupo.progreso}%` }}
                       />
                     </div>
@@ -557,9 +608,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
 
-        {vistaActiva === 'chat' && grupoReal && (
+        {vistaActiva === 'chat' && grupoDisplay && (
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 min-h-[600px]">
-            <ChatIA grupo={grupoReal} />
+            <ChatIA grupo={grupoDisplay} />
           </div>
         )}
       </main>
