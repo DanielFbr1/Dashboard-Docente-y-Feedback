@@ -51,15 +51,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   // Estado para el Ejemplo Completo (se muestra mientras el tutorial está activo o el usuario es nuevo)
   const [showExample, setShowExample] = useState(showTutorial);
 
-  // Sincronizar ejemplo con tutorial (si se cierra tutorial, quitamos ejemplo - OPCIONAL, según petición)
-  useEffect(() => {
-    // El usuario pidió: "desaparezca conforme van pasando" -> "y tambien desaparezca"
-    // Lo vinculamos a showTutorial para que al cerrarlo (completar o saltar) se limpie.
-    if (!showTutorial) {
-      setShowExample(false);
-    }
-  }, [showTutorial]);
-
+  // Sincronizar ejemplo con tutorial
+  // Hemos quitado la desactivación automática al cerrar tutorial para que puedan 
+  // seguir explorando el ejemplo hasta que se unan a una clase real.
 
   useEffect(() => {
     fetchDatosAlumno();
@@ -231,6 +225,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
   const handleJoinSuccess = async () => {
     // Recargar datos tras unirse
+    setShowExample(false);
     await fetchDatosAlumno();
     setLoading(false);
   };
@@ -408,7 +403,30 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {!grupoDisplay && (
+        {showExample && (
+          <div className="bg-indigo-600 rounded-3xl p-6 mb-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4 text-center md:text-left">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight">Estás en el Modo Demostración</h3>
+                  <p className="text-indigo-100 text-sm font-medium">Explora este ejemplo para ver cómo funciona el panel. Cuando estés listo, únete a tu clase real.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalUnirseOpen(true)}
+                className="px-8 py-3 bg-white text-indigo-600 rounded-xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-lg"
+              >
+                Unirse a mi clase ahora
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!grupoDisplay && !showExample && (
           <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-amber-700 font-medium mb-6 flex justify-between items-center">
             <span>No estás asignado a ninguna clase o grupo todavía.</span>
             <button
