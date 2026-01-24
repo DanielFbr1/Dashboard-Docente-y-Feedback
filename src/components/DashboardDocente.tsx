@@ -307,7 +307,11 @@ export function DashboardDocente({
             {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
 
             {currentSection === 'trabajo-compartido' && (
-              <RepositorioColaborativo grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }} todosLosGrupos={grupos} />
+              <RepositorioColaborativo
+                grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                todosLosGrupos={grupos}
+                esDocente={true}
+              />
             )}
 
             {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}

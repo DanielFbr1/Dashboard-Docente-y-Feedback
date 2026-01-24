@@ -5,6 +5,7 @@ import { Grupo } from '../types';
 interface RepositorioColaborativoProps {
   grupo: Grupo;
   todosLosGrupos: Grupo[];
+  esDocente?: boolean;
 }
 
 interface Recurso {
@@ -57,7 +58,7 @@ const recursosEjemplo: Recurso[] = [
   }
 ];
 
-export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioColaborativoProps) {
+export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = false }: RepositorioColaborativoProps) {
   const [recursos, setRecursos] = useState<Recurso[]>(recursosEjemplo);
   const [mostrarSubir, setMostrarSubir] = useState(false);
   const [recursoSeleccionado, setRecursoSeleccionado] = useState<Recurso | null>(null);
@@ -110,92 +111,94 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos }: RepositorioCo
         </p>
       </div>
 
-      {/* Subir recurso */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Tu aportación</h3>
-            <p className="text-sm text-gray-600">
-              Como grupo de {grupo.departamento}, puedes compartir: <strong>{tipoPermitido === 'texto' ? 'Textos/Guiones' : tipoPermitido === 'audio' ? 'Audios' : tipoPermitido === 'video' ? 'Videos' : 'Imágenes/Diseños'}</strong>
-            </p>
+      {/* Subir recurso - Solo visible para alumnos */}
+      {!esDocente && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Tu aportación</h3>
+              <p className="text-sm text-gray-600">
+                Como grupo de {grupo.departamento}, puedes compartir: <strong>{tipoPermitido === 'texto' ? 'Textos/Guiones' : tipoPermitido === 'audio' ? 'Audios' : tipoPermitido === 'video' ? 'Videos' : 'Imágenes/Diseños'}</strong>
+              </p>
+            </div>
+            <button
+              onClick={() => setMostrarSubir(!mostrarSubir)}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg"
+            >
+              <Upload className="w-5 h-5" />
+              Subir {tipoPermitido === 'texto' ? 'texto' : tipoPermitido}
+            </button>
           </div>
-          <button
-            onClick={() => setMostrarSubir(!mostrarSubir)}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg"
-          >
-            <Upload className="w-5 h-5" />
-            Subir {tipoPermitido === 'texto' ? 'texto' : tipoPermitido}
-          </button>
-        </div>
 
-        {mostrarSubir && (
-          <div className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Título del recurso
-                </label>
-                <input
-                  type="text"
-                  placeholder={`Ej: ${tipoPermitido === 'texto' ? 'Guion episodio 1' : tipoPermitido === 'audio' ? 'Locución introducción' : tipoPermitido === 'video' ? 'Video final editado' : 'Diseño de portada'}`}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Descripción
-                </label>
-                <textarea
-                  placeholder="Describe brevemente tu aportación..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {tipoPermitido === 'texto' ? 'Contenido del texto' : 'Archivo'}
-                </label>
-                {tipoPermitido === 'texto' ? (
-                  <textarea
-                    placeholder="Escribe o pega tu texto aquí..."
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-                    rows={6}
+          {mostrarSubir && (
+            <div className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Título del recurso
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={`Ej: ${tipoPermitido === 'texto' ? 'Guion episodio 1' : tipoPermitido === 'audio' ? 'Locución introducción' : tipoPermitido === 'video' ? 'Video final editado' : 'Diseño de portada'}`}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                    <Icon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 font-medium">
-                      Haz clic para seleccionar o arrastra tu archivo aquí
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' :
-                        tipoPermitido === 'video' ? 'MP4, MOV (max 100MB)' :
-                          'JPG, PNG, SVG (max 10MB)'}
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setMostrarSubir(false)}
-                  className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => {
-                    alert('¡Recurso subido! (Funcionalidad de demostración)');
-                    setMostrarSubir(false);
-                  }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg"
-                >
-                  Publicar
-                </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Descripción
+                  </label>
+                  <textarea
+                    placeholder="Describe brevemente tu aportación..."
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {tipoPermitido === 'texto' ? 'Contenido del texto' : 'Archivo'}
+                  </label>
+                  {tipoPermitido === 'texto' ? (
+                    <textarea
+                      placeholder="Escribe o pega tu texto aquí..."
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+                      rows={6}
+                    />
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                      <Icon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 font-medium">
+                        Haz clic para seleccionar o arrastra tu archivo aquí
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' :
+                          tipoPermitido === 'video' ? 'MP4, MOV (max 100MB)' :
+                            'JPG, PNG, SVG (max 10MB)'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setMostrarSubir(false)}
+                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert('¡Recurso subido! (Funcionalidad de demostración)');
+                      setMostrarSubir(false);
+                    }}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg"
+                  >
+                    Publicar
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Lista de recursos */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
