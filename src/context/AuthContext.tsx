@@ -16,8 +16,10 @@ interface AuthContextType {
     session: Session | null;
     user: User | null;
     perfil: Perfil | null;
+    sessionRole: 'profesor' | 'alumno' | null;
     loading: boolean;
     signOut: () => Promise<void>;
+    setSessionRole: (rol: 'profesor' | 'alumno' | null) => void;
     refreshPerfil: () => Promise<void>;
 }
 
@@ -25,8 +27,10 @@ const AuthContext = createContext<AuthContextType>({
     session: null,
     user: null,
     perfil: null,
+    sessionRole: null,
     loading: true,
     signOut: async () => { },
+    setSessionRole: () => { },
     refreshPerfil: async () => { },
 });
 
@@ -34,6 +38,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [perfil, setPerfil] = useState<Perfil | null>(null);
+    const [sessionRole, setSessionRole] = useState<'profesor' | 'alumno' | null>(() => {
+        return localStorage.getItem('session_rol') as any;
+    });
     const [loading, setLoading] = useState(true);
 
     const fetchPerfil = (user: User) => {
@@ -42,27 +49,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const metadata = user.user_metadata;
 
             if (metadata?.rol) {
-                setPerfil({
+                const fetchedPerfil: Perfil = {
                     id: user.id,
                     nombre: metadata.nombre || user.email?.split('@')[0] || 'Usuario',
                     rol: metadata.rol,
                     clase: metadata.clase,
                     codigo_sala: metadata.codigo_sala,
                     proyecto_id: metadata.proyecto_id
-                });
+                };
+                setPerfil(fetchedPerfil);
+
+                // Si no hay rol de sesión forzado, usamos el del perfil
+                if (!localStorage.getItem('session_rol')) {
+                    handleSetSessionRole(metadata.rol);
+                }
+
                 console.log("✅ Perfil recuperado del metadata:", metadata.rol);
             } else {
                 console.warn("⚠️ Usuario sin rol en metadata - Defaulting to teacher");
-                // Si no tiene rol, asumimos que es un usuario antiguo (Profesor)
-                setPerfil({
+                const defaultPerfil: Perfil = {
                     id: user.id,
                     nombre: user.email?.split('@')[0] || 'Profesor',
                     rol: 'profesor'
-                });
+                };
+                setPerfil(defaultPerfil);
+                if (!localStorage.getItem('session_rol')) {
+                    handleSetSessionRole('profesor');
+                }
             }
         } catch (err) {
             console.error("❌ Error analizando perfil:", err);
         }
+    };
+
+    const handleSetSessionRole = (rol: 'profesor' | 'alumno' | null) => {
+        setSessionRole(rol);
+        if (rol) localStorage.setItem('session_rol', rol);
+        else localStorage.removeItem('session_rol');
     };
 
     useEffect(() => {
@@ -89,7 +112,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         initializeAuth();
 
-        // 2. Escuchar cambios de auth
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!isMounted) return;
             console.log("🔄 Evento Auth:", event, session ? "Hay sesión" : "Sin sesión");
@@ -101,6 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 fetchPerfil(session.user);
             } else {
                 setPerfil(null);
+                handleSetSessionRole(null);
             }
 
             setLoading(false);
@@ -115,15 +138,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const signOut = async () => {
         try {
             console.log("🔌 Iniciando cierre de sesión...");
-            setLoading(true); // Mostramos loader mientras sale
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
+            setLoading(true);
+            await supabase.auth.signOut();
             setPerfil(null);
+            handleSetSessionRole(null);
             console.log("👋 Sesión cerrada correctamente");
         } catch (err) {
             console.error("❌ Error en signOut:", err);
         } finally {
-            setLoading(false); // IMPORTANTE: Asegurar que se quita el loader
+            setLoading(false);
         }
     };
 
@@ -132,7 +155,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, perfil, loading, signOut, refreshPerfil }}>
+        <AuthContext.Provider value={{ session, user, perfil, sessionRole, loading, signOut, setSessionRole: handleSetSessionRole, refreshPerfil }}>
             {children}
         </AuthContext.Provider>
     );
