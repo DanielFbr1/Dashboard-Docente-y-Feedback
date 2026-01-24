@@ -10,6 +10,8 @@ import { SistemaCodigoSala } from './SistemaCodigoSala';
 import { ListaAlumnosEnLinea } from './ListaAlumnosEnLinea';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { Grupo, DashboardSection, ProyectoActivo } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 interface DashboardDocenteProps {
   onSelectGrupo: (grupo: Grupo) => void;
@@ -48,15 +50,32 @@ export function DashboardDocente({
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
   const [mostrarCodigoSala, setMostrarCodigoSala] = useState(false);
   const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
+  const { signOut } = useAuth();
 
   const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
   const hitosCompletados = grupos.reduce((sum, g) => sum + Math.floor(g.progreso / 20), 0);
   const gruposBloqueados = grupos.filter(g => g.estado === 'Bloqueado').length;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (window.confirm('¿Seguro que quieres cerrar sesión?')) {
-      window.location.reload();
+      try {
+        await signOut();
+        // La redirección la maneja el AuthContext o el estado de usuario en App.tsx
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        toast.error('Error al cerrar sesión');
+      }
     }
+  };
+
+  const handlePerfil = () => {
+    toast.info('Funcionalidad de Perfil próximamente');
+    setMenuConfigAbierto(false);
+  };
+
+  const handleAjustesIA = () => {
+    toast.info('Configuración de IA Mentor próximamente');
+    setMenuConfigAbierto(false);
   };
 
   return (
@@ -213,11 +232,17 @@ export function DashboardDocente({
                       </div>
                     </div>
                     <div className="p-2 space-y-1">
-                      <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium">
+                      <button
+                        onClick={handlePerfil}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium"
+                      >
                         <Users className="w-4 h-4 text-gray-400" />
                         Perfil de usuario
                       </button>
-                      <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium">
+                      <button
+                        onClick={handleAjustesIA}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium"
+                      >
                         <MessageSquare className="w-4 h-4 text-gray-400" />
                         Ajustes de IA Mentor
                       </button>
