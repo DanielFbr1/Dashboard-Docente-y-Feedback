@@ -1,4 +1,4 @@
-import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp } from 'lucide-react';
+import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo } from '../types';
 import { supabase } from '../lib/supabase';
@@ -612,6 +612,34 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 </div>
               </div>
             </div>
+
+            {/* 1.5. Árbol Global de la Clase (NUEVO) */}
+            {todosLosGrupos.length > 1 && (
+              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm overflow-hidden relative group">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-50"></div>
+
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="shrink-0 bg-slate-50 rounded-3xl p-4">
+                    <LivingTree
+                      progress={todosLosGrupos.reduce((acc, g) => acc + g.progreso, 0) / todosLosGrupos.length}
+                      health={100}
+                      size={140}
+                    />
+                  </div>
+
+                  <div className="flex-1 space-y-3 text-center md:text-left">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100/50">
+                      <Sparkles className="w-3 h-3" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Esfuerzo Colectivo</span>
+                    </div>
+                    <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">Progreso de Toda la Clase</h2>
+                    <p className="text-slate-500 text-xs font-medium leading-relaxed">
+                      Este árbol se nutre del trabajo de todos los equipos. ¡Mirad cómo crece gracias a vuestra colaboración global!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 2. Interactive Roadmap */}
             <div className="bg-slate-50 rounded-3xl p-1 border border-slate-200">
