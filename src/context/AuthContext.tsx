@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchPerfil = async (userId: string) => {
         try {
-            // Primero intentamos sacar datos del metadata (rápido)
+            console.log("👤 Cargando perfil para:", userId);
             const { data: { user } } = await supabase.auth.getUser();
             const metadata = user?.user_metadata;
 
@@ -51,41 +51,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     codigo_sala: metadata.codigo_sala,
                     proyecto_id: metadata.proyecto_id
                 });
+                console.log("✅ Perfil cargado:", metadata.rol);
+            } else {
+                console.warn("⚠️ Usuario sin rol en metadata");
             }
         } catch (err) {
-            console.error("Error cargando perfil:", err);
+            console.error("❌ Error cargando perfil:", err);
         }
     };
 
     useEffect(() => {
+        let isMounted = true;
+
         // 1. Obtener sesión inicial
         supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!isMounted) return;
+            console.log("🔑 Sesión inicial:", session ? "Presente" : "Nula");
+
             setSession(session);
             setUser(session?.user ?? null);
+
             if (session?.user) {
                 await fetchPerfil(session.user.id);
             }
+
             setLoading(false);
         });
 
         // 2. Escuchar cambios de auth
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
+            console.log("🔄 Evento Auth:", event, session ? "Hay sesión" : "Sin sesión");
+
             setSession(session);
             setUser(session?.user ?? null);
+
             if (session?.user) {
                 await fetchPerfil(session.user.id);
             } else {
                 setPerfil(null);
             }
+
             setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
-        await supabase.auth.signOut();
-        setPerfil(null);
+        try {
+            console.log("🔌 Iniciando cierre de sesión...");
+            setLoading(true); // Mostramos loader mientras sale
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            setPerfil(null);
+            console.log("👋 Sesión cerrada correctamente");
+        } catch (err) {
+            console.error("❌ Error en signOut:", err);
+        } finally {
+            setLoading(false); // IMPORTANTE: Asegurar que se quita el loader
+        }
     };
 
     const refreshPerfil = async () => {

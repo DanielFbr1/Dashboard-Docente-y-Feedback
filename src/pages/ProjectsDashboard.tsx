@@ -9,7 +9,10 @@ interface ProjectsDashboardProps {
     onSelectProject: (proyecto: Proyecto) => void;
 }
 
+import { useAuth } from '../context/AuthContext';
+
 export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
+    const { signOut: authSignOut } = useAuth();
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSeeding, setIsSeeding] = useState(false);
@@ -125,7 +128,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     };
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        await authSignOut();
     };
 
     const proyectosPorClase = proyectos.reduce((acc, p) => {
