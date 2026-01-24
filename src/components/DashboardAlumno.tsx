@@ -122,7 +122,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       }
 
       if (!targetProjectId) {
-        setErrorStatus('ERROR_TECNICO');
+        console.log("ℹ️ Alumno sin proyecto asignado. Mostrando estado vacío.");
+        // No es error, simplemente no tiene grupo.
+        setLoading(false);
         return;
       }
 
@@ -282,10 +284,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-200">
-                {alumno.nombre.charAt(0).toUpperCase()}
+                {(alumno.nombre || 'A').charAt(0).toUpperCase()}
               </div>
               <div>
-                <h1 className="text-xl font-black text-slate-800 tracking-tight">¡Hola, {alumno.nombre.split(' ')[0]}!</h1>
+                <h1 className="text-xl font-black text-slate-800 tracking-tight">¡Hola, {(alumno.nombre || 'Alumno').split(' ')[0]}!</h1>
                 <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase || 'Clase'} • {grupoDisplay?.nombre || 'Mi grupo'}</p>
               </div>
             </div>
@@ -537,7 +539,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros de equipo</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {grupoDisplay.miembros.map((miembro: string, index: number) => (
+                  {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
                     <div key={index} className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-purple-200 transition-colors">
                       <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-purple-600 font-bold shadow-sm">
                         {miembro.charAt(0).toUpperCase()}
