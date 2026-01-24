@@ -7,8 +7,8 @@ import { ModalCrearGrupo } from './ModalCrearGrupo';
 interface GruposDepartamentosProps {
   grupos: Grupo[];
   onSelectGrupo: (grupo: Grupo) => void;
-  onEditarGrupo: (id: number, grupo: Omit<Grupo, 'id'>) => void;
-  onEliminarGrupo: (id: number) => void;
+  onEditarGrupo: (id: number | string, grupo: Omit<Grupo, 'id'>) => void;
+  onEliminarGrupo: (id: number | string) => void;
   proyectoId?: string;
 }
 

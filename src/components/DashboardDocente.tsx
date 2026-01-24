@@ -12,6 +12,8 @@ import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { Grupo, DashboardSection, ProyectoActivo } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { ModalPerfilDocente } from './ModalPerfilDocente';
+import { ModalConfiguracionIA } from './ModalConfiguracionIA';
 
 interface DashboardDocenteProps {
   onSelectGrupo: (grupo: Grupo) => void;
@@ -22,8 +24,8 @@ interface DashboardDocenteProps {
   onCargarEjemplo: () => void;
   onLimpiarDatos: () => void;
   onCrearGrupo: (grupo: Omit<Grupo, 'id'>) => void;
-  onEditarGrupo: (id: number, grupo: Omit<Grupo, 'id'>) => void;
-  onEliminarGrupo: (id: number) => void;
+  onEditarGrupo: (id: number | string, grupo: Omit<Grupo, 'id'>) => void;
+  onEliminarGrupo: (id: number | string) => void;
   onIniciarTutorial: () => void;
   proyectoActual: ProyectoActivo | null;
   onCambiarProyecto?: () => void;
@@ -50,7 +52,9 @@ export function DashboardDocente({
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
   const [mostrarCodigoSala, setMostrarCodigoSala] = useState(false);
   const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
-  const { signOut } = useAuth();
+  const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
+  const [modalAjustesIAAbierto, setModalAjustesIAAbierto] = useState(false);
+  const { signOut, perfil, user } = useAuth();
 
   const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
   const hitosCompletados = grupos.reduce((sum, g) => sum + Math.floor(g.progreso / 20), 0);
@@ -69,17 +73,31 @@ export function DashboardDocente({
   };
 
   const handlePerfil = () => {
-    toast.info('Funcionalidad de Perfil próximamente');
+    setModalPerfilAbierto(true);
     setMenuConfigAbierto(false);
   };
 
   const handleAjustesIA = () => {
-    toast.info('Configuración de IA Mentor próximamente');
+    setModalAjustesIAAbierto(true);
     setMenuConfigAbierto(false);
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50 uppercase-none">
+      {/* Modals */}
+      {modalPerfilAbierto && (
+        <ModalPerfilDocente
+          onClose={() => setModalPerfilAbierto(false)}
+          proyectos={proyectoActual ? [proyectoActual as any] : []} // En un futuro pasaremos todos
+          email={user?.email || 'profesor@demo.com'}
+          nombre={perfil?.nombre || 'Profesor/a'}
+        />
+      )}
+
+      {modalAjustesIAAbierto && (
+        <ModalConfiguracionIA onClose={() => setModalAjustesIAAbierto(false)} />
+      )}
+
       {/* Modal crear grupo */}
       {modalCrearGrupoAbierto && (
         <ModalCrearGrupo
@@ -224,24 +242,17 @@ export function DashboardDocente({
 
                 {menuConfigAbierto && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-20 animate-in fade-in zoom-in duration-200">
-                    <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">P</div>
-                      <div>
-                        <div className="text-sm font-black text-gray-900 leading-tight">Profesor/a</div>
-                        <div className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full inline-block mt-1 uppercase tracking-tighter">Membresía Pro</div>
-                      </div>
-                    </div>
-                    <div className="p-2 space-y-1">
+                    <div className="p-2 space-y-1 pt-3">
                       <button
                         onClick={handlePerfil}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium text-left"
                       >
                         <Users className="w-4 h-4 text-gray-400" />
-                        Perfil de usuario
+                        Perfil del Docente
                       </button>
                       <button
                         onClick={handleAjustesIA}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition-colors rounded-xl font-medium text-left"
                       >
                         <MessageSquare className="w-4 h-4 text-gray-400" />
                         Ajustes de IA Mentor

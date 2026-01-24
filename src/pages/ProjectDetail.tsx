@@ -84,7 +84,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
         }
     };
 
-    const handleEditarGrupo = async (id: number, grupoEditado: Omit<Grupo, 'id'>) => {
+    const handleEditarGrupo = async (id: number | string, grupoEditado: Omit<Grupo, 'id'>) => {
         try {
             const { error } = await supabase
                 .from('grupos')
@@ -97,7 +97,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
         }
     };
 
-    const handleEliminarGrupo = async (id: number) => {
+    const handleEliminarGrupo = async (id: number | string) => {
         if (!confirm('¿Estás seguro de que quieres eliminar este grupo?')) return;
         try {
             const { error } = await supabase
