@@ -44,9 +44,9 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
 
             if (error) throw error;
             await fetchProyectos();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error creating project:', err);
-            alert('Error al crear el proyecto.');
+            alert(`Error al crear el proyecto: ${err.message || 'Error desconocido'}`);
         }
     };
 

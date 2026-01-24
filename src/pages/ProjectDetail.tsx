@@ -168,7 +168,8 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                     id: proyecto.id,
                     nombre: proyecto.nombre,
                     tipo: proyecto.tipo,
-                    codigo_sala: proyecto.codigo_sala
+                    codigo_sala: proyecto.codigo_sala,
+                    clase: proyecto.clase
                 }}
             />
 
