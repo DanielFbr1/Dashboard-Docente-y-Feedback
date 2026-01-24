@@ -178,7 +178,7 @@ export const PASOS_TUTORIAL_ALUMNO = [
     {
         id: 'evaluacion-alumno',
         titulo: 'Tu progreso',
-        descripcion: 'Al final de la sesión, podrás revisar aquí tu evaluación y los puntos que has conseguido.',
+        descripcion: 'Al final de la sesión, podrás revisar aquí tus notas y los puntos que has conseguido.',
         targetSelector: 'nav button:nth-child(5)',
         posicion: 'bottom' as const
     }

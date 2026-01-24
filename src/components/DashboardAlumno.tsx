@@ -398,7 +398,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             >
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4" />
-                <span>Mi evaluación</span>
+                <span>Mis notas</span>
               </div>
             </button>
           </nav>
@@ -464,7 +464,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
             {/* Evaluación por criterios */}
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-              <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tight uppercase">Tu evaluación</h2>
+              <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tight uppercase">Tus notas</h2>
               <div className="space-y-6">
                 {evaluacionAlumno.map((item, index) => (
                   <div key={index} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
