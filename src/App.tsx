@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './components/LoginPage';
 import { ProjectsDashboard } from './pages/ProjectsDashboard';
@@ -7,6 +8,49 @@ import { GroupDetail } from './pages/GroupDetail';
 import { DashboardAlumno } from './components/DashboardAlumno';
 import { Proyecto, Grupo } from './types';
 import { supabase } from './lib/supabase';
+import { Toaster } from 'sonner';
+
+// Componente para capturar errores críticos y evitar la pantalla en blanco
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="min-h-screen bg-rose-50 flex items-center justify-center p-6">
+      <div className="max-w-md bg-white p-8 rounded-3xl shadow-xl border border-rose-100 text-center">
+        <h2 className="text-2xl font-black text-rose-600 mb-4">¡Ups! Algo ha fallado</h2>
+        <p className="text-slate-600 mb-6 font-medium">La aplicación ha tenido un error inesperado al cargar tu sesión.</p>
+        <div className="bg-slate-50 p-4 rounded-xl text-left text-xs font-mono text-rose-500 overflow-auto mb-6">
+          {error.message}
+        </div>
+        <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = window.location.origin + '?logout=true';
+          }}
+          className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs"
+        >
+          Limpiar y Reintentar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      return <ErrorFallback error={this.state.error} />;
+    }
+    return this.props.children;
+  }
+}
 
 function AppContent() {
   const { user, perfil, loading, signOut } = useAuth();
@@ -99,8 +143,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
