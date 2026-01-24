@@ -1,4 +1,4 @@
-import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, HelpCircle } from 'lucide-react';
+import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo } from '../types';
 import { supabase } from '../lib/supabase';
@@ -306,7 +306,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                 title="Mostrar tutorial"
               >
-                <HelpCircle className="w-5 h-5" />
+                <CircleHelp className="w-5 h-5" />
               </button>
               <button
                 onClick={onLogout}

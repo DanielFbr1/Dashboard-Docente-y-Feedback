@@ -1,4 +1,4 @@
-import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, HelpCircle, Key, FolderOpen, Share2, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, CircleHelp, Key, FolderOpen, Share2, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Card_Metrica } from './Card_Metrica';
 import { Card_Grupo } from './Card_Grupo';
@@ -178,7 +178,7 @@ export function DashboardDocente({
             onClick={onIniciarTutorial}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all font-bold group"
           >
-            <HelpCircle className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+            <CircleHelp className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
             <span>Tutorial interactivo</span>
           </button>
         </div>
