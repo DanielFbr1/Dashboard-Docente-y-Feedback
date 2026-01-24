@@ -40,10 +40,30 @@ export const PROYECTOS_MOCK: Proyecto[] = [
         estado: 'En curso',
         codigo_sala: 'RAD-2024',
         fases: [
-            { id: 'f1', nombre: 'Investigación y Guion', estado: 'completado' },
-            { id: 'f2', nombre: 'Grabación de Locuciones', estado: 'actual' },
-            { id: 'f3', nombre: 'Edición y Montaje', estado: 'pendiente' },
-            { id: 'f4', nombre: 'Difusión', estado: 'pendiente' }
+            {
+                id: 'f1',
+                nombre: 'Investigación y Guion',
+                estado: 'completado',
+                hitos: ['Definir tema del programa', 'Investigar fuentes', 'Redactar escaleta', 'Escribir guion literario']
+            },
+            {
+                id: 'f2',
+                nombre: 'Grabación de Locuciones',
+                estado: 'actual',
+                hitos: ['Ensayar locución', 'Grabar primera toma', 'Revisar calidad audio', 'Grabar toma final']
+            },
+            {
+                id: 'f3',
+                nombre: 'Edición y Montaje',
+                estado: 'pendiente',
+                hitos: ['Seleccionar música', 'Editar cortes de voz', 'Mezclar pistas', 'Exportar archivo final']
+            },
+            {
+                id: 'f4',
+                nombre: 'Difusión',
+                estado: 'pendiente',
+                hitos: ['Crear portada', 'Redactar descripción', 'Subir a plataforma', 'Presentar en clase']
+            }
         ],
         grupos: GRUPOS_MOCK
     },

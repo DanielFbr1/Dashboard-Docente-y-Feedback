@@ -10,6 +10,10 @@ import { useAuth } from '../context/AuthContext';
 import { UnirseClaseScreen } from './UnirseClaseScreen';
 import { ModalUnirseClase } from './ModalUnirseClase';
 import { Key } from 'lucide-react';
+import { RoadmapView } from './RoadmapView';
+import { LivingTree } from './LivingTree';
+import { PROYECTOS_MOCK } from '../data/mockData';
+import { HitoGrupo } from '../types';
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -563,51 +567,73 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         )}
 
         {vistaActiva === 'progreso' && grupoDisplay && (
-          <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-              <h2 className="text-2xl font-black text-slate-800 mb-8 tracking-tight uppercase">Progreso de la sesión</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {todosLosGrupos.map((grupo) => (
-                  <div
-                    key={grupo.id}
-                    className={`p-6 rounded-2xl border-2 transition-all ${grupo.id === grupoDisplay.id
-                      ? 'bg-purple-50 border-purple-200 ring-4 ring-purple-600/5'
-                      : 'bg-white border-slate-100'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-start flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-slate-800 tracking-tight">{grupo.nombre}</h3>
-                          {grupo.id === grupoDisplay.id && (
-                            <span className="px-2 py-0.5 bg-purple-600 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
-                              TU EQUIPO
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{grupo.departamento}</span>
-                      </div>
-                      <span className={`px-3 py-1 font-black text-[9px] uppercase tracking-widest rounded-full border ${grupo.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                        grupo.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                          grupo.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                            'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        }`}>
-                        {grupo.estado}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-[10px] mb-2 font-black text-slate-500 uppercase tracking-widest">
-                      <span>Progreso</span>
-                      <span>{grupo.progreso}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-1000 ${grupo.id === grupoDisplay.id ? 'bg-purple-600' : 'bg-slate-300'}`}
-                        style={{ width: `${grupo.progreso}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+          <div className="flex flex-col gap-8">
+
+            {/* 1. Living Tree Visualization */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
+
+              <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-2 z-10">Nuestro Árbol de Proyecto</h2>
+              <p className="text-sm text-slate-500 font-medium mb-8 z-10 text-center max-w-lg">
+                Este árbol representa vuestro esfuerzo. Completad hitos para hacerlo crecer y trabajad regularmente para mantenerlo sano.
+              </p>
+
+              <div className="relative z-10 mb-8">
+                <LivingTree
+                  progress={grupoDisplay.progreso || 0}
+                  health={100} // Default health for now 
+                  size={280}
+                />
               </div>
+
+              <div className="flex gap-8 text-center bg-slate-50 px-8 py-4 rounded-2xl border border-slate-100">
+                <div>
+                  <div className="text-2xl font-black text-slate-800">{grupoDisplay.progreso}%</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
+                </div>
+                <div className="w-px bg-slate-200"></div>
+                <div>
+                  <div className="text-2xl font-black text-emerald-600">Radiante</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado de salud</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Interactive Roadmap */}
+            <div className="bg-slate-50 rounded-3xl p-1 border border-slate-200">
+              <RoadmapView
+                fases={
+                  // Buscar las fases del proyecto actual. Si no hay (ej. mock), usamos las del mock p1
+                  (todosLosGrupos.length > 0 && alumno.proyecto_id)
+                    ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0].fases)
+                    : PROYECTOS_MOCK[0].fases
+                }
+                hitosGrupo={grupoDisplay.hitos || []}
+                onToggleHito={async (faseId, hitoTitulo, currentEstado) => {
+                  // Logic to toggle Hito
+                  console.log("Toggle Hito:", faseId, hitoTitulo, currentEstado);
+
+                  // Optimistic update logic would go here
+                  // For now, we simulate user interaction showing a toast or alert if needed
+                  if (currentEstado === 'pendiente') {
+                    // Call supabase to set to 'revision'
+                    // await supabase...
+
+                    // For demo (Mock update):
+                    const newHitos = [...(grupoDisplay.hitos || [])];
+                    newHitos.push({
+                      id: Date.now().toString(),
+                      fase_id: faseId,
+                      titulo: hitoTitulo,
+                      estado: 'revision'
+                    });
+
+                    // Update local state (We need a setGrupoDisplay wrapper or refresh)
+                    // For this demo, just alert user as we are in 'view only' mode mostly
+                    alert("¡Hito marcado! El profesor lo revisará pronto para que el árbol crezca.");
+                  }
+                }}
+              />
             </div>
           </div>
         )}

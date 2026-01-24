@@ -15,6 +15,14 @@ export interface Conversacion {
     fechaUltima: Date;
 }
 
+export interface HitoGrupo {
+    id: string;
+    fase_id: string;
+    titulo: string;
+    estado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado';
+    comentario_docente?: string;
+}
+
 export interface Grupo {
     id: number | string;
     nombre: string;
@@ -25,6 +33,8 @@ export interface Grupo {
     miembros: string[];
     proyecto_id?: string;
     conversacionesIA?: Conversacion[];
+    hitos?: HitoGrupo[];
+    ultima_actividad?: string; // Fecha ISO
 }
 
 export type ProyectoEstado = 'En preparación' | 'En curso' | 'Finalizado';
@@ -33,6 +43,7 @@ export interface ProyectoFase {
     id: string;
     nombre: string;
     estado: 'completado' | 'actual' | 'pendiente';
+    hitos?: string[];
 }
 
 export interface Proyecto {
