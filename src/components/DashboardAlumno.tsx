@@ -234,6 +234,14 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     setLoading(false);
   };
 
+  // Si no hay código ni proyecto, mostramos el modal para unirse a clase automáticamente,
+  // pero NO bloqueamos la vista principal.
+  useEffect(() => {
+    if (!alumno.proyecto_id && !alumno.codigo_sala && !loading && !showExample) {
+      setModalUnirseOpen(true);
+    }
+  }, [alumno.proyecto_id, alumno.codigo_sala, loading, showExample]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -244,14 +252,6 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       </div>
     );
   }
-
-  // Si no hay código ni proyecto, mostramos el modal para unirse a clase automáticamente,
-  // pero NO bloqueamos la vista principal.
-  useEffect(() => {
-    if (!alumno.proyecto_id && !alumno.codigo_sala && !loading && !showExample) {
-      setModalUnirseOpen(true);
-    }
-  }, [alumno.proyecto_id, alumno.codigo_sala, loading, showExample]);
 
   if (errorStatus) {
     return (
