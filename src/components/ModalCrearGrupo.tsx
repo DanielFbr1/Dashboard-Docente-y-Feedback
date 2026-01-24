@@ -8,6 +8,7 @@ interface ModalCrearGrupoProps {
   onCrear: (grupo: Omit<Grupo, 'id'>) => void;
   grupoEditando?: Grupo | null;
   proyectoId?: string;
+  codigoSala?: string;
 }
 
 const departamentos = [
@@ -19,32 +20,34 @@ const departamentos = [
   { nombre: 'Coordinación', color: 'bg-indigo-100 text-indigo-700 border-indigo-300', icon: '📋' }
 ];
 
-export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId }: ModalCrearGrupoProps) {
+export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, codigoSala }: ModalCrearGrupoProps) {
   const [nombre, setNombre] = useState(grupoEditando?.nombre || '');
   const [departamento, setDepartamento] = useState(grupoEditando?.departamento || '');
   const [miembros, setMiembros] = useState<string[]>(grupoEditando?.miembros || []);
   const [nuevoMiembro, setNuevoMiembro] = useState('');
-  const [alumnosOnline, setAlumnosOnline] = useState<AlumnoConectado[]>([]);
+  const [alumnosClase, setAlumnosClase] = useState<any[]>([]); // Usamos any[] para simplificar la transición de AlumnoConectado a Perfil
   const [loadingAlumnos, setLoadingAlumnos] = useState(false);
 
   useEffect(() => {
-    if (proyectoId) {
-      fetchAlumnosOnline();
+    if (codigoSala) {
+      fetchAlumnosClase();
     }
-  }, [proyectoId]);
+  }, [codigoSala]);
 
-  const fetchAlumnosOnline = async () => {
+  const fetchAlumnosClase = async () => {
     setLoadingAlumnos(true);
     try {
+      // Ahora buscamos a todos los alumnos registrados en este proyecto (por código de sala)
       const { data, error } = await supabase
-        .from('alumnos_conectados')
-        .select('*')
-        .eq('proyecto_id', proyectoId);
+        .from('profiles')
+        .select('id, nombre, rol')
+        .eq('codigo_sala', codigoSala)
+        .eq('rol', 'alumno');
 
       if (error) throw error;
-      setAlumnosOnline(data || []);
+      setAlumnosClase(data || []);
     } catch (err) {
-      console.error('Error fetching online students:', err);
+      console.error('Error fetching class students:', err);
     } finally {
       setLoadingAlumnos(false);
     }
@@ -152,38 +155,38 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId }:
           </div>
 
           <div className="space-y-8">
-            {/* Selección de Alumnos Online */}
+            {/* Selección de Alumnos Registrados */}
             <div>
               <label className="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-3">
-                <Radio className="w-4 h-4 text-green-500 animate-pulse" />
-                Alumnos en la Sala (Online)
+                <Users className="w-4 h-4 text-emerald-500" />
+                Alumnos Registrados en la Clase
               </label>
-              <div className="bg-green-50 rounded-3xl p-6 border-2 border-green-100">
+              <div className="bg-emerald-50 rounded-3xl p-6 border-2 border-emerald-100">
                 {loadingAlumnos ? (
                   <div className="flex items-center justify-center p-4">
-                    <Loader2 className="w-6 h-6 text-green-600 animate-spin" />
+                    <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
                   </div>
-                ) : alumnosOnline.length > 0 ? (
+                ) : alumnosClase.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {alumnosOnline.map((alumno) => (
+                    {alumnosClase.map((alumno: any) => (
                       <button
                         key={alumno.id}
                         type="button"
-                        onClick={() => handleToggleMiembroOnline(alumno.nombre_alumno)}
-                        className={`px-4 py-2 rounded-full border-2 transition-all text-sm font-bold flex items-center gap-2 ${miembros.includes(alumno.nombre_alumno)
-                            ? 'bg-green-600 text-white border-green-600 shadow-md'
-                            : 'bg-white text-green-700 border-green-200 hover:border-green-400'
+                        onClick={() => handleToggleMiembroOnline(alumno.nombre)}
+                        className={`px-4 py-2 rounded-full border-2 transition-all text-sm font-bold flex items-center gap-2 ${miembros.includes(alumno.nombre)
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
+                          : 'bg-white text-emerald-700 border-emerald-200 hover:border-emerald-400'
                           }`}
                       >
-                        {miembros.includes(alumno.nombre_alumno) && <Check className="w-4 h-4" />}
-                        {alumno.nombre_alumno}
+                        {miembros.includes(alumno.nombre) && <Check className="w-4 h-4" />}
+                        {alumno.nombre}
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-green-700 text-sm font-medium text-center italic">No hay alumnos conectados con el código ahora mismo.</p>
+                  <p className="text-emerald-700 text-sm font-medium text-center italic">No hay alumnos registrados con el código todavía.</p>
                 )}
-                <p className="text-[10px] text-green-600 font-bold uppercase mt-4 text-center tracking-tighter">✨ Haz clic para añadir al grupo instantáneamente</p>
+                <p className="text-[10px] text-emerald-600 font-bold uppercase mt-4 text-center tracking-tighter">✨ Haz clic para añadir al grupo</p>
               </div>
             </div>
 

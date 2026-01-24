@@ -103,6 +103,7 @@ export function DashboardDocente({
           onCrear={onCrearGrupo}
           grupoEditando={grupoEditando}
           proyectoId={proyectoActual?.id}
+          codigoSala={proyectoActual?.codigo_sala}
         />
       )}
 
