@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { callGroq, GroqMessage } from './groq';
 
 // Interfaz para mensajes (adaptada a lo que podría necesitar la UI)
 export interface Mensaje {
@@ -19,42 +19,29 @@ const generarRespuestaMock = async (): Promise<string> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             const indiceAleatorio = Math.floor(Math.random() * RESPUESTAS_SOCRATICAS_MOCK.length);
-            resolve(RESPUESTAS_SOCRATICAS_MOCK[indiceAleatorio] + " (Modo sin conexión)");
+            resolve(RESPUESTAS_SOCRATICAS_MOCK[indiceAleatorio] + " (Modo Mentor Local - Sin API Key en Vercel)");
         }, 1000);
     });
 };
 
 /**
- * Llama a la Edge Function 'ask-gemini' para obtener respuesta.
- * Ya no exponemos la API KEY en el frontend.
+ * Obtiene respuesta de Groq AI.
  */
 export const generarRespuestaIA = async (mensajeUsuario: string, historial: Mensaje[] = []): Promise<string> => {
     try {
-        // Llamada a la Edge Function
-        const { data, error } = await supabase.functions.invoke('ask-gemini', {
-            body: {
-                mensaje: mensajeUsuario,
-                historial: historial,
-                contexto: "Asignatura: Ciencias / Proyecto: Energías Renovables" // Esto podría venir de props
-            }
-        });
+        // Adaptar historial al formato de Groq
+        const messages: GroqMessage[] = [
+            ...historial.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: mensajeUsuario }
+        ];
 
-        if (error) {
-            console.error('Error invocando Edge Function:', error);
-            // Fallback a mock si falla la función (o no está desplegada)
-            return generarRespuestaMock();
-        }
+        // Llamada directa a Groq
+        const respuesta = await callGroq(messages);
+        return respuesta;
 
-        // Si la función devuelve error interno
-        if (data.error) {
-            console.warn('Error devuelto por Gemini:', data.error);
-            return generarRespuestaMock();
-        }
-
-        return data.respuesta;
-
-    } catch (error) {
-        console.error("Error general en servicio AI:", error);
+    } catch (error: any) {
+        console.error("Error general en servicio AI con Groq:", error);
+        alert("DEBUG AI: Fallo en la llamada a Groq. Motivo: " + (error.message || "Error desconocido"));
         return generarRespuestaMock();
     }
 };

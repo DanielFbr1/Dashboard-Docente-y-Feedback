@@ -300,7 +300,13 @@ export function DashboardDocente({
                     Crear nuevo grupo
                   </button>
                 </div>
-                <GruposDepartamentos grupos={grupos} onSelectGrupo={onSelectGrupo} onEditarGrupo={onEditarGrupo} onEliminarGrupo={onEliminarGrupo} />
+                <GruposDepartamentos
+                  grupos={grupos}
+                  onSelectGrupo={onSelectGrupo}
+                  onEditarGrupo={onEditarGrupo}
+                  onEliminarGrupo={onEliminarGrupo}
+                  proyectoId={proyectoActual?.id}
+                />
               </div>
             )}
 
