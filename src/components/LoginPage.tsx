@@ -44,7 +44,12 @@ export function LoginPage() {
                         }
                     }
                 });
-                if (error) throw error;
+
+                if (error) {
+                    localStorage.removeItem('isNewTeacher');
+                    localStorage.removeItem('isNewStudent');
+                    throw error;
+                }
 
                 // Si hay sesión, es que no requiere confirmación o se autoconfirmó
                 if (data.session) {
