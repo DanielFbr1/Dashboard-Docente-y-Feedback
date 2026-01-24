@@ -12,7 +12,6 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
     const [descripcion, setDescripcion] = useState('');
     const [tipo, setTipo] = useState('Radio/Podcast');
     const [clase, setClase] = useState('5.º Primaria - A');
-    const [colegio, setColegio] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +21,6 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                 descripcion: descripcion.trim(),
                 tipo,
                 clase,
-                colegio: colegio.trim() || 'Sin asignar',
                 estado: 'En preparación' as ProyectoEstado,
                 codigo_sala: Math.random().toString(36).substring(2, 8).toUpperCase(),
                 fases: [
@@ -87,21 +85,6 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">
-                                    <School className="w-3 h-3 text-indigo-500" />
-                                    Colegio
-                                </label>
-                                <input
-                                    type="text"
-                                    value={colegio}
-                                    onChange={(e) => setColegio(e.target.value)}
-                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold transition-all shadow-sm"
-                                    placeholder="Ej: CEIP San José"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">
                                     <Tag className="w-3 h-3 text-emerald-500" />
                                     Categoría
                                 </label>
@@ -122,16 +105,16 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                                     <GraduationCap className="w-3 h-3 text-purple-500" />
                                     Clase / Curso
                                 </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={clase}
-                                        onChange={(e) => setClase(e.target.value)}
-                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black shadow-sm transition-all"
-                                        placeholder="Ej: 5ºA"
-                                        required
-                                    />
-                                </div>
+                                <select
+                                    value={clase}
+                                    onChange={(e) => setClase(e.target.value)}
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black shadow-sm cursor-pointer appearance-none"
+                                >
+                                    <option value="5.º Primaria - A">5.º Primaria - A</option>
+                                    <option value="5.º Primaria - B">5.º Primaria - B</option>
+                                    <option value="6.º Primaria - A">6.º Primaria - A</option>
+                                    <option value="6.º Primaria - B">6.º Primaria - B</option>
+                                </select>
                             </div>
                         </div>
                     </div>

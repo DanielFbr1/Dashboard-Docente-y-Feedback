@@ -43,7 +43,6 @@ export interface Proyecto {
     estado: ProyectoEstado;
     fases: ProyectoFase[];
     codigo_sala: string;
-    colegio?: string;
     clase?: string;
     grupos?: Grupo[];
 }
@@ -62,6 +61,5 @@ export interface ProyectoActivo {
     nombre: string;
     tipo: string;
     codigo_sala: string;
-    colegio?: string;
     clase?: string;
 }
