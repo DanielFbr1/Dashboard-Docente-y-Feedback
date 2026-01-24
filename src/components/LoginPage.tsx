@@ -82,7 +82,7 @@ export function LoginPage() {
             setGuestUser({
                 nombre: studentName.trim(),
                 clase: foundProject.clase || 'General',
-                grupo: 'Sin asignar',
+                grupo: roomCode.trim().toUpperCase(),
                 proyectoId: foundProject.id
             });
         } catch (err) {

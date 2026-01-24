@@ -126,3 +126,40 @@ export const PASOS_TUTORIAL = [
         posicion: 'right' as const
     }
 ];
+
+export const PASOS_TUTORIAL_ALUMNO = [
+    {
+        id: 'bienvenida-alumno',
+        titulo: '¡Hola! Bienvenido a tu espacio de trabajo',
+        descripcion: 'Aquí tienes todo lo que necesitas para trabajar en equipo y mejorar tu proyecto con la ayuda de la IA.',
+        posicion: 'center' as const
+    },
+    {
+        id: 'mi-grupo',
+        titulo: 'Tu equipo',
+        descripcion: 'Aquí puedes ver quiénes son tus compañeros y cómo va el progreso general de vuestro trabajo.',
+        targetSelector: 'nav button:nth-child(1)',
+        posicion: 'bottom' as const
+    },
+    {
+        id: 'compartir-alumno',
+        titulo: 'Repositorio compartido',
+        descripcion: 'Desde aquí puedes ver lo que otros grupos están haciendo y compartir vuestros propios avances.',
+        targetSelector: 'nav button:nth-child(2)',
+        posicion: 'bottom' as const
+    },
+    {
+        id: 'mentor-ia-alumno',
+        titulo: 'Tu Mentor IA',
+        descripcion: '¡La parte más importante! Usa el chat para hacer preguntas, resolver dudas y reflexionar sobre tu aprendizaje.',
+        targetSelector: 'nav button:nth-child(4)',
+        posicion: 'bottom' as const
+    },
+    {
+        id: 'evaluacion-alumno',
+        titulo: 'Tu progreso',
+        descripcion: 'Al final de la sesión, podrás revisar aquí tu evaluación y los puntos que has conseguido.',
+        targetSelector: 'nav button:nth-child(5)',
+        posicion: 'bottom' as const
+    }
+];

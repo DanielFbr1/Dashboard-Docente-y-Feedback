@@ -1,9 +1,11 @@
-import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2 } from 'lucide-react';
+import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, HelpCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo } from '../types';
 import { supabase } from '../lib/supabase';
 import { ChatIA } from './ChatIA';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
+import { TutorialInteractivo } from './TutorialInteractivo';
+import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -19,6 +21,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [grupoReal, setGrupoReal] = useState<Grupo | null>(null);
   const [todosLosGrupos, setTodosLosGrupos] = useState<Grupo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
+
+  // Estado del tutorial para Alumnos
+  const tutorialKey = `tutorial_alumno_seen_${alumno.nombre}_${alumno.grupo}`;
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem(tutorialKey));
 
   useEffect(() => {
     fetchDatosAlumno();
@@ -27,14 +34,20 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const fetchDatosAlumno = async () => {
     try {
       setLoading(true);
-      // 1. Buscar el proyecto por código de sala
+      setErrorStatus(null);
+
+      // 1. Buscar el proyecto por código de sala (limpiando espacios)
+      const roomCode = (alumno.grupo || '').trim().toUpperCase();
       const { data: proyecto, error: errorProyecto } = await supabase
         .from('proyectos')
-        .select('id')
-        .eq('codigo_sala', alumno.grupo)
+        .select('id, nombre')
+        .eq('codigo_sala', roomCode)
         .single();
 
-      if (errorProyecto || !proyecto) throw new Error('Proyecto no encontrado');
+      if (errorProyecto || !proyecto) {
+        setErrorStatus('CODIGO_INVALIDO');
+        return;
+      }
 
       // 2. Buscar todos los grupos de ese proyecto
       const { data: grupos, error: errorGrupos } = await supabase
@@ -45,22 +58,38 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       if (errorGrupos) throw errorGrupos;
       setTodosLosGrupos(grupos || []);
 
+      if (!grupos || grupos.length === 0) {
+        setErrorStatus('PROYECTO_VACIO');
+        return;
+      }
+
       // 3. Identificar el grupo del alumno por su nombre en los miembros
-      const miGrupo = (grupos || []).find(g =>
-        g.miembros.some((m: string) => m.toLowerCase().includes(alumno.nombre.toLowerCase()))
+      // Normalizamos nombres para evitar fallos por tildes o espacios extras
+      const normalizar = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      const nombreAlumnoNorm = normalizar(alumno.nombre);
+
+      const miGrupo = grupos.find(g =>
+        g.miembros?.some((m: string) => normalizar(m).includes(nombreAlumnoNorm))
       );
 
       if (miGrupo) {
         setGrupoReal(miGrupo);
       } else {
-        // Si no se encuentra, usamos el primero por defecto (demo/failover)
-        setGrupoReal(grupos?.[0] || null);
+        // Si no está asignado explícitamente, le asignamos el primero para que pueda trabajar
+        // pero le daremos un aviso de que no está en la lista oficial.
+        setGrupoReal(grupos[0]);
       }
     } catch (err) {
       console.error('Error fetching student data:', err);
+      setErrorStatus('ERROR_TECNICO');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem(tutorialKey, 'true');
+    setShowTutorial(false);
   };
 
   // Evaluación simulada del alumno (esto podría venir de la BD también en el futuro)
@@ -93,13 +122,33 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     );
   }
 
-  if (!grupoReal) {
+  // Pantallas de error amigables
+  if (errorStatus || !grupoReal) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Ups, parece que no estás asignado aún</h1>
-          <p className="text-gray-600 mb-6">Pide a tu profesor/a que te añada a un equipo para empezar.</p>
-          <button onClick={onLogout} className="px-6 py-3 bg-purple-600 text-white rounded-xl font-bold">Volver al login</button>
+      <div className="min-h-screen bg-[#fcfdff] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 text-center">
+          <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-rose-100">
+            <User className="w-10 h-10 text-rose-500" />
+          </div>
+
+          <h2 className="text-2xl font-black text-slate-800 mb-4 uppercase tracking-tight">
+            {errorStatus === 'CODIGO_INVALIDO' ? 'Código no encontrado' :
+              errorStatus === 'PROYECTO_VACIO' ? 'Proyecto sin equipos' :
+                'Acceso restringido'}
+          </h2>
+
+          <p className="text-slate-500 font-medium mb-10 leading-relaxed">
+            {errorStatus === 'CODIGO_INVALIDO' ? 'El código de sala que has introducido no existe. Por favor, compruébalo con tu profesor.' :
+              errorStatus === 'PROYECTO_VACIO' ? 'El proyecto existe, pero tu profesor aún no ha creado los equipos de trabajo.' :
+                'Parece que tu nombre no está en la lista de ningún equipo para este proyecto todavía.'}
+          </p>
+
+          <button
+            onClick={onLogout}
+            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-lg"
+          >
+            Volver a intentar
+          </button>
         </div>
       </div>
     );
@@ -120,13 +169,23 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase} • {grupoReal.nombre}</p>
               </div>
             </div>
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Salir</span>
-            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                title="Mostrar tutorial"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Salir</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -417,6 +476,15 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           </div>
         )}
       </main>
+
+      {/* Tutorial Interactivo */}
+      {showTutorial && (
+        <TutorialInteractivo
+          pasos={PASOS_TUTORIAL_ALUMNO}
+          onComplete={handleTutorialComplete}
+          onSkip={() => setShowTutorial(false)}
+        />
+      )}
     </div>
   );
 }
