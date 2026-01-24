@@ -333,6 +333,7 @@ export function DashboardDocente({
                 grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
                 todosLosGrupos={grupos}
                 esDocente={true}
+                mostrarEjemplo={mostrandoEjemplo}
               />
             )}
 

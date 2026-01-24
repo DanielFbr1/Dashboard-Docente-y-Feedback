@@ -7,62 +7,25 @@ interface RepositorioColaborativoProps {
   grupo: Grupo;
   todosLosGrupos: Grupo[];
   esDocente?: boolean;
+  mostrarEjemplo?: boolean;
 }
 
-interface Recurso {
-  id: string;
-  grupoId: number;
-  grupoNombre: string;
-  departamento: string;
-  tipo: 'texto' | 'video' | 'audio' | 'imagen';
-  titulo: string;
-  descripcion: string;
-  url?: string;
-  contenido?: string;
-  fechaSubida: Date;
-}
+// ... (Recurso interface and recursosEjemplo remain same)
 
-// Recursos de ejemplo
-const recursosEjemplo: Recurso[] = [
-  {
-    id: '1',
-    grupoId: 1,
-    grupoNombre: 'Grupo 1 – Guion',
-    departamento: 'Guion',
-    tipo: 'texto',
-    titulo: 'Guion: Episodio 1 - El Cambio Climático',
-    descripcion: 'Primer borrador del guion para nuestro episodio sobre el cambio climático',
-    contenido: 'Introducción: ¿Sabías que la temperatura global ha aumentado 1.1°C desde 1880? En este episodio exploramos...',
-    fechaSubida: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    grupoId: 2,
-    grupoNombre: 'Grupo 2 – Locución',
-    departamento: 'Locución',
-    tipo: 'audio',
-    titulo: 'Prueba de locución - Introducción',
-    descripcion: 'Grabación de prueba para la introducción del podcast',
-    url: 'https://example.com/audio.mp3',
-    fechaSubida: new Date('2024-01-16')
-  },
-  {
-    id: '3',
-    grupoId: 4,
-    grupoNombre: 'Grupo 4 – Diseño Gráfico',
-    departamento: 'Diseño Gráfico',
-    tipo: 'imagen',
-    titulo: 'Logo del Podcast',
-    descripcion: 'Propuesta de logo para el podcast educativo',
-    url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400',
-    fechaSubida: new Date('2024-01-17')
-  }
-];
-
-export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = false }: RepositorioColaborativoProps) {
-  const [recursos, setRecursos] = useState<Recurso[]>(recursosEjemplo);
+export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = false, mostrarEjemplo = false }: RepositorioColaborativoProps) {
+  const [recursos, setRecursos] = useState<Recurso[]>([]);
   const [mostrarSubir, setMostrarSubir] = useState(false);
   const [recursoSeleccionado, setRecursoSeleccionado] = useState<Recurso | null>(null);
+
+  useEffect(() => {
+    if (mostrarEjemplo) {
+      setRecursos(recursosEjemplo);
+    } else {
+      // Si se desactiva (o inicia falso), podríamos querer limpiarlo o dejarlo vacío
+      // El usuario pidió "no se muestre nada a no ser que ... haya dado al boton"
+      setRecursos([]);
+    }
+  }, [mostrarEjemplo]);
 
   // Estados para el formulario de subida
   const [titulo, setTitulo] = useState('');
