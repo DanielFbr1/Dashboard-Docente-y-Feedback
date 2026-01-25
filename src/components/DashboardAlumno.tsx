@@ -41,7 +41,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [modalSubirRecursoOpen, setModalSubirRecursoOpen] = useState(false);
 
   // Estado del tutorial para Alumnos
-  const [showTutorial, setShowTutorial] = useState(() => {
+  const [tutorialActivo, setTutorialActivo] = useState(() => {
     const isNew = localStorage.getItem('isNewStudent') === 'true';
     const seen = localStorage.getItem(`tutorial_alumno_seen_${alumno.id}`) === 'true';
     return isNew && !seen;
@@ -148,7 +148,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
   const handleTutorialComplete = () => {
     localStorage.setItem(tutorialKey, 'true');
-    setShowTutorial(false);
+    setTutorialActivo(false);
   };
 
   useEffect(() => {
@@ -239,7 +239,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <span>Unirse a clase</span>
               </button>
               <button
-                onClick={() => setShowTutorial(true)}
+                onClick={() => setTutorialActivo(true)}
                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
               >
                 <CircleHelp className="w-5 h-5" />
@@ -561,7 +561,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         )}
       </main>
 
-      {mostrarTutorial && (
+      {tutorialActivo && (
         <TutorialInteractivo
           pasos={PASOS_TUTORIAL_ALUMNO}
           onComplete={handleTutorialComplete}
@@ -569,8 +569,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           onStepChange={(index) => {
             const paso = PASOS_TUTORIAL_ALUMNO[index];
             if (paso.vista) {
-              // Mapeo seguro para TypeScript de string genérico a tipo literal
-              setVistaActiva(paso.vista as 'grupo' | 'comunidad' | 'chat' | 'notas');
+              // Mapeo de la vista del tutorial a la vista interna del componente
+              const targetView = paso.vista === 'notas' ? 'perfil' : paso.vista;
+              setVistaActiva(targetView as 'grupo' | 'comunidad' | 'chat' | 'perfil');
             }
           }}
         />
@@ -587,3 +588,4 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     </div>
   );
 }
+// Dashboard Alumno Component
