@@ -43,20 +43,40 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
 
         // Mock AI Response & Extraction
         setTimeout(() => {
-            const aiResponses = [
-                "¡Gran idea! He extraído un par de hitos de eso.",
-                "Suena interesante. Aquí tienes unas sugerencias formales basadas en lo que dices.",
-                "Entendido. Vamos a estructurarlo en pasos concretos."
-            ];
-            const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+            let aiResponse = "";
+            let newHitos: { titulo: string; descripcion: string }[] = [];
 
-            // Simular extracción de hitos basada en el input (simple mock)
-            const newHitos = [
-                { titulo: `Investigación: ${userMsg.substring(0, 15)}...`, descripcion: 'Análisis preliminar y referentes.' },
-                { titulo: `Desarrollo: ${userMsg.substring(0, 10)}...`, descripcion: 'Ejecución técnica de la propuesta.' }
-            ];
+            // Simple Keyword Matching for "Smarter" Mock
+            const lowerInput = userMsg.toLowerCase();
 
-            setMessages(prev => [...prev, { role: 'ai', content: randomResponse }]);
+            if (lowerInput.includes("podcast") || lowerInput.includes("audio") || lowerInput.includes("grabación")) {
+                aiResponse = "Veo que queréis trabajar en formato audio. ¡Excelente elección! He preparado unos hitos técnicos para empezar.";
+                newHitos = [
+                    { titulo: "Guion Escaleta", descripcion: "Estructura principal del episodio con tiempos estimados." },
+                    { titulo: "Prueba de Micrófono", descripcion: "Grabación de 30s para validar calidad de audio en el aula." }
+                ];
+            } else if (lowerInput.includes("video") || lowerInput.includes("corto") || lowerInput.includes("filmar")) {
+                aiResponse = "El video requiere buena planificación. Aquí tenéis los primeros pasos esenciales.";
+                newHitos = [
+                    { titulo: "Storyboard", descripcion: "Dibujo esquemático de los planos principales." },
+                    { titulo: "Lista de Utilería", descripcion: "Recursos físicos necesarios para el rodaje." }
+                ];
+            } else if (lowerInput.includes("investig") || lowerInput.includes("buscar") || lowerInput.includes("información")) {
+                aiResponse = "Para investigar bien, necesitáis fuentes fiables. Os sugiero estos objetivos.";
+                newHitos = [
+                    { titulo: "Recopilación de Fuentes", descripcion: "Lista de 5 artículos/libros verificados sobre el tema." },
+                    { titulo: "Resumen Ejecutivo", descripcion: "Síntesis de 1 página con las ideas clave encontradas." }
+                ];
+            } else {
+                // Fallback Generic
+                aiResponse = "Entiendo vuestra idea. Para llevarla a cabo, os sugiero dividirla en estas tareas concretas.";
+                newHitos = [
+                    { titulo: "Definición del Alcance", descripcion: `Detallar qué incluye y qué no incluye: ${userMsg.substring(0, 20)}...` },
+                    { titulo: "Asignación de Roles", descripcion: "Decidir quién hará qué parte del trabajo." }
+                ];
+            }
+
+            setMessages(prev => [...prev, { role: 'ai', content: aiResponse }]);
             setHitos(prev => [...prev, ...newHitos]);
             setIsTyping(false);
             toast.success("Hitos sugeridos añadidos a la lista");
@@ -65,6 +85,12 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
 
     const handleRemoveHito = (index: number) => {
         setHitos(hitos.filter((_, i) => i !== index));
+    };
+
+    const handleEditHito = (index: number, field: 'titulo' | 'descripcion', value: string) => {
+        const newHitos = [...hitos];
+        newHitos[index] = { ...newHitos[index], [field]: value };
+        setHitos(newHitos);
     };
 
     const handleSubmit = () => {
@@ -111,8 +137,8 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
                                     {m.role === 'ai' ? <Bot className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
                                 </div>
                                 <div className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm ${m.role === 'user'
-                                        ? 'bg-indigo-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-600 border border-slate-200 rounded-tl-none'
+                                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                                    : 'bg-white text-slate-600 border border-slate-200 rounded-tl-none'
                                     }`}>
                                     {m.content}
                                 </div>
@@ -171,16 +197,25 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
                         ) : (
                             hitos.map((hito, index) => (
                                 <div key={index} className="flex gap-3 items-start p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-indigo-200 transition-all">
-                                    <div className="mt-1 w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                    <div className="mt-2 w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
                                         {index + 1}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-bold text-slate-800 text-sm mb-1">{hito.titulo}</div>
-                                        <div className="text-xs text-slate-500 leading-snug">{hito.descripcion}</div>
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                        <input
+                                            value={hito.titulo}
+                                            onChange={(e) => handleEditHito(index, 'titulo', e.target.value)}
+                                            className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none font-bold text-slate-800 text-sm px-1 py-0.5"
+                                        />
+                                        <textarea
+                                            value={hito.descripcion}
+                                            onChange={(e) => handleEditHito(index, 'descripcion', e.target.value)}
+                                            className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none text-xs text-slate-500 leading-snug px-1 py-0.5 resize-none"
+                                            rows={2}
+                                        />
                                     </div>
                                     <button
                                         onClick={() => handleRemoveHito(index)}
-                                        className="text-slate-300 hover:text-rose-500 transition-colors"
+                                        className="text-slate-300 hover:text-rose-500 transition-colors mt-2"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
