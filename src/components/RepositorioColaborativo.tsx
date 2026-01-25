@@ -25,41 +25,7 @@ export interface Recurso {
 }
 
 // Recursos de ejemplo
-const recursosEjemplo: Recurso[] = [
-  {
-    id: '1',
-    grupoId: 1,
-    grupoNombre: 'Grupo 1 – Guion',
-    departamento: 'Guion',
-    tipo: 'texto',
-    titulo: 'Guion: Episodio 1 - El Cambio Climático',
-    descripcion: 'Primer borrador del guion para nuestro episodio sobre el cambio climático',
-    contenido: 'Introducción: ¿Sabías que la temperatura global ha aumentado 1.1°C desde 1880? En este episodio exploramos...',
-    fechaSubida: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    grupoId: 2,
-    grupoNombre: 'Grupo 2 – Locución',
-    departamento: 'Locución',
-    tipo: 'audio',
-    titulo: 'Prueba de locución - Introducción',
-    descripcion: 'Grabación de prueba para la introducción del podcast',
-    url: 'https://example.com/audio.mp3',
-    fechaSubida: new Date('2024-01-16')
-  },
-  {
-    id: '3',
-    grupoId: 4,
-    grupoNombre: 'Grupo 4 – Diseño Gráfico',
-    departamento: 'Diseño Gráfico',
-    tipo: 'imagen',
-    titulo: 'Logo del Podcast',
-    descripcion: 'Propuesta de logo para el podcast educativo',
-    url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400',
-    fechaSubida: new Date('2024-01-17')
-  }
-];
+const recursosEjemplo: Recurso[] = [];
 
 export function RepositorioColaborativo({ grupo, mostrarEjemplo = false, className = '' }: RepositorioColaborativoProps) {
   const [recursos, setRecursos] = useState<Recurso[]>([]);

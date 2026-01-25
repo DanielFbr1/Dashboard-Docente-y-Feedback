@@ -40,31 +40,40 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
 
                         {/* Lista Hitos Compacta - AUMENTADA */}
                         <div className="p-5 space-y-3 bg-white flex-1">
-                            {fase.hitos?.map((hitoTitulo, index) => {
-                                const status = getHitoStatus(fase.id, hitoTitulo);
-                                return (
-                                    <div key={index} className="flex items-start gap-3 group">
-                                        <button
-                                            disabled={readOnly || status === 'aprobado' || status === 'revision'}
-                                            onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
-                                            className={`mt-0.5 shrink-0 transition-transform active:scale-90 p-1 -m-1 rounded-full hover:bg-slate-50 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
-                                            title={status === 'completado' ? 'Marcar como pendiente' : 'Marcar como completado'}
-                                        >
-                                            {status === 'aprobado' ? (
-                                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                                            ) : status === 'revision' ? (
-                                                <Clock className="w-6 h-6 text-amber-500" />
-                                            ) : (
-                                                <Circle className="w-6 h-6 text-slate-300 group-hover:text-purple-400 transition-colors" />
-                                            )}
-                                        </button>
-                                        <span className={`text-sm leading-snug ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-700 font-medium'
-                                            }`}>
-                                            {hitoTitulo}
-                                        </span>
-                                    </div>
-                                )
-                            })}
+                            {(() => {
+                                // Combine template milestones + custom group milestones
+                                const templateHitos = fase.hitos || [];
+                                const customHitos = hitosGrupo.filter(h => h.fase_id === fase.id).map(h => h.titulo);
+                                const allHitos = Array.from(new Set([...templateHitos, ...customHitos]));
+
+                                if (allHitos.length === 0) return <div className="text-sm text-slate-400 italic">Sin hitos definidos</div>;
+
+                                return allHitos.map((hitoTitulo, index) => {
+                                    const status = getHitoStatus(fase.id, hitoTitulo);
+                                    return (
+                                        <div key={index} className="flex items-start gap-3 group">
+                                            <button
+                                                disabled={readOnly || status === 'aprobado' || status === 'revision'}
+                                                onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
+                                                className={`mt-0.5 shrink-0 transition-transform active:scale-90 p-1 -m-1 rounded-full hover:bg-slate-50 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                                                title={status === 'completado' ? 'Marcar como pendiente' : 'Marcar como completado'}
+                                            >
+                                                {status === 'aprobado' ? (
+                                                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                                ) : status === 'revision' ? (
+                                                    <Clock className="w-6 h-6 text-amber-500" />
+                                                ) : (
+                                                    <Circle className="w-6 h-6 text-slate-300 group-hover:text-purple-400 transition-colors" />
+                                                )}
+                                            </button>
+                                            <span className={`text-sm leading-snug ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-700 font-medium'
+                                                }`}>
+                                                {hitoTitulo}
+                                            </span>
+                                        </div>
+                                    )
+                                })
+                            })()}
                         </div>
                     </div>
                 ))}
@@ -162,53 +171,68 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                 </h3>
 
                 <div className="space-y-3">
-                    {fases.find(f => f.id === activePhase)?.hitos?.map((hitoTitulo, index) => {
-                        const status = getHitoStatus(activePhase, hitoTitulo);
+                    {/* Dynamic Milestones for Active Phase */}
+                    {(() => {
+                        const phase = fases.find(f => f.id === activePhase);
+                        if (!phase) return null;
 
-                        return (
-                            <div
-                                key={index}
-                                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${status === 'aprobado' ? 'bg-emerald-50 border-emerald-100' :
-                                    status === 'revision' ? 'bg-amber-50 border-amber-100' :
-                                        'bg-slate-50 border-slate-100 hover:bg-white hover:shadow-md'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        disabled={readOnly || status === 'aprobado' || status === 'revision'}
-                                        onClick={() => onToggleHito(activePhase, hitoTitulo, status)}
-                                        className={`shrink-0 transition-transform active:scale-95 ${readOnly ? 'cursor-default' : 'cursor-pointer'
-                                            }`}
-                                    >
-                                        {status === 'aprobado' ? (
-                                            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                                        ) : status === 'revision' ? (
-                                            <Clock className="w-6 h-6 text-amber-500 animate-pulse" />
-                                        ) : (
-                                            <Circle className="w-6 h-6 text-slate-300 hover:text-purple-500" />
-                                        )}
-                                    </button>
-                                    <div className="flex flex-col">
-                                        <span className={`font-medium ${status === 'aprobado' ? 'text-slate-700' : 'text-slate-600'}`}>
-                                            {hitoTitulo}
-                                        </span>
-                                        {status === 'revision' && (
-                                            <span className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Esperando aprobación del profesor</span>
-                                        )}
-                                        {status === 'aprobado' && (
-                                            <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Completado y verificado</span>
-                                        )}
+                        const templateHitos = phase.hitos || [];
+                        const customHitos = hitosGrupo.filter(h => h.fase_id === phase.id).map(h => h.titulo);
+                        const allHitos = Array.from(new Set([...templateHitos, ...customHitos]));
+
+                        if (allHitos.length === 0) {
+                            return <p className="text-slate-400 italic text-center py-4">No hay hitos definidos para esta fase.</p>;
+                        }
+
+                        return allHitos.map((hitoTitulo, index) => {
+                            const status = getHitoStatus(activePhase, hitoTitulo);
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${status === 'aprobado' ? 'bg-emerald-50 border-emerald-100' :
+                                        status === 'revision' ? 'bg-amber-50 border-amber-100' :
+                                            'bg-slate-50 border-slate-100 hover:bg-white hover:shadow-md'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            disabled={readOnly || status === 'aprobado' || status === 'revision'}
+                                            onClick={() => onToggleHito(activePhase, hitoTitulo, status)}
+                                            className={`shrink-0 transition-transform active:scale-95 ${readOnly ? 'cursor-default' : 'cursor-pointer'
+                                                }`}
+                                        >
+                                            {status === 'aprobado' ? (
+                                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                            ) : status === 'revision' ? (
+                                                <Clock className="w-6 h-6 text-amber-500 animate-pulse" />
+                                            ) : (
+                                                <Circle className="w-6 h-6 text-slate-300 hover:text-purple-500" />
+                                            )}
+                                        </button>
+                                        <div className="flex flex-col">
+                                            <span className={`font-medium ${status === 'aprobado' ? 'text-slate-700' : 'text-slate-600'}`}>
+                                                {hitoTitulo}
+                                            </span>
+                                            {status === 'revision' && (
+                                                <span className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Esperando aprobación del profesor</span>
+                                            )}
+                                            {status === 'aprobado' && (
+                                                <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Completado y verificado</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="px-3 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-400 border border-slate-100 shadow-sm">
+                                        +10 XP
                                     </div>
                                 </div>
+                            );
+                        });
+                    })()}
 
-                                <div className="px-3 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-400 border border-slate-100 shadow-sm">
-                                    +10 XP
-                                </div>
-                            </div>
-                        );
-                    })}
-
-                    {(!fases.find(f => f.id === activePhase)?.hitos || fases.find(f => f.id === activePhase)?.hitos?.length === 0) && (
+                    {/* Eliminar renderizado anterior duplicado/condicional complejo */}
+                    {false && (!fases.find(f => f.id === activePhase)?.hitos || fases.find(f => f.id === activePhase)?.hitos?.length === 0) && (
                         <p className="text-slate-400 italic text-center py-4">No hay hitos definidos para esta fase.</p>
                     )}
                 </div>

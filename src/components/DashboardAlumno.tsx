@@ -544,23 +544,47 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 {/* ROW 2: Roadmap Completo (Sin Scroll Horizontal) */}
                 <div className="bg-slate-50 rounded-[2.5rem] p-6 border border-slate-200">
                   <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 px-2">Mapa del Proyecto</h3>
-                  <RoadmapView
-                    fases={(todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : []}
-                    hitosGrupo={grupoReal?.hitos || []}
-                    onToggleHito={async (faseId, hitoTitulo) => {
-                      if (!grupoReal) return;
-                      toast.success("Hito actualizado");
-                    }}
-                    onProposeMilestones={(faseId) => {
-                      const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
-                      const fase = fases.find(f => f.id === faseId);
-                      if (fase) {
-                        setFaseParaProponer(fase); // We are mutating the same object reference, so the 'hack' in Submit works for this session.
-                        setModalProponerOpen(true);
-                      }
-                    }}
-                    layout="compact-grid" // Nuevo layout horizontal compacto
-                  />
+
+                  {(!grupoReal?.hitos || grupoReal.hitos.length === 0) ? (
+                    <div className="text-center py-12 px-6 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                      <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-500">
+                        <Sparkles className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-800 mb-2">¡Comienza tu Aventura!</h3>
+                      <p className="text-slate-500 mb-6 max-w-md mx-auto">Tu mapa está vacío. Utiliza la IA para definir los logros y tareas clave de tu proyecto.</p>
+                      <button
+                        onClick={() => {
+                          // Mock: Open propose for first phase
+                          const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
+                          if (fases.length > 0) {
+                            setFaseParaProponer(fases[0]);
+                            setModalProponerOpen(true);
+                          }
+                        }}
+                        className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-indigo-200"
+                      >
+                        Definir Logros con IA
+                      </button>
+                    </div>
+                  ) : (
+                    <RoadmapView
+                      fases={(todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : []}
+                      hitosGrupo={grupoReal?.hitos || []}
+                      onToggleHito={async (faseId, hitoTitulo) => {
+                        if (!grupoReal) return;
+                        toast.success("Hito actualizado");
+                      }}
+                      onProposeMilestones={(faseId) => {
+                        const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
+                        const fase = fases.find(f => f.id === faseId);
+                        if (fase) {
+                          setFaseParaProponer(fase);
+                          setModalProponerOpen(true);
+                        }
+                      }}
+                      layout="compact-grid"
+                    />
+                  )}
                 </div>
               </>
             )}
