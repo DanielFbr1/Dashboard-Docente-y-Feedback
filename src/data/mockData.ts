@@ -152,41 +152,47 @@ export const PASOS_TUTORIAL_ALUMNO = [
         id: 'bienvenida-alumno',
         titulo: '¡Bienvenido a tu nuevo espacio!',
         descripcion: 'Hemos renovado tu dashboard para que sea más fácil trabajar en equipo. A continuación te haremos un tour rápido por las 4 secciones principales. ¡Solo te tomará un minuto!',
-        posicion: 'center' as const
+        posicion: 'center' as const,
+        vista: 'grupo'
     },
     {
         id: 'mi-grupo',
         titulo: 'Paso 1: Tu Centro de Mando',
         descripcion: 'En la pestaña "Mi Grupo" verás la salud de tu equipo. A la izquierda tienes la ficha de tu grupo y a la derecha vuestro Árbol de Progreso, que crecerá conforme completéis tareas. Abajo, el Mapa del Proyecto te enseña todos los pasos a seguir de un vistazo.',
         targetSelector: 'nav button:nth-child(1)',
-        posicion: 'bottom' as const
+        posicion: 'bottom' as const,
+        vista: 'grupo'
     },
     {
         id: 'subir-tarea',
         titulo: '¿Cómo entregar trabajo?',
         descripcion: 'Cuando tengáis algo listo, pulsad el botón de "Nube" en la tarjeta de vuestro grupo. Es la forma más rápida de subir evidencias, documentos o enlaces para que los revise el profesor.',
         targetSelector: 'button[title="Subir aportación"]',
-        posicion: 'left' as const
+        posicion: 'right' as const, // Posición lateral para no tapar el botón
+        vista: 'grupo'
     },
     {
         id: 'comunidad',
         titulo: 'Paso 2: La Comunidad',
         descripcion: 'En "Todos los Grupos" puedes ver cómo va el resto de la clase. El gran Árbol central representa el esfuerzo de todos. Además, aquí encontrarás el Repositorio Colaborativo para compartir recursos útiles con otros equipos.',
         targetSelector: 'nav button:nth-child(2)',
-        posicion: 'bottom' as const
+        posicion: 'bottom' as const,
+        vista: 'comunidad'
     },
     {
         id: 'mentor-ia-alumno',
         titulo: 'Paso 3: Tu Mentor Inteligente',
         descripcion: '¿Atascado? ¿Necesitas ideas? El Mentor IA está aquí para ayudarte 24/7. No te dará las respuestas, pero te guiará con preguntas para que encuentres la solución tú mismo.',
         targetSelector: 'nav button:nth-child(3)',
-        posicion: 'bottom' as const
+        posicion: 'bottom' as const,
+        vista: 'chat'
     },
     {
         id: 'mis-notas',
         titulo: 'Paso 4: Tu Espacio Personal',
         descripcion: 'Finalmente, en "Mis Notas" tienes tu privacidad. Aquí podrás ver tus calificaciones individuales, reflexiones y estadísticas de aprendizaje que solo tú y el profesor podéis ver.',
         targetSelector: 'nav button:nth-child(4)',
-        posicion: 'bottom' as const
+        posicion: 'bottom' as const,
+        vista: 'notas'
     }
 ];

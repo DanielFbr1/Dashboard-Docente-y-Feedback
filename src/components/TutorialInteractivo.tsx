@@ -13,15 +13,23 @@ interface TutorialInteractivoProps {
   pasos: PasoTutorial[];
   onComplete: () => void;
   onSkip: () => void;
+  onStepChange?: (index: number) => void;
 }
 
-export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInteractivoProps) {
+export function TutorialInteractivo({ pasos, onComplete, onSkip, onStepChange }: TutorialInteractivoProps) {
   const [pasoActual, setPasoActual] = useState(0);
   const [posicion, setPosicion] = useState({ top: 0, left: 0 });
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   const paso = pasos[pasoActual];
   const esUltimoPaso = pasoActual === pasos.length - 1;
+
+  useEffect(() => {
+    // Notificar cambio de paso al montarse o cambiar pasoActual
+    if (onStepChange) {
+      onStepChange(pasoActual);
+    }
+  }, [pasoActual, onStepChange]);
 
   useEffect(() => {
     const updatePosition = () => {
@@ -115,11 +123,17 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
         />
       )}
 
-      {/* Tooltip del tutorial - PERMANENTEMENTE CENTRADO */}
+      {/* Tooltip del tutorial - POSICIONAMIENTO DINÁMICO */}
       <div
-        className="fixed z-[60] bg-white rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in top-1/2 left-1/2"
+        className="fixed z-[60] bg-white rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in transition-all duration-300"
         style={{
-          transform: 'translate(-50%, -50%)',
+          top: paso.posicion === 'center' ? '50%' : `${posicion.top}px`,
+          left: paso.posicion === 'center' ? '50%' : `${posicion.left}px`,
+          transform: paso.posicion === 'center' ? 'translate(-50%, -50%)' :
+            paso.posicion === 'bottom' ? 'translate(-50%, 0)' :
+              paso.posicion === 'top' ? 'translate(-50%, -100%)' :
+                paso.posicion === 'right' ? 'translate(0, -50%)' :
+                  paso.posicion === 'left' ? 'translate(-100%, -50%)' : 'none',
           margin: 0
         }}
       >

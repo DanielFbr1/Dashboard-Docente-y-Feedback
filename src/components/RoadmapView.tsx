@@ -23,7 +23,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
     // LAYOUT COMPACTO (HORIZONTAL SIN SCROLL)
     if (layout === 'compact-grid') {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(fases || []).map((fase) => (
                     <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
                         }`}>
@@ -32,7 +32,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                             }`}>
                             <h4 className="font-bold text-slate-800 text-sm truncate max-w-[140px]" title={fase.nombre}>{fase.nombre}</h4>
                             <span className={`text-[10px] font-black uppercase tracking-wider ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                    fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
                                 }`}>
                                 {fase.estado === 'completado' ? 'Listo' : fase.estado}
                             </span>

@@ -561,8 +561,19 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         )}
       </main>
 
-      {showTutorial && (
-        <TutorialInteractivo pasos={PASOS_TUTORIAL_ALUMNO} onComplete={handleTutorialComplete} onSkip={() => setShowTutorial(false)} />
+      {mostrarTutorial && (
+        <TutorialInteractivo
+          pasos={PASOS_TUTORIAL_ALUMNO}
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialComplete}
+          onStepChange={(index) => {
+            const paso = PASOS_TUTORIAL_ALUMNO[index];
+            if (paso.vista) {
+              // Mapeo seguro para TypeScript de string genérico a tipo literal
+              setVistaActiva(paso.vista as 'grupo' | 'comunidad' | 'chat' | 'notas');
+            }
+          }}
+        />
       )}
       {modalUnirseOpen && <ModalUnirseClase onClose={() => setModalUnirseOpen(false)} onJoinSuccess={handleJoinSuccess} />}
 
