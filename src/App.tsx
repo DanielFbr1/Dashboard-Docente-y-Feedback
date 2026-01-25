@@ -143,12 +143,11 @@ function AppContent() {
         />
       )}
 
-      {currentScreen === 'group-detail' && selectedGrupo && (
-        <GroupDetail
-          grupo={selectedGrupo}
-          onBack={handleBackToProjectDetail}
-        />
-      )}
+      <GroupDetail
+        grupo={selectedGrupo}
+        fases={selectedProject.fases || []}
+        onBack={handleBackToProjectDetail}
+      />
     </div>
   );
 }

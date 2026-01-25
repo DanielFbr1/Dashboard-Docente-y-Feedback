@@ -1,19 +1,15 @@
 import { ArrowLeft, CheckCircle2, Circle, Brain, Share2 } from 'lucide-react';
 import { useState } from 'react';
-import { Grupo } from '../types';
+import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { ChatIA } from './ChatIA';
+import { RoadmapView } from './RoadmapView';
 
 interface DetalleGrupoProps {
   grupo: Grupo;
+  fases: ProyectoFase[];
   onBack: () => void;
   onViewFeedback?: () => void;
-}
-
-interface Hito {
-  nombre: string;
-  descripcion: string;
-  completado: boolean;
 }
 
 interface TipoPregunta {
@@ -23,17 +19,10 @@ interface TipoPregunta {
   icon: string | any;
 }
 
-export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProps) {
+export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGrupoProps) {
   const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
 
-  const hitos: Hito[] = [
-    { nombre: 'Brief', descripcion: 'Definición del proyecto y objetivos', completado: true },
-    { nombre: 'Guion', descripcion: 'Elaboración del contenido y estructura', completado: true },
-    { nombre: 'Grabación', descripcion: 'Captura de audio y video', completado: grupo.progreso >= 60 },
-    { nombre: 'Edición', descripcion: 'Post-producción y ajustes', completado: grupo.progreso >= 85 },
-    { nombre: 'Publicación', descripcion: 'Lanzamiento y difusión', completado: grupo.progreso === 100 }
-  ];
-
+  // Hardcoded stats can remain for now or be derived
   const tiposPreguntas: TipoPregunta[] = [
     { tipo: 'Metacognitivas', cantidad: 5, color: 'bg-purple-500', icon: '💡' },
     { tipo: 'Técnica', cantidad: 3, color: 'bg-blue-500', icon: '🛠️' },
@@ -141,28 +130,16 @@ export function DetalleGrupo({ grupo, onBack, onViewFeedback }: DetalleGrupoProp
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Línea de tiempo del proyecto</h2>
-                <div className="flex flex-col gap-4">
-                  {hitos.map((hito, index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {hito.completado ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-gray-300" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className={`font-medium mb-1 ${hito.completado ? 'text-gray-900' : 'text-gray-400'}`}>
-                          {hito.nombre}
-                        </div>
-                        <div className={`text-sm ${hito.completado ? 'text-gray-600' : 'text-gray-400'}`}>
-                          {hito.descripcion}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex-1">
+                  <RoadmapView
+                    fases={fases}
+                    hitosGrupo={grupo.hitos || []}
+                    onToggleHito={() => { }} // Read only for teacher here
+                    readOnly={true}
+                    layout="vertical"
+                  />
                 </div>
               </div>
 
