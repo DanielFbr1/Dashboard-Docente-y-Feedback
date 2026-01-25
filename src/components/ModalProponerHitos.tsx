@@ -41,45 +41,47 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
         setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
         setIsTyping(true);
 
-        // Mock AI Response & Extraction
+        // Mock AI Response (Conversation Only)
         setTimeout(() => {
             let aiResponse = "";
-            let newHitos: { titulo: string; descripcion: string }[] = [];
-
-            // Simple Keyword Matching for "Smarter" Mock
             const lowerInput = userMsg.toLowerCase();
 
-            if (lowerInput.includes("podcast") || lowerInput.includes("audio") || lowerInput.includes("grabación")) {
-                aiResponse = "Veo que queréis trabajar en formato audio. ¡Excelente elección! He preparado unos hitos técnicos para empezar.";
-                newHitos = [
-                    { titulo: "Guion Escaleta", descripcion: "Estructura principal del episodio con tiempos estimados." },
-                    { titulo: "Prueba de Micrófono", descripcion: "Grabación de 30s para validar calidad de audio en el aula." }
-                ];
-            } else if (lowerInput.includes("video") || lowerInput.includes("corto") || lowerInput.includes("filmar")) {
-                aiResponse = "El video requiere buena planificación. Aquí tenéis los primeros pasos esenciales.";
-                newHitos = [
-                    { titulo: "Storyboard", descripcion: "Dibujo esquemático de los planos principales." },
-                    { titulo: "Lista de Utilería", descripcion: "Recursos físicos necesarios para el rodaje." }
-                ];
-            } else if (lowerInput.includes("investig") || lowerInput.includes("buscar") || lowerInput.includes("información")) {
-                aiResponse = "Para investigar bien, necesitáis fuentes fiables. Os sugiero estos objetivos.";
-                newHitos = [
-                    { titulo: "Recopilación de Fuentes", descripcion: "Lista de 5 artículos/libros verificados sobre el tema." },
-                    { titulo: "Resumen Ejecutivo", descripcion: "Síntesis de 1 página con las ideas clave encontradas." }
-                ];
+            // Conversational Logic
+            if (lowerInput.includes("hola") || lowerInput.includes("buenas")) {
+                aiResponse = "¡Hola! Contadme, ¿qué tenéis en mente para esta fase?";
+            } else if (lowerInput.includes("gracias")) {
+                aiResponse = "¡A vosotros! ¿Necesitáis ayuda con algo más?";
+            } else if (lowerInput.includes("podcast") || lowerInput.includes("audio")) {
+                aiResponse = "El formato audio es genial. ¿Tenéis pensado hacerlo tipo entrevista o narrativo?";
+            } else if (lowerInput.includes("video")) {
+                aiResponse = "Video implica imagen y sonido. ¿Vais a grabar con móvil o cámara?";
+            } else if (lowerInput.includes("investig")) {
+                aiResponse = "¿Sobre qué fuentes vais a investigar? ¿Artículos, entrevistas...?";
+            } else if (lowerInput.includes("listo") || lowerInput.includes("ok") || lowerInput.includes("ya")) {
+                aiResponse = "Perfecto. Si lo veis claro, dadle al botón 'Extraer Hitos' y prepararé la lista.";
             } else {
-                // Fallback Generic
-                aiResponse = "Entiendo vuestra idea. Para llevarla a cabo, os sugiero dividirla en estas tareas concretas.";
-                newHitos = [
-                    { titulo: "Definición del Alcance", descripcion: `Detallar qué incluye y qué no incluye: ${userMsg.substring(0, 20)}...` },
-                    { titulo: "Asignación de Roles", descripcion: "Decidir quién hará qué parte del trabajo." }
-                ];
+                aiResponse = "Entiendo. Seguid dándome detalles para que pueda ayudaros mejor.";
             }
 
             setMessages(prev => [...prev, { role: 'ai', content: aiResponse }]);
+            setIsTyping(false);
+        }, 1000);
+    };
+
+    const handleGenerateMilestones = () => {
+        setIsTyping(true);
+        setTimeout(() => {
+            // Mock Extraction Logic (Based on last few messages context ideally, but here simulated)
+            const newHitos = [
+                { titulo: "Definición del Concepto", descripcion: "Redactar en un párrafo la idea central." },
+                { titulo: "Asignación de Roles", descripcion: "Quién hará de líder, secretario, etc." },
+                { titulo: "Búsqueda de Recursos", descripcion: "Localizar 3 fuentes de información fiables." }
+            ];
+
+            setMessages(prev => [...prev, { role: 'ai', content: "¡Hecho! He extraído estos hitos de nuestra conversación. Revisadlos a la derecha." }]);
             setHitos(prev => [...prev, ...newHitos]);
             setIsTyping(false);
-            toast.success("Hitos sugeridos añadidos a la lista");
+            toast.success("Hitos generados desde la conversación");
         }, 1500);
     };
 
@@ -137,8 +139,8 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
                                     {m.role === 'ai' ? <Bot className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
                                 </div>
                                 <div className={`p-4 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm ${m.role === 'user'
-                                    ? 'bg-indigo-600 text-white rounded-tr-none'
-                                    : 'bg-white text-slate-600 border border-slate-200 rounded-tl-none'
+                                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                                        : 'bg-white text-slate-600 border border-slate-200 rounded-tl-none'
                                     }`}>
                                     {m.content}
                                 </div>
@@ -159,7 +161,19 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <div className="p-4 bg-white border-t border-slate-200">
+                    <div className="p-4 bg-white border-t border-slate-200 space-y-3">
+                        {/* Generation Trigger */}
+                        {messages.length > 2 && (
+                            <button
+                                onClick={handleGenerateMilestones}
+                                type="button"
+                                className="w-full py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100"
+                            >
+                                <Sparkles className="w-4 h-4" />
+                                Extraer Hitos del Chat
+                            </button>
+                        )}
+
                         <form
                             onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                             className="flex gap-2"
@@ -167,7 +181,7 @@ export function ModalProponerHitos({ fase, onClose, onSubmit }: ModalProponerHit
                             <input
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Describe vuestra idea para esta fase..."
+                                placeholder="Escribe al mentor..."
                                 className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
                             />
                             <button
