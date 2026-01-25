@@ -462,105 +462,108 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                {/* COLUMNA 1: Tarjeta de Grupo */}
-                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 relative overflow-hidden h-full">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 -z-0"></div>
-                  <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div>
-                      <div className="flex items-start justify-between mb-6">
-                        <div>
-                          <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase leading-none mb-2">{grupoDisplay.nombre}</h2>
-                          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{grupoDisplay.departamento}</p>
-                        </div>
-                        <button
-                          onClick={() => setModalSubirRecursoOpen(true)}
-                          className="bg-slate-900 text-white w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all group"
-                          title="Subir aportación"
-                        >
-                          <Upload className="w-6 h-6 group-hover:text-purple-400 transition-colors" />
-                        </button>
-                      </div>
-
-                      <div className="mb-8">
-                        <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoDisplay.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                          grupoDisplay.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                            grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
-                              'bg-emerald-50 text-emerald-600 border-emerald-200'
-                          }`}>
-                          {grupoDisplay.estado}
-                        </span>
-                      </div>
-
-                      <div className="mb-8">
-                        <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">
-                          <span>Progreso del equipo</span>
-                          <span className="text-slate-800">{grupoDisplay.progreso}%</span>
-                        </div>
-                        <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-1000"
-                            style={{ width: `${grupoDisplay.progreso}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
-                          <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-purple-600 font-bold text-xs">
-                              {miembro.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="font-bold text-slate-700 text-xs tracking-tight truncate">{miembro}</span>
+                  {/* COLUMNA 1: Tarjeta de Grupo */}
+                  <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 relative overflow-hidden h-full">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 -z-0"></div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                      <div>
+                        <div className="flex items-start justify-between mb-6">
+                          <div>
+                            <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase leading-none mb-2">{grupoDisplay.nombre}</h2>
+                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{grupoDisplay.departamento}</p>
                           </div>
-                        ))}
+                          <button
+                            onClick={() => setModalSubirRecursoOpen(true)}
+                            className="bg-slate-900 text-white w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all group"
+                            title="Subir aportación"
+                          >
+                            <Upload className="w-6 h-6 group-hover:text-purple-400 transition-colors" />
+                          </button>
+                        </div>
+
+                        <div className="mb-8">
+                          <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoDisplay.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                            grupoDisplay.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                              grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                                'bg-emerald-50 text-emerald-600 border-emerald-200'
+                            }`}>
+                            {grupoDisplay.estado}
+                          </span>
+                        </div>
+
+                        <div className="mb-8">
+                          <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">
+                            <span>Progreso del equipo</span>
+                            <span className="text-slate-800">{grupoDisplay.progreso}%</span>
+                          </div>
+                          <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
+                            <div
+                              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-1000"
+                              style={{ width: `${grupoDisplay.progreso}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
+                            <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                              <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-purple-600 font-bold text-xs">
+                                {miembro.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-bold text-slate-700 text-xs tracking-tight truncate">{miembro}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* COLUMNA 2: Árbol de Progreso */}
-                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden h-full min-h-[400px]">
-                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
-                  <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-4 z-10 w-full text-center">Nuestro Árbol</h2>
-                  <div className="relative z-10 transform scale-100">
-                    <LivingTree progress={grupoDisplay.progreso || 0} health={100} size={280} />
-                  </div>
-                  <div className="mt-8 flex gap-8 text-center">
-                    <div>
-                      <div className="text-2xl font-black text-slate-800">{grupoDisplay.progreso}%</div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
+                  {/* COLUMNA 2: Árbol de Progreso */}
+                  <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden h-full min-h-[400px]">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
+                    <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-4 z-10 w-full text-center">Nuestro Árbol</h2>
+                    <div className="relative z-10 transform scale-100">
+                      <LivingTree progress={grupoDisplay.progreso || 0} health={100} size={280} />
+                    </div>
+                    <div className="mt-8 flex gap-8 text-center">
+                      <div>
+                        <div className="text-2xl font-black text-slate-800">{grupoDisplay.progreso}%</div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
+                      </div>
                     </div>
                   </div>
+
                 </div>
 
-              </div>
-
-            {/* ROW 2: Roadmap Completo (Sin Scroll Horizontal) */}
-            <div className="bg-slate-50 rounded-[2.5rem] p-6 border border-slate-200">
-              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 px-2">Mapa del Proyecto</h3>
-              <RoadmapView
-                fases={(todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : []}
-                hitosGrupo={grupoReal?.hitos || []}
-                onToggleHito={async (faseId, hitoTitulo) => {
-                  if (!grupoReal) return;
-                  toast.success("Hito actualizado");
-                }}
-                onProposeMilestones={(faseId) => {
-                  const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
-                  const fase = fases.find(f => f.id === faseId);
-                  if (fase) {
-                    setFaseParaProponer(fase); // We are mutating the same object reference, so the 'hack' in Submit works for this session.
-                    setModalProponerOpen(true);
-                  }
-                }}
-                layout="compact-grid" // Nuevo layout horizontal compacto
-              />
-            </div>
+                {/* ROW 2: Roadmap Completo (Sin Scroll Horizontal) */}
+                <div className="bg-slate-50 rounded-[2.5rem] p-6 border border-slate-200">
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 px-2">Mapa del Proyecto</h3>
+                  <RoadmapView
+                    fases={(todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : []}
+                    hitosGrupo={grupoReal?.hitos || []}
+                    onToggleHito={async (faseId, hitoTitulo) => {
+                      if (!grupoReal) return;
+                      toast.success("Hito actualizado");
+                    }}
+                    onProposeMilestones={(faseId) => {
+                      const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
+                      const fase = fases.find(f => f.id === faseId);
+                      if (fase) {
+                        setFaseParaProponer(fase); // We are mutating the same object reference, so the 'hack' in Submit works for this session.
+                        setModalProponerOpen(true);
+                      }
+                    }}
+                    layout="compact-grid" // Nuevo layout horizontal compacto
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
     </div>
