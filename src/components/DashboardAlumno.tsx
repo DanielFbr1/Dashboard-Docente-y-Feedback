@@ -434,11 +434,11 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       {/* Navigation - 4 Pestañas */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <nav className="flex gap-2 overflow-x-auto no-scrollbar snap-x">
+        <div className="max-w-7xl mx-auto px-6">
+          <nav className="flex gap-2">
             <button
               onClick={() => setVistaActiva('grupo')}
-              className={`px-4 md:px-8 py-4 md:py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] shrink-0 snap-start ${vistaActiva === 'grupo'
+              className={`px-8 py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] ${vistaActiva === 'grupo'
                 ? 'border-purple-600 text-purple-600 bg-purple-50/50'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
@@ -450,7 +450,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('comunidad')}
-              className={`px-4 md:px-8 py-4 md:py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] shrink-0 snap-start ${vistaActiva === 'comunidad'
+              className={`px-8 py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] ${vistaActiva === 'comunidad'
                 ? 'border-purple-600 text-purple-600 bg-purple-50/50'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
@@ -462,7 +462,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('chat')}
-              className={`px-4 md:px-8 py-4 md:py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] shrink-0 snap-start ${vistaActiva === 'chat'
+              className={`px-8 py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] ${vistaActiva === 'chat'
                 ? 'border-purple-600 text-purple-600 bg-purple-50/50'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
@@ -474,7 +474,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </button>
             <button
               onClick={() => setVistaActiva('perfil')}
-              className={`px-4 md:px-8 py-4 md:py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] shrink-0 snap-start ${vistaActiva === 'perfil'
+              className={`px-8 py-5 font-bold text-xs uppercase tracking-widest transition-all border-b-[3px] ${vistaActiva === 'perfil'
                 ? 'border-purple-600 text-purple-600 bg-purple-50/50'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
