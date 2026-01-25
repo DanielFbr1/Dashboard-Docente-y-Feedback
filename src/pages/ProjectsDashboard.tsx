@@ -174,38 +174,38 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     }
 
     return (
-        <div className="min-h-screen bg-[#fcfdff] p-8 font-sans">
-            <header className="mb-12 max-w-7xl mx-auto">
-                <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-100/50">
-                    <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border-2 border-blue-100">
-                            <Layout className="w-7 h-7" />
+        <div className="min-h-screen bg-[#fcfdff] p-4 md:p-8 font-sans overflow-x-hidden">
+            <header className="mb-8 md:mb-12 max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 md:p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-100/50 gap-6 md:gap-0">
+                    <div className="flex flex-col md:flex-row items-center gap-3 md:gap-5 text-center md:text-left">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border-2 border-blue-100 shrink-0">
+                            <Layout className="w-6 h-6 md:w-7 md:h-7" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">Mis Proyectos</h1>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">Mis Proyectos</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 justify-center md:justify-start">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Dashboard Activo • {proyectos.length} proyectos
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
                         <button
                             onClick={fetchProyectos}
-                            className="p-3.5 bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all"
+                            className="p-3.5 bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all border border-transparent active:scale-95"
                         >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                         <button
                             onClick={() => setShowModalProyecto(true)}
-                            className="flex items-center gap-3 px-7 py-3.5 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-7 py-3.5 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-widest min-w-[120px]"
                         >
                             <Plus className="w-5 h-5" />
                             <span>Nuevo</span>
                         </button>
                         <button
                             onClick={handleLogout}
-                            className="p-3.5 bg-rose-50 text-rose-400 hover:text-rose-600 hover:bg-rose-100 rounded-2xl transition-all"
+                            className="p-3.5 bg-rose-50 text-rose-400 hover:text-rose-600 hover:bg-rose-100 rounded-2xl transition-all border border-transparent active:scale-95"
                         >
                             <LogOut className="w-5 h-5" />
                         </button>
@@ -213,7 +213,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto space-y-20">
+            <div className="max-w-7xl mx-auto space-y-12 md:space-y-20">
                 {proyectos.length > 0 ? (
                     Object.entries(proyectosPorClase).map(([clase, proyectosClase]) => (
                         <section key={clase} className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
