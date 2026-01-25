@@ -317,85 +317,68 @@ export function DashboardDocente({
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-8 py-5">
-          <div className="flex items-center justify-between mb-3 gap-6">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 md:py-5 shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0"
               >
-                <LayoutDashboard className="w-6 h-6" /> {/* Using Icon as hamburger equivalent */}
+                <LayoutDashboard className="w-6 h-6" />
               </button>
-              <div className="flex flex-col gap-1">
+              {/* Oculto en móvil para ganar espacio */}
+              <div className="hidden md:flex flex-col gap-1">
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Panel Principal ABP + IA</h1>
-                <p className="text-sm text-gray-500 font-medium italic hidden sm:block">Gestión interactiva del profesorado</p>
+                <p className="text-sm text-gray-500 font-medium italic">Gestión interactiva del profesorado</p>
               </div>
+              {/* Texto visible solo en móvil como indicador */}
+              <div className="md:hidden font-black text-slate-800 text-sm uppercase tracking-widest">Panel Docente</div>
             </div>
 
-            <div className="flex items-center gap-6">
+            {/* Acciones en Cuadrícula 2x2 en móvil */}
+            <div className="grid grid-cols-2 md:flex items-center gap-2 w-full md:w-auto">
 
               <button
                 onClick={() => setModalAsistenciaOpen(true)}
-                className="flex items-center gap-2 px-4 py-3 bg-white text-blue-600 border-2 border-blue-100 hover:border-blue-300 hover:bg-blue-50 rounded-xl font-bold transition-all shadow-sm"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white text-blue-600 border-2 border-blue-100 hover:border-blue-300 rounded-xl font-bold transition-all text-xs"
               >
-                <UserCheck className="w-5 h-5" />
-                <span className="hidden sm:inline">Pasar Lista</span>
+                <UserCheck className="w-4 h-4 md:w-5 md:h-5" />
+                <span>Lista</span>
               </button>
 
-              <div className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-black shadow-md hover:shadow-lg transition-all tracking-widest text-lg">
-                <Key className="w-5 h-5" />
+              <div className="flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 text-white rounded-xl font-black shadow-md text-xs tracking-tighter md:tracking-widest md:text-lg">
+                <Key className="w-4 h-4 md:w-5 md:h-5" />
                 <span>{proyectoActual?.codigo_sala || '---'}</span>
               </div>
 
-
-
-              {/* MODALES */}
-
-
-              {modalAsistenciaOpen && proyectoActual && (
-                <ModalAsistencia
-                  grupos={grupos}
-                  proyectoId={proyectoActual.id}
-                  onClose={() => setModalAsistenciaOpen(false)}
-                />
-              )}
-
-              {numPendientes > 0 && (
+              {numPendientes > 0 ? (
                 <button
                   onClick={() => setModalRevisionAbierto(true)}
-                  className="relative p-2.5 bg-amber-50 text-amber-600 border-2 border-amber-200 rounded-xl hover:bg-amber-100 transition-all font-black text-xs uppercase tracking-widest flex items-center gap-2 group"
+                  className="relative flex items-center justify-center gap-2 px-3 py-2.5 bg-amber-50 text-amber-600 border-2 border-amber-200 rounded-xl font-black text-[10px] uppercase tracking-tighter"
                 >
-                  <span className="relative flex h-3 w-3">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                   </span>
-                  <span>{numPendientes} {numPendientes === 1 ? 'Revisión' : 'Revisiones'}</span>
+                  <span>{numPendientes} {numPendientes === 1 ? 'Pendiente' : 'Pendientes'}</span>
                 </button>
+              ) : (
+                <div className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 text-slate-400 border border-slate-200 rounded-xl font-bold text-[10px] uppercase">
+                  Todo al día
+                </div>
               )}
 
-              {mostrandoEjemplo && (
-                <button
-                  onClick={() => {
-                    if (window.confirm("¿Estás seguro?\n\nEsta acción borrará el ejemplo Y TAMBIÉN los grupos que hayas creado durante la sesión de prueba.\n\nSe recomienda usar esto solo para reiniciar completamente.")) {
-                      onLimpiarDatos();
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                >
-                  Limpiar ejemplo
-                </button>
-              )}
-
-              <div className="relative">
+              <div className="relative group/settings">
                 <button
                   onClick={() => setMenuConfigAbierto(!menuConfigAbierto)}
-                  className={`p-2 rounded-lg transition-colors ${menuConfigAbierto ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-xs font-bold ${menuConfigAbierto ? 'bg-blue-100 text-blue-600 border-blue-200' : 'bg-white text-gray-600 border-slate-200 hover:bg-gray-50'}`}
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="md:hidden">Ajustes</span>
                 </button>
 
                 {menuConfigAbierto && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-20 animate-in fade-in zoom-in duration-200">
+                  <div className="absolute right-0 bottom-full md:bottom-auto md:top-full mb-2 md:mb-0 md:mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 animate-in fade-in zoom-in duration-200">
                     <div className="p-2 space-y-1 pt-3">
                       <button
                         onClick={handlePerfil}
@@ -425,22 +408,22 @@ export function DashboardDocente({
           </div>
 
           {proyectoActual && (
-            <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 mt-4 shadow-sm">
-              <div className="w-12 h-12 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm text-blue-600">
-                <FolderOpen className="w-6 h-6" />
+            <div className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-white rounded-2xl border border-slate-200 mt-4 shadow-sm">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm text-blue-600 shrink-0">
+                <FolderOpen className="w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <div className="flex-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Proyecto Activo</div>
-                <div className="font-bold text-slate-900 text-xl leading-tight">{proyectoActual.nombre}</div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 uppercase tracking-tighter">Código: {proyectoActual.codigo_sala}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Proyecto en curso</div>
+                <div className="font-bold text-slate-900 text-base md:text-xl leading-tight truncate">{proyectoActual.nombre}</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 uppercase tracking-tighter">SALA: {proyectoActual.codigo_sala}</div>
                 </div>
               </div>
               <button
                 onClick={onCambiarProyecto}
-                className="px-6 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all text-sm font-bold shadow-sm"
+                className="px-4 py-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all text-xs font-bold shadow-sm whitespace-nowrap"
               >
-                Cambiar Proyecto
+                Cambiar
               </button>
             </div>
           )}
