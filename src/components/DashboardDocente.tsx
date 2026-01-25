@@ -86,10 +86,10 @@ export function DashboardDocente({
         );
       });
 
-      // 2. Recalcular el progreso si se aprueba (mismo lógica que antes)
-      const numFases = proyectoActual ? 5 : 5;
+      // 2. Recalcular el progreso dinámicamente (hitos aprobados / total hitos)
+      const totalHitos = nuevosHitos.length;
       const hitosAprobados = nuevosHitos.filter(h => h.estado === 'aprobado').length;
-      const nuevoProgreso = Math.min(100, Math.round((hitosAprobados / numFases) * 100));
+      const nuevoProgreso = totalHitos > 0 ? Math.round((hitosAprobados / totalHitos) * 100) : 0;
 
       // 3. Persistir cambios usando el prop onEditarGrupo (UNA SOLA VEZ)
       await onEditarGrupo(grupoId, {
@@ -183,9 +183,15 @@ export function DashboardDocente({
           onClose={() => setModalAsignarAbierto(false)}
           onSave={async (nuevosHitos) => {
             const updatedHitos = [...(grupoParaTareas.hitos || []), ...nuevosHitos] as HitoGrupo[];
+            // Recalculate progress on new task assignment
+            const total = updatedHitos.length;
+            const aprobados = updatedHitos.filter(h => h.estado === 'aprobado').length;
+            const nuevoProgreso = total > 0 ? Math.round((aprobados / total) * 100) : 0;
+
             await onEditarGrupo(grupoParaTareas.id, {
               ...grupoParaTareas,
-              hitos: updatedHitos
+              hitos: updatedHitos,
+              progreso: nuevoProgreso
             });
             toast.success("Tareas asignadas correctamente");
           }}
