@@ -1,4 +1,4 @@
-import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp, Sparkles, Upload, Globe } from 'lucide-react';
+import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp, Sparkles, Upload, Globe, ChevronDown, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo } from '../types';
 import { supabase } from '../lib/supabase';
@@ -16,6 +16,14 @@ import { LivingTree } from './LivingTree';
 import { PROYECTOS_MOCK } from '../data/mockData';
 import { HitoGrupo } from '../types';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 
 interface DashboardAlumnoProps {
   alumno: {
@@ -105,6 +113,25 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         return;
       }
 
+      // Sync History logic
+      if (alumno.id && targetProjectId && roomCode) {
+        const { data: projDetails } = await supabase.from('proyectos').select('nombre').eq('id', targetProjectId).single();
+        if (projDetails) {
+          const historyKey = `student_classes_history_${alumno.id}`;
+          const historyStr = localStorage.getItem(historyKey);
+          let history = historyStr ? JSON.parse(historyStr) : [];
+          if (!history.some((h: any) => h.id === targetProjectId)) {
+            history.push({
+              id: targetProjectId,
+              nombre: projDetails.nombre,
+              codigo: roomCode,
+              lastAccessed: Date.now()
+            });
+            localStorage.setItem(historyKey, JSON.stringify(history));
+          }
+        }
+      }
+
       const { data: grupos, error: errorGrupos } = await supabase
         .from('grupos')
         .select('*')
@@ -142,6 +169,32 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       console.error('Error fetching student data:', err);
       setErrorStatus('ERROR_TECNICO');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSwitchClass = async (classData: any) => {
+    setLoading(true);
+    try {
+      // Update user profile to point to the selected class
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          codigo_sala: classData.codigo,
+          proyecto_id: classData.id
+        }
+      });
+      if (updateError) throw updateError;
+
+      toast.success(`Cambiando a clase: ${classData.nombre}`);
+      // Force reload data by triggering re-fetch via auth state change/reload or just calling fetch
+      // But fetch relies on props `alumno`. `alumno` comes from `App` which watches `user`.
+      // Modifying auth metadata should trigger `useAuth` update eventually, but might be slow.
+      // A hard reload is simplest for "Session" changes, or we can just `window.location.reload()`.
+      window.location.reload();
+
+    } catch (error) {
+      console.error("Error switching class", error);
+      toast.error("Error al cambiar de clase");
       setLoading(false);
     }
   };

@@ -41,6 +41,25 @@ export function ModalUnirseClase({ onClose, onJoinSuccess }: ModalUnirseClasePro
 
             if (updateError) throw updateError;
 
+            // Guardar en historial local
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const historyKey = `student_classes_history_${user.id}`;
+                const historyStr = localStorage.getItem(historyKey);
+                let history = historyStr ? JSON.parse(historyStr) : [];
+
+                // Evitar duplicados
+                if (!history.some((h: any) => h.id === proyecto.id)) {
+                    history.push({
+                        id: proyecto.id,
+                        nombre: proyecto.nombre,
+                        codigo: proyecto.codigo_sala,
+                        lastAccessed: Date.now()
+                    });
+                    localStorage.setItem(historyKey, JSON.stringify(history));
+                }
+            }
+
             toast.success(`¡Te has unido a ${proyecto.nombre}!`);
             onJoinSuccess();
             onClose();
