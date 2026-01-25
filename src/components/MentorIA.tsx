@@ -28,7 +28,7 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
 
     // Estado para el efecto de escritura
     const [displayedContent, setDisplayedContent] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [typingId, setTypingId] = useState<string | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,38 +38,38 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
         fetchMensajes();
     }, [grupoId]);
 
-    // Efecto de escritura cuando llega el último mensaje de la IA
+    // Efecto de escritura robusto
     useEffect(() => {
-        const lastMessage = mensajes[mensajes.length - 1];
-        if (lastMessage?.tipo === 'ia' && !isTyping && lastMessage.contenido !== displayedContent) {
-            // Si es un mensaje nuevo de IA, iniciamos el efecto
-            if (mensajes.length > 0 && lastMessage.contenido.length > displayedContent.length) {
-                // Es un mensaje nuevo
-                setIsTyping(true);
-                setDisplayedContent('');
-                let i = 0;
-                const text = lastMessage.contenido;
-                const speed = 15; // Velocidad de escritura en ms
+        if (!typingId) return;
 
-                const typeWriter = () => {
-                    if (i < text.length) {
-                        setDisplayedContent(prev => prev + text.charAt(i));
-                        i++;
-                        setTimeout(typeWriter, speed);
-                        scrollToBottom(); // Scroll mientras escribe
-                    } else {
-                        setIsTyping(false);
-                    }
-                };
-                typeWriter();
+        const messageToType = mensajes.find(m => m.id === typingId);
+        if (!messageToType || !messageToType.contenido) return;
+
+        const text = messageToType.contenido;
+        let i = 0;
+
+        // Limpiamos contenido previo por seguridad
+        setDisplayedContent('');
+
+        // Velocidad variable para más realismo (entre 10 y 30ms)
+        const typeChar = () => {
+            setDisplayedContent(text.substring(0, i + 1));
+            i++;
+            scrollToBottom();
+
+            if (i < text.length) {
+                const randomSpeed = Math.floor(Math.random() * 20) + 10;
+                setTimeout(typeChar, randomSpeed);
+            } else {
+                setTypingId(null); // Fin del typing
             }
-        }
-    }, [mensajes]); // Dependencia en mensajes
+        };
 
-    // Scroll al cargar
-    useEffect(() => {
-        scrollToBottom();
-    }, []);
+        // Pequeño delay inicial para asegurar renderizado correcto
+        setTimeout(typeChar, 100);
+
+    }, [typingId]);
+    // TypingId controla el trigger
 
     const fetchMensajes = async () => {
         const { data } = await supabase
@@ -80,10 +80,6 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
 
         if (data) {
             setMensajes(data);
-            // Al cargar el historial, no queremos efecto de typing en los viejos, así que aseguramos que el displayedContent del ultimo sea full si ya estaba cargado
-            // Pero para simplificar, si cargamos historial, asumimos que no hay typing activo.
-            // Una mejora sería setear displayedContent al full content del último mensaje si no es "nuevo" en esta sesión.
-            // Para "efecto WOW" en demo, lo importante es el mensaje NUEVO que se genera.
         }
     };
 
@@ -94,7 +90,6 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
         const userMsg = input;
         setInput('');
         setLoading(true);
-        setDisplayedContent(''); // Reset para el nuevo mensaje que vendrá
 
         try {
             const { data: newMsg } = await supabase
@@ -129,8 +124,9 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 .single();
 
             if (iaMsg) {
+                // Añadimos el mensaje y luego lanzamos el typing
                 setMensajes(prev => [...prev, iaMsg]);
-                // El useEffect detectará el cambio en mensajes y lanzará el typing
+                setTypingId(iaMsg.id); // Esto disparará el efecto
             }
 
         } catch (error) {
@@ -153,17 +149,17 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                             <span className={`${loading ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">{loading ? 'Procesando...' : 'En línea'}</p>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">{loading ? 'Pensando...' : 'En línea v2.1'}</p>
                     </div>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/50 scroll-smooth">
                 {mensajes.map((m, i) => {
-                    const isLast = i === mensajes.length - 1;
                     const isIA = m.tipo === 'ia';
-                    // Si es el último mensaje y es IA y estamos escribiendo, mostramos el contenido parcial
-                    const contentToShow = (isLast && isIA && isTyping) ? displayedContent : m.contenido;
+                    // Lógica crítica: mostrar contenido parcial SOLO si este mensaje es el que se está escribiendo actualmente.
+                    const isTypingThis = typingId === m.id;
+                    const contentToShow = isTypingThis ? displayedContent : m.contenido;
 
                     return (
                         <div key={i} className={`flex ${isIA ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -178,7 +174,7 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                                     : 'bg-white border boundary-slate-100 text-slate-600 rounded-tl-none font-medium'
                                 }`}>
                                 {contentToShow}
-                                {(isLast && isIA && isTyping) && (
+                                {isTypingThis && (
                                     <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-indigo-500 animate-pulse"></span>
                                 )}
                             </div>
