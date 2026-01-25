@@ -1,5 +1,5 @@
-import { Upload, FileText, Video, Music, Image as ImageIcon, Download, Eye } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { FileText, Video, Music, Image as ImageIcon, Download, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Grupo } from '../types';
 
@@ -8,9 +8,10 @@ interface RepositorioColaborativoProps {
   todosLosGrupos: Grupo[];
   esDocente?: boolean;
   mostrarEjemplo?: boolean;
+  className?: string; // Permitir estilos extra
 }
 
-interface Recurso {
+export interface Recurso {
   id: string;
   grupoId: number;
   grupoNombre: string;
@@ -60,75 +61,17 @@ const recursosEjemplo: Recurso[] = [
   }
 ];
 
-export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = false, mostrarEjemplo = false }: RepositorioColaborativoProps) {
+export function RepositorioColaborativo({ grupo, mostrarEjemplo = false, className = '' }: RepositorioColaborativoProps) {
   const [recursos, setRecursos] = useState<Recurso[]>([]);
-  const [mostrarSubir, setMostrarSubir] = useState(false);
   const [recursoSeleccionado, setRecursoSeleccionado] = useState<Recurso | null>(null);
 
   useEffect(() => {
     if (mostrarEjemplo) {
       setRecursos(recursosEjemplo);
     } else {
-      // Si se desactiva (o inicia falso), podríamos querer limpiarlo o dejarlo vacío
-      // El usuario pidió "no se muestre nada a no ser que ... haya dado al boton"
-      setRecursos([]);
+      setRecursos([]); // Aquí iría la carga real desde BD
     }
   }, [mostrarEjemplo]);
-
-  // Estados para el formulario de subida
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [contenidoTexto, setContenidoTexto] = useState('');
-  const [archivo, setArchivo] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setArchivo(e.target.files[0]);
-    }
-  };
-
-  const handleSubirRecurso = () => {
-    if (!titulo || !descripcion) {
-      toast.error('Completa el título y la descripción');
-      return;
-    }
-
-    const tipoPermitido = getTipoPermitido(grupo.departamento);
-
-    if (tipoPermitido !== 'texto' && !archivo) {
-      toast.error('Debes seleccionar un archivo');
-      return;
-    }
-
-    if (tipoPermitido === 'texto' && !contenidoTexto) {
-      toast.error('Debes escribir el contenido');
-      return;
-    }
-
-    const nuevoRecurso: Recurso = {
-      id: Date.now().toString(),
-      grupoId: grupo.id as number, // Asumimos id numérico o conversión segura
-      grupoNombre: grupo.nombre,
-      departamento: grupo.departamento,
-      tipo: tipoPermitido,
-      titulo,
-      descripcion,
-      fechaSubida: new Date(),
-      url: archivo ? URL.createObjectURL(archivo) : undefined,
-      contenido: tipoPermitido === 'texto' ? contenidoTexto : undefined
-    };
-
-    setRecursos([nuevoRecurso, ...recursos]);
-    toast.success('Recurso publicado con éxito');
-    setMostrarSubir(false);
-
-    // Reset form
-    setTitulo('');
-    setDescripcion('');
-    setContenidoTexto('');
-    setArchivo(null);
-  };
 
   const handleDescargar = (recurso: Recurso) => {
     if (recurso.tipo === 'texto' && recurso.contenido) {
@@ -144,7 +87,7 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
       const a = document.createElement('a');
       a.href = recurso.url;
       a.download = recurso.url.split('/').pop() || 'archivo';
-      a.setAttribute('download', ''); // Forzar descarga si es posible
+      a.setAttribute('download', '');
       a.click();
       toast.success('Descarga iniciada');
     } else {
@@ -154,222 +97,111 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
 
   const getTipoIcon = (tipo: Recurso['tipo']) => {
     switch (tipo) {
-      case 'texto':
-        return FileText;
-      case 'video':
-        return Video;
-      case 'audio':
-        return Music;
-      case 'imagen':
-        return ImageIcon;
+      case 'texto': return FileText;
+      case 'video': return Video;
+      case 'audio': return Music;
+      case 'imagen': return ImageIcon;
     }
   };
 
   const getTipoColor = (tipo: Recurso['tipo']) => {
     switch (tipo) {
-      case 'texto':
-        return 'bg-purple-100 text-purple-700 border-purple-300';
-      case 'video':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'audio':
-        return 'bg-green-100 text-green-700 border-green-300';
-      case 'imagen':
-        return 'bg-orange-100 text-orange-700 border-orange-300';
+      case 'texto': return 'bg-purple-100 text-purple-700 border-purple-300';
+      case 'video': return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'audio': return 'bg-green-100 text-green-700 border-green-300';
+      case 'imagen': return 'bg-orange-100 text-orange-700 border-orange-300';
     }
   };
 
-  const getTipoPermitido = (departamento: string): Recurso['tipo'] => {
-    if (departamento.includes('Guion') || departamento.includes('Coordinación')) return 'texto';
-    if (departamento.includes('Locución')) return 'audio';
-    if (departamento.includes('Edición')) return 'video';
-    if (departamento.includes('Diseño')) return 'imagen';
-    if (departamento.includes('Vestuario') || departamento.includes('Arte')) return 'imagen';
-    return 'texto';
-  };
-
-  const tipoPermitido = getTipoPermitido(grupo.departamento);
-  const Icon = getTipoIcon(tipoPermitido);
-
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Repositorio Colaborativo</h2>
-        <p className="text-blue-100">
-          Comparte y explora el trabajo de todos los grupos del proyecto
-        </p>
-      </div>
-
-      {/* Subir recurso - Solo visible para alumnos */}
-      {!esDocente && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Tu aportación</h3>
-              <p className="text-sm text-gray-600">
-                Como grupo de {grupo.departamento}, puedes compartir: <strong>{tipoPermitido === 'texto' ? 'Textos/Guiones' : tipoPermitido === 'audio' ? 'Audios' : tipoPermitido === 'video' ? 'Videos' : 'Imágenes/Diseños'}</strong>
-              </p>
-            </div>
-            <button
-              onClick={() => setMostrarSubir(!mostrarSubir)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg"
-            >
-              <Upload className="w-5 h-5" />
-              Subir {tipoPermitido === 'texto' ? 'texto' : tipoPermitido}
-            </button>
-          </div>
-
-          {mostrarSubir && (
-            <div className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Título del recurso
-                  </label>
-                  <input
-                    type="text"
-                    value={titulo}
-                    onChange={(e) => setTitulo(e.target.value)}
-                    placeholder={`Ej: ${tipoPermitido === 'texto' ? 'Guion episodio 1' : tipoPermitido === 'audio' ? 'Locución introducción' : tipoPermitido === 'video' ? 'Video final editado' : 'Diseño de portada'}`}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Descripción
-                  </label>
-                  <textarea
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
-                    placeholder="Describe brevemente tu aportación..."
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    {tipoPermitido === 'texto' ? 'Contenido del texto' : 'Archivo'}
-                  </label>
-                  {tipoPermitido === 'texto' ? (
-                    <textarea
-                      value={contenidoTexto}
-                      onChange={(e) => setContenidoTexto(e.target.value)}
-                      placeholder="Escribe o pega tu texto aquí..."
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-                      rows={6}
-                    />
-                  ) : (
-                    <div
-                      className={`border-2 border-dashed rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer ${archivo ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept={tipoPermitido === 'audio' ? 'audio/*' : tipoPermitido === 'video' ? 'video/*' : 'image/*'}
-                      />
-                      <Icon className={`w-12 h-12 mx-auto mb-3 ${archivo ? 'text-green-500' : 'text-gray-400'}`} />
-                      <p className="text-gray-600 font-medium">
-                        {archivo ? `Archivo seleccionado: ${archivo.name}` : 'Haz clic para seleccionar o arrastra tu archivo aquí'}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {tipoPermitido === 'audio' ? 'MP3, WAV (max 50MB)' :
-                          tipoPermitido === 'video' ? 'MP4, MOV (max 100MB)' :
-                            'JPG, PNG, SVG (max 10MB)'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setMostrarSubir(false)}
-                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleSubirRecurso}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg"
-                  >
-                    Publicar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
+    <div className={`flex flex-col gap-6 ${className}`}>
       {/* Lista de recursos */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Recursos compartidos por todos los grupos</h3>
+      <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-black text-slate-800 mb-6 tracking-tight uppercase">Recursos compartidos</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recursos.map((recurso) => {
-            const TipoIcon = getTipoIcon(recurso.tipo);
-            return (
-              <div
-                key={recurso.id}
-                className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-                onClick={() => setRecursoSeleccionado(recurso)}
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`p-3 rounded-lg ${getTipoColor(recurso.tipo)}`}>
-                    <TipoIcon className="w-5 h-5" />
+        {recursos.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recursos.map((recurso) => {
+              const TipoIcon = getTipoIcon(recurso.tipo);
+              return (
+                <div
+                  key={recurso.id}
+                  className="p-5 border border-slate-200 rounded-2xl hover:border-purple-300 hover:shadow-lg hover:shadow-purple-100/50 transition-all cursor-pointer bg-slate-50/50 group"
+                  onClick={() => setRecursoSeleccionado(recurso)}
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`p-3 rounded-xl ${getTipoColor(recurso.tipo)} shrink-0`}>
+                      <TipoIcon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-800 mb-1 truncate leading-tight group-hover:text-purple-700 transition-colors">{recurso.titulo}</h4>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-100">
+                          {recurso.grupoNombre.split('–')[1]?.trim() || recurso.grupoNombre}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{recurso.descripcion}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-1">{recurso.titulo}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{recurso.grupoNombre}</p>
-                    <p className="text-sm text-gray-700">{recurso.descripcion}</p>
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                      {recurso.fechaSubida.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 transition-all text-xs font-bold uppercase tracking-wider">
+                      <Eye className="w-3 h-3" />
+                      Ver
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    {recurso.fechaSubida.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
-                    <Eye className="w-4 h-4" />
-                    Ver
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50">
+            <p className="text-slate-400 font-medium text-sm">Aún no hay recursos compartidos.</p>
+          </div>
+        )}
       </div>
 
       {/* Modal de vista de recurso */}
       {recursoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-2xl font-bold">{recursoSeleccionado.titulo}</h3>
-                <button
-                  onClick={() => setRecursoSeleccionado(null)}
-                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
-                >
-                  <span className="text-2xl">×</span>
-                </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-900 p-8 text-white shrink-0 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                {(() => {
+                  const Icon = getTipoIcon(recursoSeleccionado.tipo);
+                  return <Icon size={120} />;
+                })()}
               </div>
-              <p className="text-blue-100">{recursoSeleccionado.grupoNombre} - {recursoSeleccionado.departamento}</p>
+              <div className="relative z-10 pr-12">
+                <span className={`inline-block px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-3 ${getTipoColor(recursoSeleccionado.tipo)}`}>
+                  {recursoSeleccionado.departamento}
+                </span>
+                <h3 className="text-2xl font-black tracking-tight mb-2 leading-tight">{recursoSeleccionado.titulo}</h3>
+                <p className="text-slate-400 text-sm font-medium">{recursoSeleccionado.grupoNombre}</p>
+              </div>
+              <button
+                onClick={() => setRecursoSeleccionado(null)}
+                className="absolute top-6 right-6 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors backdrop-blur-md"
+              >
+                <span className="text-xl leading-none">&times;</span>
+              </button>
             </div>
 
-            <div className="p-6">
-              <p className="text-gray-700 mb-6">{recursoSeleccionado.descripcion}</p>
+            <div className="p-8 overflow-y-auto custom-scrollbar">
+              <p className="text-slate-600 mb-8 font-medium leading-relaxed text-lg">{recursoSeleccionado.descripcion}</p>
 
               {recursoSeleccionado.tipo === 'texto' && recursoSeleccionado.contenido && (
-                <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
-                  <p className="text-gray-800 whitespace-pre-wrap font-mono text-sm">
+                <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 shadow-inner">
+                  <p className="text-slate-700 whitespace-pre-wrap font-mono text-sm leading-relaxed">
                     {recursoSeleccionado.contenido}
                   </p>
                 </div>
               )}
 
               {recursoSeleccionado.tipo === 'imagen' && recursoSeleccionado.url && (
-                <div className="rounded-xl overflow-hidden border-2 border-gray-200">
+                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg">
                   <img
                     src={recursoSeleccionado.url}
                     alt={recursoSeleccionado.titulo}
@@ -379,36 +211,39 @@ export function RepositorioColaborativo({ grupo, todosLosGrupos, esDocente = fal
               )}
 
               {recursoSeleccionado.tipo === 'audio' && (
-                <div className="bg-gray-50 rounded-xl p-8 border-2 border-gray-200 text-center">
-                  <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Reproductor de audio</p>
-                  <div className="bg-gray-200 rounded-lg h-12 flex items-center justify-center">
-                    <span className="text-gray-500">🎵 Audio demo</span>
+                <div className="bg-slate-50 rounded-3xl p-12 border border-slate-200 text-center">
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
+                    <Music className="w-8 h-8 text-purple-500" />
                   </div>
+                  <div className="max-w-md mx-auto h-2 bg-slate-200 rounded-full overflow-hidden mb-4">
+                    <div className="w-1/3 h-full bg-purple-500 rounded-full"></div>
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Audio Preview</p>
                 </div>
               )}
 
               {recursoSeleccionado.tipo === 'video' && (
-                <div className="bg-gray-50 rounded-xl p-8 border-2 border-gray-200 text-center">
-                  <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Reproductor de video</p>
-                  <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center">
-                    <span className="text-gray-500">🎬 Video demo</span>
+                <div className="bg-slate-900 rounded-3xl p-12 border border-slate-800 text-center relative overflow-hidden group-video cursor-pointer">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center pl-1 group-video-hover:scale-110 transition-transform">
+                      <Video className="w-8 h-8 text-white" />
+                    </div>
                   </div>
+                  <p className="mt-24 text-slate-400 text-xs font-bold uppercase tracking-widest relative z-10">Video Preview</p>
                 </div>
               )}
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-8 pt-8 border-t border-slate-100 flex gap-4">
                 <button
                   onClick={() => handleDescargar(recursoSeleccionado)}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
+                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-2xl hover:bg-purple-600 transition-all font-bold uppercase tracking-widest text-xs shadow-lg"
                 >
-                  <Download className="w-5 h-5" />
-                  Descargar {recursoSeleccionado.tipo === 'texto' ? 'PDF (Demo)' : ''}
+                  <Download className="w-4 h-4" />
+                  Descargar Archivo
                 </button>
                 <button
                   onClick={() => setRecursoSeleccionado(null)}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
+                  className="px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-colors font-bold uppercase tracking-widest text-xs"
                 >
                   Cerrar
                 </button>

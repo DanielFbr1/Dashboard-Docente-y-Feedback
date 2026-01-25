@@ -151,35 +151,35 @@ export const PASOS_TUTORIAL_ALUMNO = [
     {
         id: 'bienvenida-alumno',
         titulo: '¡Hola! Bienvenido a tu espacio de trabajo',
-        descripcion: 'Aquí tienes todo lo que necesitas para trabajar en equipo y mejorar tu proyecto con la ayuda de la IA.',
+        descripcion: 'Hemos simplificado tu panel. Ahora tienes todo organizado en 3 secciones principales: Mi Grupo, Mentor IA y Mis Notas.',
         posicion: 'center' as const
     },
     {
         id: 'mi-grupo',
-        titulo: 'Tu equipo',
-        descripcion: 'Aquí puedes ver quiénes son tus compañeros y cómo va el progreso general de vuestro trabajo.',
+        titulo: '1. Tu Grupo y Progreso',
+        descripcion: 'Esta es tu base de operaciones. Aquí verás a tu equipo, vuestro Árbol de Progreso y el Mapa de Ruta, todo en un solo lugar.',
         targetSelector: 'nav button:nth-child(1)',
         posicion: 'bottom' as const
     },
     {
-        id: 'compartir-alumno',
-        titulo: 'Repositorio compartido',
-        descripcion: 'Desde aquí puedes ver lo que otros grupos están haciendo y compartir vuestros propios avances.',
+        id: 'subir-tarea',
+        titulo: 'Nuevo: Subir Aportación',
+        descripcion: '¿Tienes un avance? Usa este botón directo en la tarjeta de tu grupo para subir archivos y evidencias rápidamente.',
+        targetSelector: 'button[title="Subir aportación"]',
+        posicion: 'left' as const
+    },
+    {
+        id: 'mentor-ia-alumno',
+        titulo: '2. Tu Mentor IA',
+        descripcion: 'Usa el chat para pedir ayuda, generar ideas o recibir feedback inmediato sobre tu trabajo.',
         targetSelector: 'nav button:nth-child(2)',
         posicion: 'bottom' as const
     },
     {
-        id: 'mentor-ia-alumno',
-        titulo: 'Tu Mentor IA',
-        descripcion: '¡La parte más importante! Usa el chat para hacer preguntas, resolver dudas y reflexionar sobre tu aprendizaje.',
-        targetSelector: 'nav button:nth-child(4)',
-        posicion: 'bottom' as const
-    },
-    {
-        id: 'evaluacion-alumno',
-        titulo: 'Tu progreso',
-        descripcion: 'Al final de la sesión, podrás revisar aquí tus notas y los puntos que has conseguido.',
-        targetSelector: 'nav button:nth-child(5)',
+        id: 'mis-notas',
+        titulo: '3. Mis Notas y Recursos',
+        descripcion: 'Consulta tus evaluaciones y accede al Repositorio Compartido (la antigua pestaña "Compartir" ahora vive aquí).',
+        targetSelector: 'nav button:nth-child(3)',
         posicion: 'bottom' as const
     }
 ];
