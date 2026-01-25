@@ -22,6 +22,11 @@ interface TipoPregunta {
 export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGrupoProps) {
   const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
 
+  // Asegurar que empezamos arriba al entrar al detalle
+  useState(() => {
+    window.scrollTo(0, 0);
+  });
+
   // Hardcoded stats can remain for now or be derived
   const tiposPreguntas: TipoPregunta[] = [
     { tipo: 'Metacognitivas', cantidad: 5, color: 'bg-purple-500', icon: '💡' },
@@ -43,75 +48,77 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-8 py-5">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 md:py-5 sticky top-0 z-20">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Volver al dashboard</span>
         </button>
 
-        <div className="flex gap-4 mt-4">
+        <div className="flex flex-wrap md:flex-nowrap gap-1 md:gap-4 mt-2">
           <button
             onClick={() => setVistaActiva('detalle')}
-            className={`px-4 py-2 font-medium transition-all border-b-2 ${vistaActiva === 'detalle'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 text-center ${vistaActiva === 'detalle'
+              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
               }`}
           >
-            Detalles del grupo
+            Detalle
           </button>
           <button
             onClick={() => setVistaActiva('compartir')}
-            className={`px-4 py-2 font-medium transition-all border-b-2 flex items-center gap-2 ${vistaActiva === 'compartir'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2 text-center ${vistaActiva === 'compartir'
+              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
               }`}
           >
             <Share2 className="w-4 h-4" />
-            Trabajo compartido
+            <span className="hidden sm:inline">Trabajo compartido</span>
+            <span className="sm:hidden">Recursos</span>
           </button>
           <button
             onClick={() => setVistaActiva('chat')}
-            className={`px-4 py-2 font-medium transition-all border-b-2 flex items-center gap-2 ${vistaActiva === 'chat'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2 text-center ${vistaActiva === 'chat'
+              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
               }`}
           >
             <Brain className="w-4 h-4" />
-            Control IA
+            <span className="hidden sm:inline">Control IA</span>
+            <span className="sm:hidden">IA</span>
           </button>
         </div>
       </header>
 
-      <main className="p-8">
+      <main className="flex-1 p-4 md:p-8 w-full max-w-7xl mx-auto overflow-hidden">
         {vistaActiva === 'detalle' ? (
-          <>
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white border border-gray-200 rounded-[2rem] p-6 md:p-8 mb-6 shadow-sm">
               {/* Header Stats & Info */}
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex flex-wrap items-center gap-3">
                       {grupo.nombre}
                       {grupo.pedir_ayuda && (
-                        <span className="animate-pulse px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border border-rose-200">
+                        <span className="animate-pulse px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-rose-200">
                           <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                           </span>
-                          Solicita Ayuda
+                          Ayuda urgente
                         </span>
                       )}
                     </h1>
-                    <div className="text-sm text-gray-600 mb-2">
-                      Departamento: <span className="font-medium">{grupo.departamento}</span>
+                    <div className="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-widest leading-none">
+                      DEPARTAMENTO DE <span className="text-gray-900">{grupo.departamento}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getEstadoColor(grupo.estado)}`}>
+                    <span className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-full border-2 ${getEstadoColor(grupo.estado)} shadow-sm`}>
                       {grupo.estado}
                     </span>
                   </div>

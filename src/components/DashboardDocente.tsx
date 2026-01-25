@@ -378,7 +378,7 @@ export function DashboardDocente({
                 </button>
 
                 {menuConfigAbierto && (
-                  <div className="absolute right-0 bottom-full md:bottom-auto md:top-full mb-2 md:mb-0 md:mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 animate-in fade-in zoom-in duration-200">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50 animate-in fade-in zoom-in duration-200">
                     <div className="p-2 space-y-1 pt-3">
                       <button
                         onClick={handlePerfil}
@@ -431,7 +431,7 @@ export function DashboardDocente({
         </header>
 
         {/* Main scroll area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
           <div className="max-w-7xl mx-auto space-y-8">
             {currentSection === 'resumen' && (
               <div className="space-y-8">
@@ -444,7 +444,7 @@ export function DashboardDocente({
                 ) : (
                   <>
                     {/* Árbol del Proyecto Global */}
-                    <div className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-10 overflow-hidden relative">
+                    <div className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-10 overflow-hidden relative">
                       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
 
                       <div className="relative z-10 shrink-0">
@@ -456,25 +456,25 @@ export function DashboardDocente({
                       </div>
 
                       <div className="flex-1 space-y-4 text-center md:text-left">
-                        <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Estado Global del Proyecto</h2>
-                        <p className="text-slate-500 font-medium leading-relaxed max-w-xl">
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight uppercase leading-tight">Estado Global del Proyecto</h2>
+                        <p className="text-slate-500 font-medium leading-relaxed max-w-xl text-sm md:text-base">
                           Este árbol representa el crecimiento conjunto de toda la clase. Cada hito aprobado en los grupos nutre el progreso general de la sala. ¡Seguid así!
                         </p>
-                        <div className="flex gap-6 justify-center md:justify-start">
-                          <div className="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100">
-                            <div className="text-2xl font-black text-blue-600">{(grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length).toFixed(0)}%</div>
-                            <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Crecimiento Medio</div>
+                        <div className="grid grid-cols-2 lg:flex gap-4 md:gap-6 justify-center md:justify-start">
+                          <div className="bg-blue-50 px-4 md:px-6 py-3 rounded-2xl border border-blue-100 flex-1 md:flex-none">
+                            <div className="text-xl md:text-2xl font-black text-blue-600">{(grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length).toFixed(0)}%</div>
+                            <div className="text-[9px] md:text-[10px] font-bold text-blue-400 uppercase tracking-widest leading-none">Crecimiento</div>
                           </div>
-                          <div className="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100">
-                            <div className="text-2xl font-black text-emerald-600">Saludable</div>
-                            <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Estado Vital</div>
+                          <div className="bg-emerald-50 px-4 md:px-6 py-3 rounded-2xl border border-emerald-100 flex-1 md:flex-none">
+                            <div className="text-xl md:text-2xl font-black text-emerald-600 whitespace-nowrap">Saludable</div>
+                            <div className="text-[9px] md:text-[10px] font-bold text-emerald-400 uppercase tracking-widest leading-none">Estado Vital</div>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* TABLERO GLOBAL DE TAREAS */}
-                    <div className="bg-slate-100 rounded-[2.5rem] p-8 border border-slate-200">
+                    <div className="bg-slate-100 rounded-[2.5rem] p-4 md:p-8 border border-slate-200">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600">
                           <ClipboardCheck className="w-6 h-6" />
@@ -586,9 +586,9 @@ export function DashboardDocente({
 
             {currentSection === 'grupos' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-black text-gray-900">Organización por Departamentos</h2>
-                  <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                  <h2 className="text-2xl font-black text-gray-900 hidden md:block">Organización por Departamentos</h2>
+                  <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-4 md:py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg active:scale-95">
                     <Plus className="w-5 h-5" />
                     Crear nuevo grupo
                   </button>
