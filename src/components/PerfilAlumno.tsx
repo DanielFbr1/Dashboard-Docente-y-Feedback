@@ -31,28 +31,62 @@ const CRITERIOS_DEFAULT: EvaluacionIndividual[] = [
 ];
 
 export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
-  const [loading, setLoading] = useState(true);
-  const [evaluacion, setEvaluacion] = useState<EvaluacionIndividual[]>(CRITERIOS_DEFAULT);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [asistenciaStats, setAsistenciaStats] = useState({ present: 0, total: 0, percentage: 100 });
 
   useEffect(() => {
     fetchEvaluacion();
+    fetchAsistenciaData();
   }, [alumno, grupo.id]);
+
+  const fetchAsistenciaData = async () => {
+    try {
+      // 1. Total días que se ha pasado lista en este proyecto
+      // (Contamos fechas únicas en la tabla asistencia para este proyecto)
+      // Nota: Esto asume que si se pasó lista, hay al menos una entrada.
+      // Una query aproximada es contar distinct fecha.
+      // Supabase no tiene count distinct fácil en JS client directo sin RPC, pero podemos hacer:
+      // .select('fecha', { count: 'exact', head: false }).eq('proyecto_id', grupo.proyecto_id).csv() -> manual unique en cliente
+      // O rpc. Vamos a intentar traer todas las fechas únicas (lightweight).
+
+      const { data: allFechas } = await supabase
+        .from('asistencia')
+        .select('fecha')
+        .eq('proyecto_id', grupo.proyecto_id);
+
+      const uniqueDays = new Set(allFechas?.map(f => f.fecha)).size;
+
+      // 2. Días que el alumno estuvo presente
+      const { count: presentCount } = await supabase
+        .from('asistencia')
+        .select('*', { count: 'exact', head: true })
+        .eq('proyecto_id', grupo.proyecto_id)
+        .eq('alumno_nombre', alumno)
+        .eq('presente', true);
+
+      const pCount = presentCount || 0;
+      const total = uniqueDays || 1; // Avoid div by 0
+
+      setAsistenciaStats({
+        present: pCount,
+        total: uniqueDays,
+        percentage: Math.round((pCount / total) * 100)
+      });
+    } catch (e) {
+      console.error("Error fetching asistencia:", e);
+    }
+  };
 
   const fetchEvaluacion = async () => {
     try {
       setLoading(true);
-      // Intentamos buscar por nombre de alumno y proyecto
-      // Nota: Asumimos que existe una tabla 'evaluaciones'
       const { data, error } = await supabase
         .from('evaluaciones')
         .select('*')
         .eq('alumno_nombre', alumno)
-        .eq('proyecto_id', grupo.proyecto_id) // Asumiendo que el grupo tiene proyecto_id
+        .eq('proyecto_id', grupo.proyecto_id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // Ignorar error "no rows found"
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching evaluation:', error);
       }
 
@@ -80,13 +114,11 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
         updated_at: new Date().toISOString()
       };
 
-      // Upsert: Si ya existe (por alumno+proyecto), actualiza
       const { error } = await supabase
         .from('evaluaciones')
         .upsert(payload, { onConflict: 'alumno_nombre, proyecto_id' });
 
       if (error) throw error;
-
       toast.success('Evaluación guardada correctamente');
       setIsEditing(false);
     } catch (err) {
@@ -101,7 +133,6 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
     const newEval = [...evaluacion];
     newEval[index] = { ...newEval[index], [field]: value };
 
-    // Auto-update nivel based on points if points changed
     if (field === 'puntos') {
       const p = Number(value);
       let n: EvaluacionIndividual['nivel'] = 'Insuficiente';
@@ -110,64 +141,40 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
       else if (p >= 5) n = 'Suficiente';
       newEval[index].nivel = n;
     }
-
     setEvaluacion(newEval);
   };
 
-  // Datos adicionales
-  const actividadReciente: ActividadReciente[] = [
-    { fecha: 'Hace 2 horas', tipo: 'pregunta_ia', descripcion: 'Consultó al mentor IA sobre técnicas de narración' },
-    { fecha: 'Ayer', tipo: 'aportacion', descripcion: 'Subió el primer borrador del guion' },
-    { fecha: 'Hace 2 días', tipo: 'colaboracion', descripcion: 'Ayudó a un compañero con la estructura del proyecto' },
-  ];
-
-  const estadisticas = {
-    asistencia: 95,
-    participacion: 87,
-    racha: 7,
-    entregas: { completadas: 8, totales: 10 },
-    preguntasIA: Math.floor(grupo.interacciones_ia / Math.max(1, grupo.miembros.length)),
-    horasTrabajo: 12.5
-  };
+  // Conversión de minutos a Horas (Real)
+  const horasReales = grupo.tiempo_uso_minutos
+    ? (grupo.tiempo_uso_minutos / 60).toFixed(1)
+    : "0.0";
 
   const notaMedia = evaluacion.reduce((sum, e) => sum + e.puntos, 0) / evaluacion.length;
 
   const getNivelColor = (nivel: EvaluacionIndividual['nivel']) => {
     switch (nivel) {
-      case 'Sobresaliente':
-        return 'bg-green-600 text-white';
-      case 'Notable':
-        return 'bg-blue-600 text-white';
-      case 'Suficiente':
-        return 'bg-yellow-600 text-white';
-      case 'Insuficiente':
-        return 'bg-red-600 text-white';
+      case 'Sobresaliente': return 'bg-green-600 text-white';
+      case 'Notable': return 'bg-blue-600 text-white';
+      case 'Suficiente': return 'bg-yellow-600 text-white';
+      case 'Insuficiente': return 'bg-red-600 text-white';
     }
   };
 
   const getBarColor = (nivel: EvaluacionIndividual['nivel']) => {
     switch (nivel) {
-      case 'Sobresaliente':
-        return 'bg-green-600';
-      case 'Notable':
-        return 'bg-blue-600';
-      case 'Suficiente':
-        return 'bg-yellow-600';
-      case 'Insuficiente':
-        return 'bg-red-600';
+      case 'Sobresaliente': return 'bg-green-600';
+      case 'Notable': return 'bg-blue-600';
+      case 'Suficiente': return 'bg-yellow-600';
+      case 'Insuficiente': return 'bg-red-600';
     }
   };
 
   const getNivelIcon = (nivel: EvaluacionIndividual['nivel']) => {
     switch (nivel) {
-      case 'Sobresaliente':
-        return <Trophy className="w-4 h-4" />;
-      case 'Notable':
-        return <CheckCircle2 className="w-4 h-4" />;
-      case 'Suficiente':
-        return <Star className="w-4 h-4" />;
-      case 'Insuficiente':
-        return <AlertCircle className="w-4 h-4" />;
+      case 'Sobresaliente': return <Trophy className="w-4 h-4" />;
+      case 'Notable': return <CheckCircle2 className="w-4 h-4" />;
+      case 'Suficiente': return <Star className="w-4 h-4" />;
+      case 'Insuficiente': return <AlertCircle className="w-4 h-4" />;
     }
   };
 
@@ -184,146 +191,100 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className={`bg-gradient-to-r ${getDepartamentoColor(grupo.departamento)} p-8 text-white relative overflow-hidden`}>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col transform transition-all scale-100">
+        {/* Header Mejorado */}
+        <div className={`bg-gradient-to-r ${getDepartamentoColor(grupo.departamento)} text-white relative overflow-hidden shrink-0`}>
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-black opacity-10 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl"></div>
 
-          <div className="relative z-10">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-6">
-                <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center shadow-2xl text-6xl font-black border-4 border-white">
-                  <span className="bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {alumno.charAt(0).toUpperCase()}
+          <div className="relative z-10 p-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
+            {/* Left: Avatar & Info */}
+            <div className="flex items-center md:items-start gap-8 flex-1">
+              <div className="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center shadow-xl text-6xl font-black border-4 border-white/20 shrink-0 transform hover:scale-105 transition-transform duration-500">
+                <span className={`bg-gradient-to-br ${getDepartamentoColor(grupo.departamento)} bg-clip-text text-transparent`}>
+                  {alumno.charAt(0).toUpperCase()}
+                </span>
+              </div>
+
+              <div className="flex flex-col justify-center">
+                <h2 className="text-4xl md:text-5xl font-black mb-3 drop-shadow-sm tracking-tight leading-none">{alumno}</h2>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-sm flex items-center gap-2">
+                    <Users className="w-4 h-4" /> {grupo.nombre}
+                  </span>
+                  <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-sm">
+                    {grupo.departamento}
                   </span>
                 </div>
-                <div>
-                  <h2 className="text-4xl font-bold mb-2 drop-shadow-lg">{alumno}</h2>
-                  <p className="text-white text-opacity-90 text-lg font-medium">Perfil de evaluación individual</p>
-                  <div className="mt-2 flex gap-2">
-                    <span className="px-3 py-1 bg-white bg-opacity-30 rounded-full text-sm font-bold backdrop-blur-sm">
-                      {grupo.nombre}
-                    </span>
-                    <span className="px-3 py-1 bg-white bg-opacity-30 rounded-full text-sm font-bold backdrop-blur-sm">
-                      {grupo.departamento}
-                    </span>
-                  </div>
-                </div>
+                <p className="text-white/80 font-medium italic">Perfil de rendimiento y evaluación continua</p>
               </div>
-              <button
-                onClick={onClose}
-                className="text-white hover:bg-white hover:bg-opacity-20 rounded-2xl p-3 transition-all"
-              >
-                <X className="w-7 h-7" />
-              </button>
             </div>
 
-            {/* Nota media destacada */}
-            <div className="bg-white bg-opacity-20 rounded-2xl p-6 backdrop-blur-md border-2 border-white border-opacity-30 shadow-xl inline-block">
-              <div className="text-white text-opacity-90 text-sm mb-1 font-semibold">NOTA MEDIA ACTUAL</div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-6xl font-bold drop-shadow-lg">{notaMedia.toFixed(1)}</span>
-                <span className="text-3xl font-semibold opacity-80">/10</span>
+            {/* Right: Close & Score */}
+            <div className="flex flex-col items-end gap-6">
+              <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-sm text-white border border-white/10">
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-white/10 rounded-[2rem] p-6 backdrop-blur-md border border-white/20 shadow-2xl text-center min-w-[160px]">
+                <div className="text-white/70 text-[10px] font-black uppercase tracking-widest mb-1">Nota Media</div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-6xl font-black tracking-tighter shadow-black drop-shadow-xl">{notaMedia.toFixed(1)}</span>
+                  <span className="text-xl font-bold opacity-60">/10</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
-          <div className="flex flex-col gap-8">
-            {/* Estadísticas destacadas con MEJOR CONTRASTE */}
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Estadísticas generales</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.asistencia}%</div>
-                  <div className="text-sm font-semibold text-gray-700">Asistencia</div>
-                </div>
+        <div className="flex-1 overflow-y-auto p-8 bg-[#f8f9fc]">
+          <div className="max-w-4xl mx-auto flex flex-col gap-10">
 
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                      <Users className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.participacion}%</div>
-                  <div className="text-sm font-semibold text-gray-700">Participación</div>
-                </div>
-
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
-                      <Flame className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.racha}</div>
-                  <div className="text-sm font-semibold text-gray-700">Días racha</div>
-                </div>
-
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.preguntasIA}</div>
-                  <div className="text-sm font-semibold text-gray-700">Preguntas IA</div>
-                </div>
-
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.entregas.completadas}/{estadisticas.entregas.totales}</div>
-                  <div className="text-sm font-semibold text-gray-700">Entregas</div>
-                </div>
-
-                <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-10 h-10 bg-pink-600 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{estadisticas.horasTrabajo}h</div>
-                  <div className="text-sm font-semibold text-gray-700">Horas trabajo</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Actividad reciente */}
-            <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock className="w-6 h-6 text-blue-600" />
-                Actividad reciente
+            {/* Estadísticas Filtradas (Solo lo importante) */}
+            <section>
+              <h3 className="text-lg font-black text-slate-800 mb-5 uppercase tracking-tight flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-indigo-600" /> Rendimiento Clave
               </h3>
-              <div className="space-y-3">
-                {actividadReciente.map((actividad, idx) => (
-                  <div key={idx} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${actividad.tipo === 'pregunta_ia' ? 'bg-purple-600' :
-                      actividad.tipo === 'aportacion' ? 'bg-green-600' : 'bg-blue-600'
-                      }`}>
-                      {actividad.tipo === 'pregunta_ia' ? <Brain className="w-5 h-5 text-white" /> :
-                        actividad.tipo === 'aportacion' ? <FileText className="w-5 h-5 text-white" /> :
-                          <Users className="w-5 h-5 text-white" />}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{actividad.descripcion}</p>
-                      <p className="text-sm text-gray-600 font-medium mt-1">{actividad.fecha}</p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {/* Asistencia Real */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex items-center gap-5 hover:scale-[1.02] transition-transform">
+                  <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                    <Calendar className="w-8 h-8" />
                   </div>
-                ))}
+                  <div>
+                    <div className="text-4xl font-black text-slate-900">{asistenciaStats.percentage}%</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Asistencia ({asistenciaStats.present}/{asistenciaStats.total})</div>
+                  </div>
+                </div>
+
+                {/* Preguntas IA */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex items-center gap-5 hover:scale-[1.02] transition-transform">
+                  <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 shrink-0">
+                    <MessageSquare className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="text-4xl font-black text-slate-900">{Math.floor(grupo.interacciones_ia / Math.max(1, grupo.miembros.length))}</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Consultas IA</div>
+                  </div>
+                </div>
+
+                {/* Horas Trabajo Real */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex items-center gap-5 hover:scale-[1.02] transition-transform">
+                  <div className="w-16 h-16 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600 shrink-0">
+                    <Clock className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="text-4xl font-black text-slate-900">{horasReales}h</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tiempo Invertido</div>
+                  </div>
+                </div>
+
               </div>
-            </div>
+            </section>
+
 
             {/* Evaluación por criterios con MEJOR CONTRASTE */}
             <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-gray-200">
