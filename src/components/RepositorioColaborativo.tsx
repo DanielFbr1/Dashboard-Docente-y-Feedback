@@ -25,7 +25,39 @@ export interface Recurso {
 }
 
 // Recursos de ejemplo
-const recursosEjemplo: Recurso[] = [];
+const recursosEjemplo: Recurso[] = [
+  {
+    id: 'rec1',
+    grupoId: 1,
+    grupoNombre: 'Grupo 1 – Guion',
+    departamento: 'Guion',
+    tipo: 'texto',
+    titulo: 'Plantilla de Escaleta Radiofónica',
+    descripcion: 'Estructura básica para organizar los tiempos y secciones del programa de radio.',
+    contenido: '1. SINTONÍA DE APERTURA (20")\n2. PRESENTACIÓN LOCUTORES (15")\n3. TITULARES DEL DÍA (40")\n4. ENTREVISTA PRINCIPAL (3\'00")\n5. SECCIÓN DE DEPORTES (1\'30")\n6. SINTONÍA DE CIERRE (20")',
+    fechaSubida: new Date()
+  },
+  {
+    id: 'rec2',
+    grupoId: 2,
+    grupoNombre: 'Grupo 2 – Locución',
+    departamento: 'Locución',
+    tipo: 'audio',
+    titulo: 'Ejemplo de Entonación Noticiosa',
+    descripcion: 'Grabación de prueba mostrando cómo enfatizar los verbos en una noticia de impacto.',
+    fechaSubida: new Date(Date.now() - 86400000)
+  },
+  {
+    id: 'rec3',
+    grupoId: 3,
+    grupoNombre: 'Grupo 3 – Edición',
+    departamento: 'Edición',
+    tipo: 'video',
+    titulo: 'Tutorial: Efecto de "Fading" en Audacity',
+    descripcion: 'Videotutorial corto sobre cómo suavizar las entradas y salidas de música.',
+    fechaSubida: new Date(Date.now() - 172800000)
+  }
+];
 
 export function RepositorioColaborativo({ grupo, mostrarEjemplo = false, className = '' }: RepositorioColaborativoProps) {
   const [recursos, setRecursos] = useState<Recurso[]>([]);
