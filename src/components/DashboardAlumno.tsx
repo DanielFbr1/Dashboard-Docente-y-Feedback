@@ -50,14 +50,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
-  const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
   const [modalSubirRecursoOpen, setModalSubirRecursoOpen] = useState(false);
-  const [modalProponerOpen, setModalProponerOpen] = useState(false);
-  const [faseParaProponer, setFaseParaProponer] = useState<any>(null); // Quick fix for type complexity, or import ProyectoFase
-  import { ModalProponerHitos } from './ModalProponerHitos'; // This should be at top really. I will add imports separately or assume I can't do mixed edits easily. 
-  // Wait, I can't add imports here. I should do it properly.
-
-  // Let's just add the state variables here first.
   const [modalProponerOpen, setModalProponerOpen] = useState(false);
   const [faseParaProponer, setFaseParaProponer] = useState<any>(null);
 
