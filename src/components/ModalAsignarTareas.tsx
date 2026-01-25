@@ -112,6 +112,7 @@ export function ModalAsignarTareas({ grupoNombre, faseId, onClose, onSave }: Mod
         }
         const hitosValidos = hitos.map(h => ({
             ...h,
+            id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
             fase_id: faseId,
             estado: 'pendiente' as const // Start as Pending for students
         }));
