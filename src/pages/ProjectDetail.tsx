@@ -32,6 +32,27 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
 
     useEffect(() => {
         fetchGrupos();
+
+        // Realtime Subscription
+        const channel = supabase.channel(`project_groups_${proyecto.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    schema: 'public',
+                    table: 'grupos',
+                    filter: `proyecto_id=eq.${proyecto.id}`
+                },
+                (payload) => {
+                    console.log('Cambio detectado en grupos:', payload);
+                    fetchGrupos(); // Simple re-fetch strategy for consistency
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [proyecto.id]);
 
     const handleClaseChange = async (nuevaClase: string) => {

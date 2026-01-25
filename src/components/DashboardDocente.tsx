@@ -433,81 +433,167 @@ export function DashboardDocente({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
-                      <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
-                      <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
-                      <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {grupos.map((grupo) => (
-                        <Card_Grupo
-                          key={grupo.id}
-                          grupo={grupo}
-                          onClick={() => onSelectGrupo(grupo)}
-                          onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
-                          onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
-                          onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
-                          mostrarBotonEditar={true}
-                          mostrarBotonBorrar={true}
-                        />
-                      ))}
-                    </div>
-                  </>
+                    {/* TABLERO GLOBAL DE TAREAS */}
+                    <div className="bg-slate-100 rounded-[2.5rem] p-8 border border-slate-200">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600">
+                          <ClipboardCheck className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Tablero Global de Misiones</h2>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seguimiento de todas las tareas activas</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* COLUMNA PENDIENTES */}
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest">En Revisión / Pendientes</h3>
+                            <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length, 0)}
+                            </span>
+                          </div>
+                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
+                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default">
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="bg-indigo-50 text-indigo-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
+                                  {task.estado === 'revision' && <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" title="Pendiente de revisión"></span>}
+                                </div>
+                                <p className="text-sm font-bold text-slate-700 leading-tight">{task.titulo}</p>
+                              </div>
+                            ))}
+                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length === 0) && (
+                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">No hay tareas pendientes</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* COLUMNA EN CURSO */}
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest">En Curso</h3>
+                            <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length, 0)}
+                            </span>
+                          </div>
+                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
+                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                                <div className="flex justify-between items-start mb-2 pl-2">
+                                  <span className="bg-slate-50 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
+                                </div>
+                                <p className="text-sm font-bold text-slate-700 leading-tight pl-2">{task.titulo}</p>
+                              </div>
+                            ))}
+                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length === 0) && (
+                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Todo tranquilo por aquí</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* COLUMNA COMPLETADAS */}
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center justify-between px-2">
+                            <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest">Completadas</h3>
+                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'aprobado').length, 0)}
+                            </span>
+                          </div>
+                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
+                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                              <div key={idx} className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 opacity-80 hover:opacity-100 transition-all cursor-default">
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="bg-white text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px] border border-emerald-100">{task.grupoNombre}</span>
+                                </div>
+                                <p className="text-sm font-bold text-emerald-800 leading-tight line-through decoration-emerald-500/50">{task.titulo}</p>
+                              </div>
+                            ))}
+                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'aprobado').length === 0) && (
+                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Aún no hay logros desbloqueados</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
+                        <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
+                        <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
+                        <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {grupos.map((grupo) => (
+                          <Card_Grupo
+                            key={grupo.id}
+                            grupo={grupo}
+                            onClick={() => onSelectGrupo(grupo)}
+                            onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
+                            onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
+                            onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
+                            mostrarBotonEditar={true}
+                            mostrarBotonBorrar={true}
+                          />
+                        ))}
+                      </div>
+                    </>
                 )}
+                  </div>
+            )}
+
+                {currentSection === 'grupos' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-black text-gray-900">Organización por Departamentos</h2>
+                      <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg">
+                        <Plus className="w-5 h-5" />
+                        Crear nuevo grupo
+                      </button>
+                    </div>
+                    <GruposDepartamentos
+                      grupos={grupos}
+                      onSelectGrupo={onSelectGrupo}
+                      onEditarGrupo={onEditarGrupo}
+                      onEliminarGrupo={onEliminarGrupo}
+                      onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
+                      proyectoId={proyectoActual?.id}
+                    />
+                  </div>
+                )}
+
+                {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
+
+                {currentSection === 'trabajo-compartido' && (
+                  <RepositorioColaborativo
+                    grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                    todosLosGrupos={grupos}
+                    esDocente={true}
+                    mostrarEjemplo={mostrandoEjemplo}
+                  />
+                )}
+
+                {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}
               </div>
-            )}
-
-            {currentSection === 'grupos' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-black text-gray-900">Organización por Departamentos</h2>
-                  <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg">
-                    <Plus className="w-5 h-5" />
-                    Crear nuevo grupo
-                  </button>
-                </div>
-                <GruposDepartamentos
-                  grupos={grupos}
-                  onSelectGrupo={onSelectGrupo}
-                  onEditarGrupo={onEditarGrupo}
-                  onEliminarGrupo={onEliminarGrupo}
-                  onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
-                  proyectoId={proyectoActual?.id}
-                />
-              </div>
-            )}
-
-            {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
-
-            {currentSection === 'trabajo-compartido' && (
-              <RepositorioColaborativo
-                grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
-                todosLosGrupos={grupos}
-                esDocente={true}
-                mostrarEjemplo={mostrandoEjemplo}
-              />
-            )}
-
-            {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}
-          </div>
         </div>
+        </div>
+
+        {/* Modal código sala */}
+        {mostrarCodigoSala && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
+                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
+                <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-10">
+                <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Modal código sala */}
-      {mostrarCodigoSala && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
-              <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
-              <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-10">
-              <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      );
 }
