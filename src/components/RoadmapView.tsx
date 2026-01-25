@@ -28,36 +28,36 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                     <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
                         }`}>
                         {/* Header Fase Mini */}
-                        <div className={`px-3 py-2 border-b border-slate-100 flex items-center justify-between ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
+                        <div className={`px-4 py-3 border-b border-slate-100 flex items-center justify-between ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
                             }`}>
-                            <h4 className="font-bold text-slate-800 text-xs truncate max-w-[120px]" title={fase.nombre}>{fase.nombre}</h4>
-                            <span className={`text-[9px] font-black uppercase tracking-wider ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                            <h4 className="font-bold text-slate-800 text-sm truncate max-w-[140px]" title={fase.nombre}>{fase.nombre}</h4>
+                            <span className={`text-[10px] font-black uppercase tracking-wider ${fase.estado === 'completado' ? 'text-emerald-500' :
+                                    fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
                                 }`}>
                                 {fase.estado === 'completado' ? 'Listo' : fase.estado}
                             </span>
                         </div>
 
                         {/* Lista Hitos Compacta */}
-                        <div className="p-2 space-y-1.5 bg-white flex-1">
+                        <div className="p-3 space-y-2 bg-white flex-1">
                             {fase.hitos?.map((hitoTitulo, index) => {
                                 const status = getHitoStatus(fase.id, hitoTitulo);
                                 return (
-                                    <div key={index} className="flex items-center gap-2 group">
+                                    <div key={index} className="flex items-center gap-2.5 group">
                                         <button
                                             disabled={readOnly || status === 'aprobado' || status === 'revision'}
                                             onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
                                             className={`shrink-0 transition-transform active:scale-90 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
                                         >
                                             {status === 'aprobado' ? (
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                                             ) : status === 'revision' ? (
-                                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                                <Clock className="w-4 h-4 text-amber-500" />
                                             ) : (
-                                                <Circle className="w-3.5 h-3.5 text-slate-300 group-hover:text-purple-400" />
+                                                <Circle className="w-4 h-4 text-slate-300 group-hover:text-purple-400" />
                                             )}
                                         </button>
-                                        <span className={`text-[10px] leading-tight truncate ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-600 font-medium'
+                                        <span className={`text-xs leading-tight truncate ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-600 font-medium'
                                             }`} title={hitoTitulo}>
                                             {hitoTitulo}
                                         </span>

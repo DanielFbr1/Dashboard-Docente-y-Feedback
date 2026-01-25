@@ -18,57 +18,61 @@ interface TutorialInteractivoProps {
 export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInteractivoProps) {
   const [pasoActual, setPasoActual] = useState(0);
   const [posicion, setPosicion] = useState({ top: 0, left: 0 });
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   const paso = pasos[pasoActual];
   const esUltimoPaso = pasoActual === pasos.length - 1;
 
   useEffect(() => {
-    if (paso.targetSelector) {
-      const element = document.querySelector(paso.targetSelector);
-      if (element) {
-        const rect = element.getBoundingClientRect();
+    const updatePosition = () => {
+      if (paso.targetSelector) {
+        const element = document.querySelector(paso.targetSelector);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          setTargetRect(rect); // Guardamos la posición exacta del elemento
 
-        // Añadir highlight al elemento
-        element.classList.add('tutorial-highlight');
+          // Calcular posición del tooltip
+          let top = rect.top;
+          let left = rect.left;
 
-        // Calcular posición del tooltip
-        let top = rect.top;
-        let left = rect.left;
-
-        switch (paso.posicion) {
-          case 'bottom':
-            top = rect.bottom + 20;
-            left = rect.left + rect.width / 2;
-            break;
-          case 'top':
-            top = rect.top - 20;
-            left = rect.left + rect.width / 2;
-            break;
-          case 'right':
-            top = rect.top + rect.height / 2;
-            left = rect.right + 20;
-            break;
-          case 'left':
-            top = rect.top + rect.height / 2;
-            left = rect.left - 20;
-            break;
-          default:
-            top = window.innerHeight / 2;
-            left = window.innerWidth / 2;
+          switch (paso.posicion) {
+            case 'bottom':
+              top = rect.bottom + 20;
+              left = rect.left + rect.width / 2;
+              break;
+            case 'top':
+              top = rect.top - 20;
+              left = rect.left + rect.width / 2;
+              break;
+            case 'right':
+              top = rect.top + rect.height / 2;
+              left = rect.right + 20;
+              break;
+            case 'left':
+              top = rect.top + rect.height / 2;
+              left = rect.left - 20;
+              break;
+            default:
+              top = window.innerHeight / 2;
+              left = window.innerWidth / 2;
+          }
+          setPosicion({ top, left });
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          setTargetRect(null); // Elemento no encontrado
         }
-
-        setPosicion({ top, left });
-
-        // Scroll suave al elemento
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        setTargetRect(null); // No hay target en pasos "center"
       }
-    }
+    };
 
-    // Limpiar highlights anteriores
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+
     return () => {
-      document.querySelectorAll('.tutorial-highlight').forEach(el => {
-        el.classList.remove('tutorial-highlight');
-      });
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
     };
   }, [pasoActual, paso]);
 
@@ -91,9 +95,29 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
       {/* Overlay transparente (sin desenfoque) para bloquear clicks fuera */}
       <div className="fixed inset-0 bg-transparent z-40" />
 
+      {/* HIGHLIGHT BOX: Elemento independiente por encima de todo */}
+      {targetRect && (
+        <div
+          className="fixed z-50 pointer-events-none transition-all duration-300 ease-out"
+          style={{
+            top: targetRect.top - 4,
+            left: targetRect.left - 4,
+            width: targetRect.width + 8,
+            height: targetRect.height + 8,
+            borderRadius: '12px',
+            boxShadow: `
+                0 0 0 4px rgba(59, 130, 246, 0.6), 
+                0 0 0 8px rgba(147, 51, 234, 0.3),
+                0 0 0 9999px rgba(0, 0, 0, 0.6)
+              `,
+            animation: 'tutorial-pulse 2s infinite'
+          }}
+        />
+      )}
+
       {/* Tooltip del tutorial - PERMANENTEMENTE CENTRADO */}
       <div
-        className="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in top-1/2 left-1/2"
+        className="fixed z-[60] bg-white rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in top-1/2 left-1/2"
         style={{
           transform: 'translate(-50%, -50%)',
           margin: 0
@@ -192,16 +216,6 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
 
       {/* Estilos mejorados para el highlight */}
       <style>{`
-        .tutorial-highlight {
-          position: relative;
-          z-index: 45 !important;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.6), 
-                      0 0 0 8px rgba(147, 51, 234, 0.3),
-                      0 0 0 9999px rgba(0, 0, 0, 0.6) !important;
-          border-radius: 12px;
-          animation: tutorial-pulse 2s infinite;
-        }
-        
         @keyframes tutorial-pulse {
           0%, 100% {
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.6), 
