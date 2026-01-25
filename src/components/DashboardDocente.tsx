@@ -520,9 +520,6 @@ export function DashboardDocente({
 
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
                         <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
                         <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
