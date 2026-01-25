@@ -310,7 +310,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     <ChevronDown className="w-3 h-3 opacity-50 stroke-[3px]" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80 p-2 rounded-2xl border-slate-200 shadow-xl">
+                <DropdownMenuContent align="end" sideOffset={8} className="w-80 p-2 rounded-2xl border-slate-200 shadow-xl bg-white z-[100]">
                   <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-400">Historial de Clases</DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-100 my-1" />
                   {(() => {
