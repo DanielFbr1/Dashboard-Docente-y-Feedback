@@ -19,7 +19,7 @@ export interface HitoGrupo {
     id: string;
     fase_id: string;
     titulo: string;
-    estado: 'propuesto' | 'pendiente' | 'revision' | 'aprobado' | 'rechazado';
+    estado: 'propuesto' | 'pendiente' | 'en_progreso' | 'revision' | 'aprobado' | 'rechazado';
     comentario_docente?: string;
     descripcion?: string;
 }

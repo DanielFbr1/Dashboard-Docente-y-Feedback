@@ -9,6 +9,7 @@ interface GruposDepartamentosProps {
   onSelectGrupo: (grupo: Grupo) => void;
   onEditarGrupo: (id: number | string, grupo: Omit<Grupo, 'id'>) => void;
   onEliminarGrupo: (id: number | string) => void;
+  onAsignarTareas: (grupo: Grupo) => void;
   proyectoId?: string;
 }
 
@@ -21,7 +22,7 @@ const departamentos = [
   { nombre: 'Coordinación', icon: Layout, style: 'bg-slate-50 border-slate-200 text-slate-700', desc: 'Gestión y control' },
 ];
 
-export function GruposDepartamentos({ grupos, onSelectGrupo, onEditarGrupo, onEliminarGrupo, proyectoId }: GruposDepartamentosProps) {
+export function GruposDepartamentos({ grupos, onSelectGrupo, onEditarGrupo, onEliminarGrupo, onAsignarTareas, proyectoId }: GruposDepartamentosProps) {
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
 
   if (grupos.length === 0) return null;
@@ -111,6 +112,7 @@ export function GruposDepartamentos({ grupos, onSelectGrupo, onEditarGrupo, onEl
                       onClick={() => onSelectGrupo(grupo)}
                       onEdit={() => setGrupoEditando(grupo)}
                       onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
+                      onAssignTasks={() => onAsignarTareas(grupo)}
                       mostrarBotonEditar={true}
                       mostrarBotonBorrar={true}
                     />

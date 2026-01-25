@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { ModalPerfilDocente } from './ModalPerfilDocente';
 import { ModalConfiguracionIA } from './ModalConfiguracionIA';
 import { ModalRevisionHitos } from './ModalRevisionHitos';
+import { ModalAsignarTareas } from './ModalAsignarTareas';
 import { HitoGrupo } from '../types';
 
 interface DashboardDocenteProps {
@@ -58,6 +59,8 @@ export function DashboardDocente({
   const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
   const [modalAjustesIAAbierto, setModalAjustesIAAbierto] = useState(false);
   const [modalRevisionAbierto, setModalRevisionAbierto] = useState(false);
+  const [modalAsignarAbierto, setModalAsignarAbierto] = useState(false);
+  const [grupoParaTareas, setGrupoParaTareas] = useState<Grupo | null>(null);
   const { signOut, perfil, user } = useAuth();
 
   const numPendientes = grupos.reduce((acc, g) =>
@@ -157,6 +160,43 @@ export function DashboardDocente({
           onClose={() => setModalRevisionAbierto(false)}
           onUpdateGrupo={handleUpdateMilestone}
         />
+      )}
+
+      {modalAsignarAbierto && grupoParaTareas && (
+        <ModalAsignarTareas
+          grupoNombre={grupoParaTareas.nombre}
+          faseId={proyectoActual?.fases.find(f => f.estado === 'actual')?.id || '1'}
+          onClose={() => setModalAsignarAbierto(false)}
+          onSave={async (nuevosHitos) => {
+            const updatedHitos = [...(grupoParaTareas.hitos || []), ...nuevosHitos] as HitoGrupo[];
+            await onEditarGrupo(grupoParaTareas.id, {
+              ...grupoParaTareas,
+              hitos: updatedHitos
+            });
+            toast.success("Tareas asignadas correctamente");
+          }}
+        />
+      )}
+
+      {/* Modal Asignar Tareas (Profesor) */}
+      {grupoEditando && modalCrearGrupoAbierto === false && (
+        // We use 'grupoEditando' state to track which group we are assigning tasks to (hacky reuse or new state?)
+        // Better use a new state 'grupoParaTareas' or just differentiate via a boolean flag?
+        // Let's reuse 'grupoEditando' but have a different boolean 'modalAsignarAbierto'.
+        // Wait, I haven't added 'modalAsignarAbierto' state yet. I need to add it in the main component.
+        // Since I can't add state within this replace block efficiently without context, I will skip adding the modal JSX here and do it in a Full File View/Replace or assume I added state.
+        // Actually, I can add the state in a previous step? No, I must do it in one go if possible.
+        // Limitation: 'replace_file_content' targets specific blocks.
+
+        // I will ADD the state definition at the top of the file in a separate step, and then ADD the modal here.
+        // For now, let's just add the modal rendering assuming state exists, but I CANNOT do that if state doesn't exist.
+        // So I must add state first.
+
+        // Step 1: Add import and state.
+        // Step 2: Add modal rendering.
+        // Step 3: Add trigger in Card_Grupo (prop passing).
+
+        null
       )}
 
       {/* Sidebar */}
@@ -393,6 +433,7 @@ export function DashboardDocente({
                           onClick={() => onSelectGrupo(grupo)}
                           onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
                           onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
+                          onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
                           mostrarBotonEditar={true}
                           mostrarBotonBorrar={true}
                         />
@@ -417,6 +458,7 @@ export function DashboardDocente({
                   onSelectGrupo={onSelectGrupo}
                   onEditarGrupo={onEditarGrupo}
                   onEliminarGrupo={onEliminarGrupo}
+                  onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
                   proyectoId={proyectoActual?.id}
                 />
               </div>

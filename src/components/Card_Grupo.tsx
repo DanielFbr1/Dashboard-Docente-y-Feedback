@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Users, MessageSquare, Clock, ArrowRight } from 'lucide-react';
+import { Edit2, Trash2, Users, MessageSquare, Clock, ArrowRight, ClipboardList } from 'lucide-react';
 import { Grupo } from '../types';
 
 interface CardGrupoProps {
@@ -6,11 +6,12 @@ interface CardGrupoProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onAssignTasks?: () => void;
   mostrarBotonEditar?: boolean;
   mostrarBotonBorrar?: boolean;
 }
 
-export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEditar = false, mostrarBotonBorrar = false }: CardGrupoProps) {
+export function Card_Grupo({ grupo, onClick, onEdit, onDelete, onAssignTasks, mostrarBotonEditar = false, mostrarBotonBorrar = false }: CardGrupoProps) {
   const getEstadoStyles = (estado: Grupo['estado']) => {
     switch (estado) {
       case 'Completado':
@@ -38,8 +39,21 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, mostrarBotonEdita
       className="flex flex-col gap-6 p-7 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
     >
       {/* Botones de acción rápidos */}
-      {(mostrarBotonEditar || mostrarBotonBorrar) && (
+      {(mostrarBotonEditar || mostrarBotonBorrar || onAssignTasks) && (
         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
+          {onAssignTasks && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAssignTasks();
+              }}
+              className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-xl text-slate-400 hover:text-indigo-600 transition-all"
+              title="Asignar Tareas con IA"
+            >
+              <ClipboardList className="w-4 h-4" />
+            </button>
+          )}
+
           {mostrarBotonEditar && onEdit && (
             <button
               onClick={(e) => {

@@ -57,7 +57,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
         //            'aprobado' in "Completadas".
 
         const pendientes = allTasks.filter(t => t.status === 'pendiente' || t.status === 'propuesto' || t.status === 'rechazado');
-        const enCurso = allTasks.filter(t => t.status === 'revision');
+        const enCurso = allTasks.filter(t => t.status === 'revision' || t.status === 'en_progreso');
         // Note: 'revision' technically means "Done by student, waiting for teacher".
         // If we want a true "Doing" state, we need to add it. But for this refactor, we map what we have.
         // Pending consideration: A task "En curso" usually isn't "Entregada".
@@ -86,13 +86,21 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                                         onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
                                         className="w-full py-1.5 bg-slate-50 hover:bg-indigo-50 text-indigo-500 rounded-lg text-xs font-bold border border-slate-100 hover:border-indigo-100 transition-colors"
                                     >
-                                        Empezar / Entregar
+                                        Empezar Tarea
+                                    </button>
+                                )}
+                                {task.status === 'en_progreso' && (
+                                    <button
+                                        onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
+                                        className="w-full py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg text-xs font-bold border border-amber-100 hover:border-amber-200 transition-colors flex items-center justify-center gap-1"
+                                    >
+                                        Enviar a Revisión
                                     </button>
                                 )}
                                 {task.status === 'revision' && (
-                                    <div className="text-[10px] flex items-center gap-1 text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">
+                                    <div className="text-[10px] flex items-center gap-1 text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded justify-center">
                                         <Clock className="w-3 h-3" />
-                                        En Revisión
+                                        Esperando Revisión
                                     </div>
                                 )}
                                 {task.status === 'aprobado' && (

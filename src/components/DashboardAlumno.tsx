@@ -552,27 +552,44 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                       </div>
                       <h3 className="text-xl font-black text-slate-800 mb-2">¡Comienza tu Aventura!</h3>
                       <p className="text-slate-500 mb-6 max-w-md mx-auto">Tu mapa está vacío. Utiliza la IA para definir los logros y tareas clave de tu proyecto.</p>
-                      <button
-                        onClick={() => {
-                          // Mock: Open propose for first phase
-                          const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
-                          if (fases.length > 0) {
-                            setFaseParaProponer(fases[0]);
-                            setModalProponerOpen(true);
-                          }
-                        }}
-                        className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-indigo-200"
-                      >
-                        Definir Logros con IA
-                      </button>
                     </div>
                   ) : (
                     <RoadmapView
                       fases={(todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : []}
                       hitosGrupo={grupoReal?.hitos || []}
-                      onToggleHito={async (faseId, hitoTitulo) => {
+                      onToggleHito={async (faseId, hitoTitulo, currentStatus) => {
                         if (!grupoReal) return;
-                        toast.success("Hito actualizado");
+
+                        let nextStatus: HitoGrupo['estado'] | null = null;
+                        if (currentStatus === 'pendiente' || currentStatus === 'propuesto' || currentStatus === 'rechazado') nextStatus = 'en_progreso';
+                        else if (currentStatus === 'en_progreso') nextStatus = 'revision';
+
+                        if (!nextStatus) return; // No action for other states
+
+                        try {
+                          const updatedHitos = (grupoReal.hitos || []).map(h =>
+                            (h.fase_id === faseId && h.titulo === hitoTitulo)
+                              ? { ...h, estado: nextStatus }
+                              : h
+                          ) as HitoGrupo[];
+
+                          // Optimistic Update
+                          setGrupoReal({ ...grupoReal, hitos: updatedHitos });
+
+                          // DB Update
+                          const { error } = await supabase
+                            .from('grupos')
+                            .update({ hitos: updatedHitos })
+                            .eq('id', grupoReal.id);
+
+                          if (error) throw error;
+
+                          const msg = nextStatus === 'en_progreso' ? "¡Tarea iniciada! 🚀" : "¡Enviada a revisión! 📨";
+                          toast.success(msg);
+                        } catch (err) {
+                          console.error("Error updating milestone:", err);
+                          toast.error("Error al actualizar la tarea");
+                        }
                       }}
                       onProposeMilestones={(faseId) => {
                         const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
