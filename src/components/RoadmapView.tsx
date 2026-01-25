@@ -131,55 +131,106 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
     if (layout === 'vertical') {
         return (
             <div className="w-full space-y-6">
-                {(fases || []).map((fase) => (
-                    <div key={fase.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                    fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
-                                    }`}>
-                                    {fase.estado}
-                                </span>
-                                <h4 className="font-bold text-slate-800">{fase.nombre}</h4>
+                {(fases || []).map((fase) => {
+                    const customHitos = hitosGrupo.filter(h => h.fase_id === fase.id);
+                    // Determine which milestones to show: Custom ones if exist, otherwise template (if readOnly/Teacher viewing)
+                    const hitosToShow = customHitos.length > 0
+                        ? customHitos.map(h => h.titulo)
+                        : (readOnly && fase.hitos ? fase.hitos : []);
+
+                    const totalTasks = hitosToShow.length;
+                    const completedTasks = customHitos.filter(h => h.estado === 'aprobado').length;
+                    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+                    const isCurrent = fase.estado === 'actual';
+                    const isCompleted = fase.estado === 'completado';
+
+                    return (
+                        <div key={fase.id} className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${isCurrent ? 'border-indigo-200 shadow-xl shadow-indigo-100/50 scale-[1.01]' : 'border-slate-100 shadow-sm opacity-90 hover:opacity-100'
+                            }`}>
+                            <div className={`px-6 py-4 border-b flex items-center justify-between ${isCurrent ? 'bg-indigo-50/50 border-indigo-100' : 'bg-slate-50/50 border-slate-100'
+                                }`}>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isCompleted ? 'bg-emerald-100 text-emerald-600' :
+                                                isCurrent ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'
+                                            }`}>
+                                            {fase.estado}
+                                        </span>
+                                    </div>
+                                    <h4 className={`font-bold text-lg ${isCurrent ? 'text-indigo-900' : 'text-slate-700'}`}>{fase.nombre}</h4>
+                                </div>
+                                {totalTasks > 0 && (
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-xs font-bold text-slate-500">{progress}% Completado</span>
+                                        <div className="w-24 h-2 bg-slate-200 rounded-full mt-1 overflow-hidden">
+                                            <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-5 space-y-3">
+                                {hitosToShow.length === 0 ? (
+                                    <div className="text-center py-8 px-4 bg-slate-50/30 rounded-xl border border-dashed border-slate-200">
+                                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <Sparkles className="w-5 h-5 text-slate-300" />
+                                        </div>
+                                        <p className="text-slate-500 font-medium text-sm">Sin tareas asignadas</p>
+                                        <p className="text-xs text-slate-400 mt-1">Usa el Asistente IA para generar tareas para esta fase.</p>
+                                    </div>
+                                ) : (
+                                    hitosToShow.map((hitoTitulo, index) => {
+                                        const hito = hitosGrupo.find(h => h.fase_id === fase.id && h.titulo === hitoTitulo);
+                                        const status = hito?.estado || 'pendiente';
+
+                                        return (
+                                            <div key={index} className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 group ${status === 'aprobado' ? 'bg-emerald-50/50 border-emerald-100' :
+                                                    status === 'revision' ? 'bg-amber-50/50 border-amber-100' :
+                                                        'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'
+                                                }`}>
+                                                <div className="flex items-center gap-4">
+                                                    <button
+                                                        disabled={readOnly || status === 'aprobado' || status === 'revision'}
+                                                        onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
+                                                        className={`shrink-0 transition-transform active:scale-95 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                                                    >
+                                                        {status === 'aprobado' ? (
+                                                            <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center border border-emerald-200">
+                                                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                                            </div>
+                                                        ) : status === 'revision' ? (
+                                                            <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center border border-amber-200 animate-pulse">
+                                                                <Clock className="w-4 h-4 text-amber-600" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center border-2 border-slate-200 group-hover:border-indigo-400">
+                                                                <Circle className="w-full h-full text-transparent" />
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                    <div className="flex flex-col">
+                                                        <span className={`font-bold text-sm ${status === 'aprobado' ? 'text-emerald-800 line-through opacity-70' : 'text-slate-700'}`}>
+                                                            {hitoTitulo}
+                                                        </span>
+                                                        {hito?.descripcion && (
+                                                            <span className="text-xs text-slate-500 mt-0.5 line-clamp-1">{hito.descripcion}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {status === 'revision' && (
+                                                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-lg">En Revisión</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
-                        <div className="p-4 space-y-3">
-                            {fase.hitos?.map((hitoTitulo, index) => {
-                                const hito = hitosGrupo.find(h => h.fase_id === fase.id && h.titulo === hitoTitulo);
-                                const status = hito?.estado || 'pendiente';
-
-                                return (
-                                    <div key={index} className={`flex items-center justify-between p-3 rounded-xl border ${status === 'aprobado' ? 'bg-emerald-50 border-emerald-100' :
-                                        status === 'revision' ? 'bg-amber-50 border-amber-100' :
-                                            'bg-white border-slate-100 hover:border-purple-200'
-                                        }`}>
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                disabled={readOnly || status === 'aprobado' || status === 'revision'}
-                                                onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
-                                                className={`shrink-0 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
-                                            >
-                                                {status === 'aprobado' ? (
-                                                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                                                ) : status === 'revision' ? (
-                                                    <Clock className="w-5 h-5 text-amber-500" />
-                                                ) : (
-                                                    <Circle className="w-5 h-5 text-slate-300 hover:text-purple-500" />
-                                                )}
-                                            </button>
-                                            <span className={`text-sm font-medium ${status === 'aprobado' ? 'text-slate-700' : 'text-slate-600'}`}>{hitoTitulo}</span>
-                                        </div>
-                                        {status === 'revision' && (
-                                            <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-md">Revisión</span>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
-        )
+        );
     }
 
 
