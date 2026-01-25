@@ -28,71 +28,64 @@ export function ModalAsignarTareas({ grupoNombre, faseId, onClose, onSave }: Mod
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // --- REAL AI INTEGRATION ---
     const handleSendMessage = async () => {
         if (!input.trim()) return;
 
         const userMsg = input;
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+
+        // Optimistic update
+        const newHistory = [...messages, { role: 'user', content: userMsg } as Message];
+        setMessages(newHistory);
         setIsTyping(true);
 
-        setTimeout(() => {
-            let aiResponse = "";
-            const lower = userMsg.toLowerCase();
+        try {
+            // IA Connection
+            const historyForAI = newHistory.map(m => ({
+                role: (m.role === 'ai' ? 'assistant' : 'user') as 'assistant' | 'user',
+                content: m.content
+            }));
 
-            // Simple Keyword Analysis
-            if (lower.includes("hola") || lower.includes("buenas")) {
-                aiResponse = "¡Hola! Soy tu asistente. Cuéntame qué parte del proyecto queréis abordar: ¿Investigación, Guion, Grabación o Edición?";
-            } else if (lower.includes("investig") || lower.includes("busc")) {
-                aiResponse = "Entendido. Para la fase de Investigación puedo sugerir: 'Búsqueda de referentes', 'Análisis de competencia' o 'Recopilación de recursos'. ¿Te parece bien si genero tareas sobre esto? (Escribe 'Sí' o dale al botón)";
-            } else if (lower.includes("guion") || lower.includes("escrib") || lower.includes("redac")) {
-                aiResponse = "Perfecto. Para el Guion: 'Estructura inicial', 'Primer borrador', 'Revisión de diálogos'. ¿Generamos estas tareas?";
-            } else if (lower.includes("grab") || lower.includes("rodaj")) {
-                aiResponse = "Fase de Producción. Tareas sugeridas: 'Plan de rodaje', 'Pruebas de cámara', 'Grabación de escenas'.";
-            } else if (lower.includes("si") || lower.includes("gener") || lower.includes("adelante")) {
-                handleGenerateMilestones(lower); // Pass context
-                return; // Generating handles the response
-            } else {
-                aiResponse = `Entendido: "${userMsg}". Puedo convertir eso en una tarea específica o desglosarlo. ¿Quieres que genere las tareas ahora?`;
-            }
+            // Generate Response
+            const aiResponse = await import('../services/ai').then(m => m.generarChatDocente(userMsg, historyForAI));
 
             setMessages(prev => [...prev, { role: 'ai', content: aiResponse }]);
+
+            // If AI suggests regenerating tasks, we could trigger it automatically, but better to let user decide/click.
+        } catch (error) {
+            console.error(error);
+            toast.error("Error conectando con el asistente");
+            setMessages(prev => [...prev, { role: 'ai', content: "Lo siento, tuve un error de conexión." }]);
+        } finally {
             setIsTyping(false);
-        }, 800);
+        }
     };
 
-    const handleGenerateMilestones = (context: string = "") => {
+    const handleGenerateMilestones = async (context: string = "") => {
         setIsTyping(true);
-        setTimeout(() => {
-            // Context-aware generation
-            let newHitos = [];
+        const { generarTareasDocente } = await import('../services/ai');
 
-            if (context.includes("investig") || context.includes("busc")) {
-                newHitos = [
-                    { titulo: "Búsqueda de Referentes", descripcion: "Encontrar 3 ejemplos similares al proyecto." },
-                    { titulo: "Análisis de Fuentes", descripcion: "Validar la fiabilidad de la información recopilada." },
-                    { titulo: "Resumen de Hallazgos", descripcion: "Documento breve con las conclusiones." }
-                ];
-            } else if (context.includes("guion")) {
-                newHitos = [
-                    { titulo: "Escaleta del Guion", descripcion: "Esquema secuencial de la historia." },
-                    { titulo: "Borrador de Diálogos", descripcion: "Primera versión de los textos." },
-                    { titulo: "Lectura Dramatizada", descripcion: "Prueba de ritmo con el equipo." }
-                ];
-            } else {
-                // Generic or based on last interactions (mock)
-                newHitos = [
-                    { titulo: "Reunión de Coordinación", descripcion: "Definir objetivos de la semana." },
-                    { titulo: "Reparto de Roles", descripcion: "Asignar responsables por tarea." },
-                    { titulo: "Cronograma de Trabajo", descripcion: "Establecer fechas de entrega internas." }
-                ];
-            }
+        // Use conversation context if no specific context provided
+        const promptContext = context || messages.map(m => `[${m.role}] ${m.content}`).join('\n');
 
-            setMessages(prev => [...prev, { role: 'ai', content: "Aquí tienes una propuesta de tareas basada en tu petición. Puedes editar los detalles a la derecha antes de asignar." }]);
+        try {
+            const newTasksRaw = await generarTareasDocente(promptContext);
+
+            const newHitos = newTasksRaw.map((t: any) => ({
+                titulo: t.titulo,
+                descripcion: t.descripcion
+            }));
+
+            setMessages(prev => [...prev, { role: 'ai', content: "Aquí tienes una propuesta basándome en lo que hemos hablado." }]);
             setHitos(prev => [...prev, ...newHitos]);
+            toast.success("Tareas generadas con IA");
+        } catch (error) {
+            console.error(error);
+            toast.error("No se pudieron generar tareas");
+        } finally {
             setIsTyping(false);
-            toast.success("Tareas generadas");
-        }, 1000);
+        }
     };
 
     const handleRemoveHito = (index: number) => {
