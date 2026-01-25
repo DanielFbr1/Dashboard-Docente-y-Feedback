@@ -11,6 +11,7 @@ export function LoginPage() {
     const [roomCode, setRoomCode] = useState('');
     const [studentName, setStudentName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [sessionData, setSessionData] = useState<any>(null);
     const [error, setError] = useState('');
     const [isSignUp, setIsSignUp] = useState(false);
     const [foundProject, setFoundProject] = useState<any>(null);
@@ -54,9 +55,11 @@ export function LoginPage() {
                 // Si hay sesión, es que no requiere confirmación o se autoconfirmó
                 if (data.session) {
                     sessionData = data.session;
+                    // Forzar refresco y dar un pequeño margen para que el perfil se detecte
+                    await refreshPerfil();
                 } else {
                     // Si no hay sesión, probablemente requiere verificar email
-                    alert('Cuenta creada. Si no entras automáticamente, revisa tu email para confirmar.');
+                    alert('Cuenta creada. Revisa tu email para confirmar e iniciar sesión.');
                     return;
                 }
             } else {
@@ -66,6 +69,7 @@ export function LoginPage() {
             }
 
             if (sessionData) {
+                setSessionData(sessionData); // Trigger UI update to "Redirigiendo..."
                 // Forzar refresco de perfil en el context
                 await refreshPerfil();
             }
@@ -287,7 +291,7 @@ export function LoginPage() {
                         disabled={loading}
                         className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
                     >
-                        {loading ? 'Cargando...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
+                        {loading ? 'Cargando...' : sessionData ? 'Redirigiendo...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
                     </button>
                     <div className="mt-4 text-center space-y-4">
                         <button

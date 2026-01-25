@@ -273,21 +273,26 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                         </section>
                     ))
                 ) : (
-                    <div className="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center shadow-sm">
-                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-8 border-2 border-slate-100">
-                            <Sparkles className="w-10 h-10 text-slate-200" />
+                    <div className="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center shadow-sm relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+
+                        <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mb-8 border-2 border-blue-100 shadow-lg shadow-blue-100/50 relative z-10 animate-in zoom-in duration-500">
+                            <Sparkles className="w-10 h-10 text-blue-500 animate-pulse" />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight uppercase">Tu Dashboard está listo</h2>
-                        <p className="text-slate-400 max-w-sm mb-12 text-sm font-bold uppercase tracking-widest leading-loose">
-                            Comienza creando tu primer proyecto real para trabajar con tus alumnos.
+
+                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter relative z-10">Tu Aula Virtual está lista</h2>
+                        <p className="text-slate-400 max-w-md mb-12 text-sm font-bold uppercase tracking-widest leading-loose relative z-10">
+                            Solo falta la chispa. Carga los datos de demostración para ver la magia en acción.
                         </p>
+
                         <button
                             onClick={handleLoadSamples}
                             disabled={isSeeding}
-                            className="flex items-center gap-4 px-10 py-5 bg-blue-600 text-white rounded-[2rem] font-black shadow-xl shadow-blue-100 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-sm"
+                            className="relative z-10 flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-[2rem] font-black shadow-2xl shadow-blue-300 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-sm group/btn overflow-hidden"
                         >
-                            {isSeeding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-white" />}
-                            {isSeeding ? 'Cargando...' : 'Cargar ejemplos'}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
+                            {isSeeding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-yellow-300" />}
+                            {isSeeding ? 'Configurando Aula...' : 'Cargar Proyecto Demo'}
                         </button>
                     </div>
                 )}

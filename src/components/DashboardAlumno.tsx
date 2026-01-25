@@ -38,18 +38,17 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
 
   // Estado del tutorial para Alumnos
-  // Mostrar SOLO si acaba de registrarse (isNewStudent)
+  // Mostrar SOLO si acaba de registrarse (isNewStudent) Y no lo ha visto ya en esta sesión/máquina
   const [showTutorial, setShowTutorial] = useState(() => {
-    const isNewStudent = localStorage.getItem('isNewStudent') === 'true';
-    if (isNewStudent) {
-      localStorage.removeItem('isNewStudent');
-      return true; // Mostrar tutorial
-    }
-    return false;
+    const isNew = localStorage.getItem('isNewStudent') === 'true';
+    const seen = localStorage.getItem(`tutorial_alumno_seen_${alumno.id}`) === 'true';
+    return isNew && !seen;
   });
 
-  // Estado para el Ejemplo Completo (se muestra mientras el tutorial está activo o el usuario es nuevo)
-  const [showExample, setShowExample] = useState(showTutorial);
+  // Estado para el Ejemplo Completo (se muestra mientras el usuario sea "nuevo" y no se haya unido a una clase real)
+  const [showExample, setShowExample] = useState(() => {
+    return localStorage.getItem('isNewStudent') === 'true';
+  });
 
   // Sincronizar ejemplo con tutorial
   // Hemos quitado la desactivación automática al cerrar tutorial para que puedan 
@@ -183,6 +182,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const handleTutorialComplete = () => {
     localStorage.setItem(tutorialKey, 'true');
     setShowTutorial(false);
+    // IMPORTANTE: Mantenemos showExample en true
   };
 
   // 4. Conexión Realtime y Presencia
@@ -226,6 +226,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const handleJoinSuccess = async () => {
     // Recargar datos tras unirse
     setShowExample(false);
+    localStorage.removeItem('isNewStudent');
     await fetchDatosAlumno();
     setLoading(false);
   };

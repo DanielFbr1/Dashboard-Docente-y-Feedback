@@ -97,20 +97,24 @@ export function AnalyticsDashboard({ metrics }: { metrics?: DashboardMetrics }) 
                         <div
                             key={index}
                             className={cn(
-                                "glass rounded-2xl border border-border/50 p-6",
-                                "hover:border-primary/30 transition-all duration-300"
+                                "glass rounded-[2rem] border border-border/50 p-6",
+                                "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300",
+                                "animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards"
                             )}
+                            style={{ animationDelay: `${index * 100}ms` }}
                         >
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-sm text-muted-foreground mb-2">{stat.title}</p>
-                                    <p className="text-3xl font-bold mb-1">{stat.value}</p>
+                                    <p className="text-sm font-bold text-muted-foreground mb-2 uppercase tracking-wider text-[10px]">{stat.title}</p>
+                                    <p className="text-4xl font-black mb-2 tracking-tighter text-slate-800">
+                                        {stat.value}
+                                    </p>
                                     <div className={cn(
-                                        "flex items-center gap-1 text-sm",
-                                        stat.trend === 'up' ? 'text-emerald-600' : 'text-rose-600'
+                                        "flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md w-fit",
+                                        stat.trend === 'up' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
                                     )}>
                                         <TrendingUp className={cn(
-                                            "w-4 h-4",
+                                            "w-3 h-3",
                                             stat.trend === 'down' && 'rotate-180'
                                         )} />
                                         {stat.change}
@@ -118,28 +122,34 @@ export function AnalyticsDashboard({ metrics }: { metrics?: DashboardMetrics }) 
                                 </div>
 
                                 <div className={cn(
-                                    "w-12 h-12 rounded-xl flex items-center justify-center",
-                                    "bg-gradient-to-br opacity-10"
+                                    "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 transition-transform group-hover:rotate-6",
+                                    "bg-gradient-to-br text-white",
+                                    stat.color
                                 )}>
-                                    <Icon className={cn(
-                                        "w-6 h-6",
-                                        stat.color.replace('from-', 'text-').split(' ')[0]
-                                    )} />
+                                    <Icon className="w-7 h-7" />
                                 </div>
                             </div>
 
                             {/* Mini progress bar */}
-                            <div className="mt-4">
-                                <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                            <div className="mt-6">
+                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                     <div
                                         className={cn(
-                                            "h-full rounded-full bg-gradient-to-r",
+                                            "h-full rounded-full bg-gradient-to-r transition-all duration-1000 ease-out",
                                             stat.color
                                         )}
                                         style={{
-                                            width: `${parseInt(stat.value) > 100 ? 100 : parseInt(stat.value)}%`
+                                            width: '0%',
+                                            animation: 'growWidth 1.5s ease-out forwards',
+                                            animationDelay: `${index * 150 + 200}ms`
                                         }}
                                     />
+                                    <style>{`
+                                        @keyframes growWidth {
+                                            from { width: 0%; }
+                                            to { width: ${parseInt(stat.value) > 100 ? 100 : parseInt(stat.value)}%; }
+                                        }
+                                    `}</style>
                                 </div>
                             </div>
                         </div>
@@ -170,22 +180,41 @@ export function AnalyticsDashboard({ metrics }: { metrics?: DashboardMetrics }) 
                 </div>
 
                 {/* Chart visualization */}
-                <div className="h-64 flex items-end gap-4">
+                <div className="h-64 flex items-end gap-4 mt-8">
                     {[65, 85, 45, 75, 90, 55, 80].map((value, index) => (
-                        <div key={index} className="flex-1 flex flex-col items-center">
-                            <div
-                                className={cn(
-                                    "w-full rounded-t-lg transition-all hover:opacity-90",
-                                    index % 4 === 0 ? "bg-blue-500" :
-                                        index % 4 === 1 ? "bg-purple-500" :
-                                            index % 4 === 2 ? "bg-emerald-500" : "bg-amber-500"
-                                )}
-                                style={{ height: `${value}%` }}
-                            />
-                            <span className="text-xs text-muted-foreground mt-2">
+                        <div key={index} className="flex-1 flex flex-col items-center group">
+                            <div className="relative w-full h-full flex items-end">
+                                <div
+                                    className={cn(
+                                        "w-full rounded-t-xl transition-all duration-500 group-hover:opacity-90 relative overflow-hidden",
+                                        index % 4 === 0 ? "bg-blue-500" :
+                                            index % 4 === 1 ? "bg-purple-500" :
+                                                index % 4 === 2 ? "bg-emerald-500" : "bg-amber-500"
+                                    )}
+                                    style={{
+                                        height: '0%',
+                                        animation: `growHeight 1s ease-out ${index * 0.1}s forwards`
+                                    }}
+                                >
+                                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                </div>
+                            </div>
+                            <span className="text-xs font-bold text-slate-400 mt-3 group-hover:text-slate-600 transition-colors">
                                 {['L', 'M', 'X', 'J', 'V', 'S', 'D'][index]}
                             </span>
                         </div>
+                    ))}
+                    <style>{`
+                        @keyframes growHeight {
+                            from { height: 0%; }
+                            to { height: var(--target-height); }
+                        }
+                    `}</style>
+                    {/* Inject dynamic styles for animation targets */}
+                    {[65, 85, 45, 75, 90, 55, 80].map((val, i) => (
+                        <style key={i}>{`
+                           .flex-1:nth-child(${i + 1}) .rounded-t-xl { --target-height: ${val}%; }
+                         `}</style>
                     ))}
                 </div>
             </div>

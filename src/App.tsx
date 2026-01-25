@@ -106,6 +106,18 @@ function AppContent() {
     return <LoginPage />;
   }
 
+  // Si hay usuario pero el perfil aún está cargando o no se ha procesado
+  if (user && !perfil) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Si es un alumno identificado
   if (perfil && perfil.rol === 'alumno') {
     return (
