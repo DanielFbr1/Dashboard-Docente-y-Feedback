@@ -59,6 +59,7 @@ export function DashboardDocente({
   const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
   const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
   const [modalAjustesIAAbierto, setModalAjustesIAAbierto] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New State
   const [modalRevisionAbierto, setModalRevisionAbierto] = useState(false);
   const [modalAsignarAbierto, setModalAsignarAbierto] = useState(false);
   const [grupoParaTareas, setGrupoParaTareas] = useState<Grupo | null>(null);
@@ -221,15 +222,29 @@ export function DashboardDocente({
         null
       )}
 
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+      <aside className={`
+        fixed md:relative z-50 h-full w-72 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">Gestión del Proyecto</h2>
+          <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-400">
+            <LayoutDashboard className="w-6 h-6 rotate-45" /> {/* Reuse icon as Close for speed */}
+          </button>
         </div>
 
         <nav className="flex-1 p-4">
           <button
-            onClick={() => onSectionChange('resumen')}
+            onClick={() => { onSectionChange('resumen'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'resumen'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
@@ -240,7 +255,7 @@ export function DashboardDocente({
           </button>
 
           <button
-            onClick={() => onSectionChange('grupos')}
+            onClick={() => { onSectionChange('grupos'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'grupos'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
@@ -251,7 +266,7 @@ export function DashboardDocente({
           </button>
 
           <button
-            onClick={() => onSectionChange('interacciones')}
+            onClick={() => { onSectionChange('interacciones'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'interacciones'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
@@ -262,7 +277,7 @@ export function DashboardDocente({
           </button>
 
           <button
-            onClick={() => onSectionChange('trabajo-compartido')}
+            onClick={() => { onSectionChange('trabajo-compartido'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'trabajo-compartido'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
@@ -273,7 +288,7 @@ export function DashboardDocente({
           </button>
 
           <button
-            onClick={() => onSectionChange('evaluacion')}
+            onClick={() => { onSectionChange('evaluacion'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'evaluacion'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
@@ -300,13 +315,21 @@ export function DashboardDocente({
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-8 py-5">
           <div className="flex items-center justify-between mb-3 gap-6">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Panel Principal ABP + IA</h1>
-              <p className="text-sm text-gray-500 font-medium italic">Gestión interactiva del profesorado</p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                <LayoutDashboard className="w-6 h-6" /> {/* Using Icon as hamburger equivalent */}
+              </button>
+              <div className="flex flex-col gap-1">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Panel Principal ABP + IA</h1>
+                <p className="text-sm text-gray-500 font-medium italic hidden sm:block">Gestión interactiva del profesorado</p>
+              </div>
             </div>
 
             <div className="flex items-center gap-6">

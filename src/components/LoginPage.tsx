@@ -69,8 +69,18 @@ export function LoginPage() {
             }
 
             if (sessionData) {
-                setSessionData(sessionData); // Trigger UI update to "Redirigiendo..."
-                // Forzar refresco de perfil en el context
+                // Check Role Mismatch
+                const currentRole = sessionData.user?.user_metadata?.rol;
+
+                if (currentRole && currentRole !== targetRole) {
+                    const msg = currentRole === 'profesor'
+                        ? '⚠️ Esta cuenta es de Profesor. Accediendo al panel docente...'
+                        : '⚠️ Esta cuenta es de Alumno. Accediendo al panel de alumno...';
+                    // We can use a toast here if available, or just alert. Since we rely on error state for UI messages:
+                    alert(msg);
+                }
+
+                setSessionData(sessionData);
                 await refreshPerfil();
             }
         } catch (error: any) {
@@ -95,7 +105,7 @@ export function LoginPage() {
             });
             if (error) throw error;
         } catch (error: any) {
-            setError(error.message);
+            setError("Error iniciando sesión social: " + error.message);
             setLoading(false);
         }
     };
