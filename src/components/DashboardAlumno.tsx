@@ -303,7 +303,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   <span className="font-mono font-bold text-indigo-700 tracking-wider text-sm">{alumno.codigo_sala}</span>
                 </div>
               </div>
-              )}
+
 
               {/* Botón de Ayuda (Moved) */}
               <button
