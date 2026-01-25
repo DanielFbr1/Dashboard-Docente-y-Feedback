@@ -1,4 +1,4 @@
-import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, CircleHelp, Key, FolderOpen, Share2, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, CircleHelp, Key, FolderOpen, Share2, LogOut, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Card_Metrica } from './Card_Metrica';
 import { Card_Grupo } from './Card_Grupo';
@@ -327,16 +327,7 @@ export function DashboardDocente({
 // ... (rest of header buttons)
 
               {/* MODALES */}
-              {modalRevisionAbierto && grupoParaRevisar && (
-                <ModalRevisionHitos
-                  grupo={grupoParaRevisar}
-                  onClose={() => {
-                    setModalRevisionAbierto(false);
-                    setGrupoParaRevisar(null);
-                  }}
-                  onResolve={handleResolverPropuesta}
-                />
-              )}
+
 
               {modalAsistenciaOpen && proyectoActual && (
                 <ModalAsistencia
