@@ -90,7 +90,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     { criterio: 'Reflexión metacognitiva', puntos: 6, nivel: 'Suficiente' }
   ];
 
-  const evaluacionAlumno = showExample ? evaluacionEjemplo : [];
+  const [realEvaluacion, setRealEvaluacion] = useState<any[]>([]);
+
+  const evaluacionAlumno = showExample ? evaluacionEjemplo : realEvaluacion;
 
   const fetchDatosAlumno = async () => {
     try {
@@ -170,6 +172,21 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         setGrupoReal(placeholderGrupo);
         setTodosLosGrupos([]);
       }
+
+      // Fetch Evaluations
+      const { data: evalData } = await supabase
+        .from('evaluaciones')
+        .select('*')
+        .eq('alumno_nombre', alumno.nombre)
+        .eq('proyecto_id', targetProjectId)
+        .single();
+
+      if (evalData && evalData.criterios) {
+        setRealEvaluacion(evalData.criterios);
+      } else {
+        setRealEvaluacion([]);
+      }
+
     } catch (err) {
       console.error('Error fetching student data:', err);
       setErrorStatus('ERROR_TECNICO');

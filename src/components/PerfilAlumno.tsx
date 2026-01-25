@@ -1,5 +1,8 @@
-import { X, Award, TrendingUp, MessageSquare, Target, Brain, CheckCircle2, AlertCircle, Trophy, Star, Calendar, Clock, Flame, Users, FileText, Lightbulb } from 'lucide-react';
+import { X, Award, TrendingUp, MessageSquare, Target, Brain, CheckCircle2, AlertCircle, Trophy, Star, Calendar, Clock, Flame, Users, FileText, Lightbulb, Pencil, Save, Loader2 } from 'lucide-react';
 import { Grupo } from '../types';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 
 interface PerfilAlumnoProps {
   alumno: string;
@@ -20,34 +23,96 @@ interface ActividadReciente {
   descripcion: string;
 }
 
+const CRITERIOS_DEFAULT: EvaluacionIndividual[] = [
+  { criterio: 'Colaboración y trabajo en equipo', nivel: 'Suficiente', puntos: 5, comentario: '' },
+  { criterio: 'Uso crítico de la IA', nivel: 'Suficiente', puntos: 5, comentario: '' },
+  { criterio: 'Aportación al producto', nivel: 'Suficiente', puntos: 5, comentario: '' },
+  { criterio: 'Reflexión metacognitiva', nivel: 'Suficiente', puntos: 5, comentario: '' }
+];
+
 export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
-  // Datos simulados de evaluación individual
-  const evaluacion: EvaluacionIndividual[] = [
-    {
-      criterio: 'Colaboración y trabajo en equipo',
-      nivel: 'Notable',
-      puntos: 8,
-      comentario: 'Participa activamente en las discusiones del grupo y ayuda a sus compañeros.'
-    },
-    {
-      criterio: 'Uso crítico de la IA',
-      nivel: 'Sobresaliente',
-      puntos: 9,
-      comentario: 'Hace preguntas reflexivas y profundas. Aprovecha muy bien el mentor IA.'
-    },
-    {
-      criterio: 'Aportación al producto',
-      nivel: 'Notable',
-      puntos: 8,
-      comentario: 'Sus contribuciones son creativas y de calidad.'
-    },
-    {
-      criterio: 'Reflexión metacognitiva',
-      nivel: 'Suficiente',
-      puntos: 6,
-      comentario: 'Puede profundizar más en la reflexión sobre su propio aprendizaje.'
+  const [loading, setLoading] = useState(true);
+  const [evaluacion, setEvaluacion] = useState<EvaluacionIndividual[]>(CRITERIOS_DEFAULT);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchEvaluacion();
+  }, [alumno, grupo.id]);
+
+  const fetchEvaluacion = async () => {
+    try {
+      setLoading(true);
+      // Intentamos buscar por nombre de alumno y proyecto
+      // Nota: Asumimos que existe una tabla 'evaluaciones'
+      const { data, error } = await supabase
+        .from('evaluaciones')
+        .select('*')
+        .eq('alumno_nombre', alumno)
+        .eq('proyecto_id', grupo.proyecto_id) // Asumiendo que el grupo tiene proyecto_id
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Ignorar error "no rows found"
+        console.error('Error fetching evaluation:', error);
+      }
+
+      if (data && data.criterios) {
+        setEvaluacion(data.criterios);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const notaFinal = evaluacion.reduce((sum, e) => sum + e.puntos, 0) / evaluacion.length;
+
+      const payload = {
+        alumno_nombre: alumno,
+        proyecto_id: grupo.proyecto_id,
+        grupo_id: grupo.id,
+        criterios: evaluacion,
+        nota_final: notaFinal,
+        updated_at: new Date().toISOString()
+      };
+
+      // Upsert: Si ya existe (por alumno+proyecto), actualiza
+      const { error } = await supabase
+        .from('evaluaciones')
+        .upsert(payload, { onConflict: 'alumno_nombre, proyecto_id' });
+
+      if (error) throw error;
+
+      toast.success('Evaluación guardada correctamente');
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error saving:', err);
+      toast.error('Error al guardar la evaluación');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateCriterio = (index: number, field: keyof EvaluacionIndividual, value: any) => {
+    const newEval = [...evaluacion];
+    newEval[index] = { ...newEval[index], [field]: value };
+
+    // Auto-update nivel based on points if points changed
+    if (field === 'puntos') {
+      const p = Number(value);
+      let n: EvaluacionIndividual['nivel'] = 'Insuficiente';
+      if (p >= 9) n = 'Sobresaliente';
+      else if (p >= 7) n = 'Notable';
+      else if (p >= 5) n = 'Suficiente';
+      newEval[index].nivel = n;
+    }
+
+    setEvaluacion(newEval);
+  };
 
   // Datos adicionales
   const actividadReciente: ActividadReciente[] = [
@@ -61,7 +126,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
     participacion: 87,
     racha: 7,
     entregas: { completadas: 8, totales: 10 },
-    preguntasIA: Math.floor(grupo.interacciones_ia / grupo.miembros.length),
+    preguntasIA: Math.floor(grupo.interacciones_ia / Math.max(1, grupo.miembros.length)),
     horasTrabajo: 12.5
   };
 
@@ -245,7 +310,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
                 {actividadReciente.map((actividad, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${actividad.tipo === 'pregunta_ia' ? 'bg-purple-600' :
-                        actividad.tipo === 'aportacion' ? 'bg-green-600' : 'bg-blue-600'
+                      actividad.tipo === 'aportacion' ? 'bg-green-600' : 'bg-blue-600'
                       }`}>
                       {actividad.tipo === 'pregunta_ia' ? <Brain className="w-5 h-5 text-white" /> :
                         actividad.tipo === 'aportacion' ? <FileText className="w-5 h-5 text-white" /> :
@@ -262,28 +327,84 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
 
             {/* Evaluación por criterios con MEJOR CONTRASTE */}
             <div className="bg-white rounded-2xl p-6 shadow-md border-2 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Target className="w-6 h-6 text-blue-600" />
-                Evaluación por criterios
-              </h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Target className="w-6 h-6 text-blue-600" />
+                  Evaluación por criterios
+                </h3>
+                {!isEditing ? (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors font-bold text-sm"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Evaluar
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setIsEditing(false); fetchEvaluacion(); }}
+                      className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors font-bold text-sm"
+                      disabled={saving}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-bold text-sm shadow-lg shadow-blue-200"
+                      disabled={saving}
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Guardar Notas
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-5">
                 {evaluacion.map((item, index) => (
                   <div key={index} className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
+                      <div className="flex-1 mr-6">
                         <h4 className="font-bold text-gray-900 mb-2 text-lg">{item.criterio}</h4>
-                        <p className="text-gray-700 font-medium text-base">{item.comentario}</p>
+
+                        {isEditing ? (
+                          <textarea
+                            value={item.comentario}
+                            onChange={(e) => updateCriterio(index, 'comentario', e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            placeholder="Escribe un comentario observacional..."
+                            rows={2}
+                          />
+                        ) : (
+                          <p className="text-gray-700 font-medium text-base">{item.comentario || <span className="italic text-gray-400">Sin comentarios...</span>}</p>
+                        )}
                       </div>
-                      <div className="ml-6 text-right flex flex-col items-end gap-3">
+
+                      <div className="text-right flex flex-col items-end gap-3 min-w-[120px]">
                         <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl shadow-md ${getNivelColor(item.nivel)}`}>
                           {getNivelIcon(item.nivel)}
                           {item.nivel}
                         </span>
-                        <div className="text-4xl font-bold text-gray-900">
-                          {item.puntos}
-                          <span className="text-xl text-gray-600 font-semibold">/10</span>
-                        </div>
+
+                        {isEditing ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="10"
+                              className="w-16 text-3xl font-bold text-gray-900 text-right bg-transparent border-b-2 border-gray-300 focus:border-blue-600 outline-none"
+                              value={item.puntos}
+                              onChange={(e) => updateCriterio(index, 'puntos', e.target.value)}
+                            />
+                            <span className="text-xl text-gray-600 font-semibold">/10</span>
+                          </div>
+                        ) : (
+                          <div className="text-4xl font-bold text-gray-900">
+                            {item.puntos}
+                            <span className="text-xl text-gray-600 font-semibold">/10</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -294,6 +415,17 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
                         style={{ width: `${(item.puntos / 10) * 100}%` }}
                       />
                     </div>
+                    {isEditing && (
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.5"
+                        value={item.puntos}
+                        onChange={(e) => updateCriterio(index, 'puntos', e.target.value)}
+                        className="w-full mt-2 accent-blue-600 cursor-pointer"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
