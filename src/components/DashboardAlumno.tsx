@@ -248,7 +248,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   }, [grupoReal, alumno]);
 
   const notaMedia = evaluacionAlumno.length > 0
-    ? evaluacionAlumno.reduce((sum, e) => sum + e.puntos, 0) / evaluacionAlumno.length
+    ? evaluacionAlumno.reduce((sum, e) => sum + Number(e.puntos), 0) / evaluacionAlumno.length
     : 0;
 
   const getNivelColor = (nivel: string) => {

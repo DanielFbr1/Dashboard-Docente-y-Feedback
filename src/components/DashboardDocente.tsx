@@ -328,7 +328,11 @@ export function DashboardDocente({
 
               {mostrandoEjemplo && (
                 <button
-                  onClick={onLimpiarDatos}
+                  onClick={() => {
+                    if (window.confirm("¿Estás seguro?\n\nEsta acción borrará el ejemplo Y TAMBIÉN los grupos que hayas creado durante la sesión de prueba.\n\nSe recomienda usar esto solo para reiniciar completamente.")) {
+                      onLimpiarDatos();
+                    }
+                  }}
                   className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
                 >
                   Limpiar ejemplo
