@@ -6,19 +6,16 @@ import { toast } from 'sonner';
 interface ModalRevisionHitosProps {
     grupos: Grupo[];
     onClose: () => void;
-    onUpdateGrupo: (grupoId: string | number, hitoId: string, nuevoEstado: 'aprobado' | 'rechazado') => Promise<void>;
+    onUpdateBatch: (grupoId: string | number, updates: { hitoId: string, nuevoEstado: 'aprobado' | 'rechazado' | 'pendiente' | 'revision' }[]) => Promise<void>;
 }
 
-export function ModalRevisionHitos({ grupos, onClose, onUpdateGrupo }: ModalRevisionHitosProps) {
+export function ModalRevisionHitos({ grupos, onClose, onUpdateBatch }: ModalRevisionHitosProps) {
     const [selectedGroupId, setSelectedGroupId] = useState<string | number | null>(null);
     const [decisiones, setDecisiones] = useState<Record<string, { accion: 'aprobar' | 'rechazar' | 'pendiente', comentario?: string, nuevoTitulo?: string }>>({});
 
     // Filter groups that have things to review
     const gruposConRevision = grupos.filter(g => (g.hitos || []).some(h => h.estado === 'revision'));
     const selectedGrupo = grupos.find(g => g.id === selectedGroupId);
-
-    // Initial load of milestones for selected group (if we want to cache or manage state)
-    // We will just derive from props.
 
     const handleDecision = (id: string, accion: 'aprobar' | 'rechazar') => {
         setDecisiones(prev => ({
@@ -45,18 +42,20 @@ export function ModalRevisionHitos({ grupos, onClose, onUpdateGrupo }: ModalRevi
         if (!selectedGrupo) return;
 
         const hitosPendientes = (selectedGrupo.hitos || []).filter(h => h.estado === 'revision');
-        let processed = 0;
+        const updates: { hitoId: string, nuevoEstado: 'aprobado' | 'rechazado' | 'pendiente' | 'revision' }[] = [];
 
         for (const hito of hitosPendientes) {
             const decision = decisiones[hito.id];
             if (decision && decision.accion !== 'pendiente') {
-                await onUpdateGrupo(selectedGrupo.id, hito.id, decision.accion);
-                processed++;
+                updates.push({
+                    hitoId: hito.id,
+                    nuevoEstado: decision.accion
+                });
             }
         }
 
-        if (processed > 0) {
-            toast.success(`${processed} revisiones aplicadas`);
+        if (updates.length > 0) {
+            await onUpdateBatch(selectedGrupo.id, updates);
         }
 
         // Reset or close if empty

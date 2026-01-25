@@ -68,24 +68,30 @@ export function DashboardDocente({
   );
 
   const handleUpdateMilestone = async (grupoId: string | number, hitoId: string, nuevoEstado: 'aprobado' | 'rechazado') => {
+    // Reutilizamos la lógica batch para una sola actualización
+    await handleUpdateBatchMilestones(grupoId, [{ hitoId, nuevoEstado }]);
+  };
+
+  const handleUpdateBatchMilestones = async (grupoId: string | number, updates: { hitoId: string, nuevoEstado: 'aprobado' | 'rechazado' | 'pendiente' | 'revision' }[]) => {
     const grupo = grupos.find(g => g.id === grupoId);
     if (!grupo) return;
 
     try {
-      // 1. Actualizar el estado del hito en el array local
-      const nuevosHitos = (grupo.hitos || []).map(h =>
-        h.id === hitoId ? { ...h, estado: nuevoEstado } : h
-      );
+      // 1. Aplicar TODAS las actualizaciones al array local
+      let nuevosHitos = [...(grupo.hitos || [])];
 
-      // 2. Recalcular el progreso si se aprueba
-      // Asumimos que cada fase es un hito importante. 
-      // Si el proyecto tiene 5 fases, cada una es un 20%.
-      // Para este cálculo usaremos los hitos marcados como 'aprobado'.
-      const numFases = proyectoActual ? 5 : 5; // Default 5 phases if not specified
+      updates.forEach(update => {
+        nuevosHitos = nuevosHitos.map(h =>
+          h.id === update.hitoId ? { ...h, estado: update.nuevoEstado } : h
+        );
+      });
+
+      // 2. Recalcular el progreso si se aprueba (mismo lógica que antes)
+      const numFases = proyectoActual ? 5 : 5;
       const hitosAprobados = nuevosHitos.filter(h => h.estado === 'aprobado').length;
       const nuevoProgreso = Math.min(100, Math.round((hitosAprobados / numFases) * 100));
 
-      // 3. Persistir cambios usando el prop onEditarGrupo
+      // 3. Persistir cambios usando el prop onEditarGrupo (UNA SOLA VEZ)
       await onEditarGrupo(grupoId, {
         nombre: grupo.nombre,
         departamento: grupo.departamento,
@@ -96,9 +102,17 @@ export function DashboardDocente({
         hitos: nuevosHitos
       });
 
-      toast.success(nuevoEstado === 'aprobado' ? "¡Hito aprobado y progreso actualizado!" : "Hito rechazado.");
+      const aprobados = updates.filter(u => u.nuevoEstado === 'aprobado').length;
+      const rechazados = updates.filter(u => u.nuevoEstado === 'rechazado').length;
+
+      if (updates.length > 1) {
+        toast.success(`Revisión completada: ${aprobados} aprobados, ${rechazados} rechazados.`);
+      } else {
+        toast.success(updates[0].nuevoEstado === 'aprobado' ? "¡Hito aprobado!" : "Hito rechazado.");
+      }
+
     } catch (err) {
-      console.error("Error al revisar hito:", err);
+      console.error("Error al revisar hitos en lote:", err);
       toast.error("Hubo un fallo al guardar la revisión.");
     }
   };
@@ -158,7 +172,7 @@ export function DashboardDocente({
         <ModalRevisionHitos
           grupos={grupos}
           onClose={() => setModalRevisionAbierto(false)}
-          onUpdateGrupo={handleUpdateMilestone}
+          onUpdateBatch={handleUpdateBatchMilestones}
         />
       )}
 
