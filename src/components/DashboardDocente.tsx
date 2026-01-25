@@ -517,83 +517,83 @@ export function DashboardDocente({
                           </div>
                         </div>
                       </div>
+                    </div>
 
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
-                        <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
-                        <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
-                        <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {grupos.map((grupo) => (
-                          <Card_Grupo
-                            key={grupo.id}
-                            grupo={grupo}
-                            onClick={() => onSelectGrupo(grupo)}
-                            onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
-                            onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
-                            onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
-                            mostrarBotonEditar={true}
-                            mostrarBotonBorrar={true}
-                          />
-                        ))}
-                      </div>
-                    </>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
+                      <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
+                      <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
+                      <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {grupos.map((grupo) => (
+                        <Card_Grupo
+                          key={grupo.id}
+                          grupo={grupo}
+                          onClick={() => onSelectGrupo(grupo)}
+                          onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
+                          onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
+                          onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
+                          mostrarBotonEditar={true}
+                          mostrarBotonBorrar={true}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
-                  </div>
+              </div>
             )}
 
-                {currentSection === 'grupos' && (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-2xl font-black text-gray-900">Organización por Departamentos</h2>
-                      <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg">
-                        <Plus className="w-5 h-5" />
-                        Crear nuevo grupo
-                      </button>
-                    </div>
-                    <GruposDepartamentos
-                      grupos={grupos}
-                      onSelectGrupo={onSelectGrupo}
-                      onEditarGrupo={onEditarGrupo}
-                      onEliminarGrupo={onEliminarGrupo}
-                      onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
-                      proyectoId={proyectoActual?.id}
-                    />
-                  </div>
-                )}
-
-                {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
-
-                {currentSection === 'trabajo-compartido' && (
-                  <RepositorioColaborativo
-                    grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
-                    todosLosGrupos={grupos}
-                    esDocente={true}
-                    mostrarEjemplo={mostrandoEjemplo}
-                  />
-                )}
-
-                {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}
+            {currentSection === 'grupos' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-black text-gray-900">Organización por Departamentos</h2>
+                  <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg">
+                    <Plus className="w-5 h-5" />
+                    Crear nuevo grupo
+                  </button>
+                </div>
+                <GruposDepartamentos
+                  grupos={grupos}
+                  onSelectGrupo={onSelectGrupo}
+                  onEditarGrupo={onEditarGrupo}
+                  onEliminarGrupo={onEliminarGrupo}
+                  onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
+                  proyectoId={proyectoActual?.id}
+                />
               </div>
+            )}
+
+            {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
+
+            {currentSection === 'trabajo-compartido' && (
+              <RepositorioColaborativo
+                grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                todosLosGrupos={grupos}
+                esDocente={true}
+                mostrarEjemplo={mostrandoEjemplo}
+              />
+            )}
+
+            {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}
+          </div>
         </div>
-        </div>
+      </div>
 
-        {/* Modal código sala */}
-        {mostrarCodigoSala && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
-                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
-                <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-10">
-                <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
-              </div>
+      {/* Modal código sala */}
+      {mostrarCodigoSala && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
+              <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
+              <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-10">
+              <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
             </div>
           </div>
-        )}
-      </div>
-      );
+        </div>
+      )}
+    </div>
+  );
 }
