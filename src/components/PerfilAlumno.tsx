@@ -153,7 +153,9 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
     ? (grupo.tiempo_uso_minutos / 60).toFixed(1)
     : "0.0";
 
-  const notaMedia = evaluacion.reduce((sum, e) => sum + e.puntos, 0) / evaluacion.length;
+  const notaMedia = evaluacion.length > 0
+    ? evaluacion.reduce((sum, e) => sum + Number(e.puntos || 0), 0) / evaluacion.length
+    : 0;
 
   const getNivelColor = (nivel: EvaluacionIndividual['nivel']) => {
     switch (nivel) {
@@ -197,47 +199,42 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col transform transition-all scale-100">
-        {/* Header Mejorado */}
+        {/* Header Mejorado Compacto */}
         <div className={`bg-gradient-to-r ${getDepartamentoColor(grupo.departamento)} text-white relative overflow-hidden shrink-0`}>
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-black opacity-10 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl"></div>
 
-          <div className="relative z-10 p-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
-            {/* Left: Avatar & Info */}
-            <div className="flex items-center md:items-start gap-8 flex-1">
-              <div className="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center shadow-xl text-6xl font-black border-4 border-white/20 shrink-0 transform hover:scale-105 transition-transform duration-500">
+          <div className="relative z-10 px-6 py-5 flex items-center justify-between gap-4">
+            {/* Info Principal */}
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg text-3xl font-black border-2 border-white/20 shrink-0">
                 <span className={`bg-gradient-to-br ${getDepartamentoColor(grupo.departamento)} bg-clip-text text-transparent`}>
                   {alumno.charAt(0).toUpperCase()}
                 </span>
               </div>
 
-              <div className="flex flex-col justify-center">
-                <h2 className="text-4xl md:text-5xl font-black mb-3 drop-shadow-sm tracking-tight leading-none">{alumno}</h2>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-sm flex items-center gap-2">
-                    <Users className="w-4 h-4" /> {grupo.nombre}
-                  </span>
-                  <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-sm">
-                    {grupo.departamento}
-                  </span>
+              <div>
+                <h2 className="text-2xl font-black drop-shadow-sm tracking-tight leading-none mb-1">{alumno}</h2>
+                <div className="flex items-center gap-2 text-xs font-medium text-white/80">
+                  <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {grupo.nombre}</span>
+                  <span>•</span>
+                  <span>{grupo.departamento}</span>
                 </div>
-                <p className="text-white/80 font-medium italic">Perfil de rendimiento y evaluación continua</p>
               </div>
             </div>
 
-            {/* Right: Close & Score */}
-            <div className="flex flex-col items-end gap-6">
-              <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-sm text-white border border-white/10">
-                <X className="w-6 h-6" />
-              </button>
-
-              <div className="bg-white/10 rounded-[2rem] p-6 backdrop-blur-md border border-white/20 shadow-2xl text-center min-w-[160px]">
-                <div className="text-white/70 text-[10px] font-black uppercase tracking-widest mb-1">Nota Media</div>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-6xl font-black tracking-tighter shadow-black drop-shadow-xl">{notaMedia.toFixed(1)}</span>
-                  <span className="text-xl font-bold opacity-60">/10</span>
+            {/* Nota Media (Movida arriba y compactada) */}
+            <div className="flex items-center gap-6">
+              <div className="bg-white/10 rounded-2xl px-5 py-2 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center min-w-[100px]">
+                <div className="text-white/70 text-[9px] font-black uppercase tracking-widest">Nota Media</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black tracking-tighter shadow-black drop-shadow-md">{notaMedia.toFixed(1)}</span>
+                  <span className="text-xs font-bold opacity-60">/10</span>
                 </div>
               </div>
+
+              <button onClick={onClose} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all backdrop-blur-sm text-white border border-white/10 shrink-0">
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
