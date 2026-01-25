@@ -49,7 +49,7 @@ export function ModalRevisionHitos({ grupos, onClose, onUpdateBatch }: ModalRevi
             if (decision && decision.accion !== 'pendiente') {
                 updates.push({
                     hitoId: hito.id,
-                    nuevoEstado: decision.accion
+                    nuevoEstado: decision.accion === 'aprobar' ? 'aprobado' : 'rechazado'
                 });
             }
         }
