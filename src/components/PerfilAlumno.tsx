@@ -32,6 +32,10 @@ const CRITERIOS_DEFAULT: EvaluacionIndividual[] = [
 
 export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
   const [asistenciaStats, setAsistenciaStats] = useState({ present: 0, total: 0, percentage: 100 });
+  const [loading, setLoading] = useState(true);
+  const [evaluacion, setEvaluacion] = useState<EvaluacionIndividual[]>(CRITERIOS_DEFAULT);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchEvaluacion();
