@@ -415,13 +415,13 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   if (!grupoReal) return;
                   toast.success("Hito actualizado");
                 }}
-                layout="vertical" // Prop para activar modo vertical
+                layout="compact-grid" // Nuevo layout horizontal compacto
               />
             </div>
           </div>
         )}
 
-        {/* VISTA TODOS LOS GRUPOS (NUEVA: Comunidad) */}
+        {/* VISTA TODOS LOS GRUPOS (NUEVA: Comunidad con detalles) */}
         {vistaActiva === 'comunidad' && (
           <div className="space-y-8 animate-in fade-in duration-500">
             {/* 1. Árbol Global */}
@@ -450,25 +450,56 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* 2. Lista de Progreso de Otros Grupos */}
-              <div className="lg:col-span-1 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200">
-                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Estado de los equipos</h3>
-                <div className="space-y-4">
-                  {todosLosGrupos.map((g, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-colors">
-                      <div>
-                        <div className="font-bold text-slate-700 text-sm">{g.nombre}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{g.departamento}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-800 text-sm">{g.progreso}%</span>
-                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm relative overflow-hidden">
-                          <div className="absolute bottom-0 left-0 w-full bg-indigo-500 opacity-20" style={{ height: `${g.progreso}%` }}></div>
-                          <TrendingUp className="w-4 h-4 text-indigo-600 relative z-10" />
+              {/* 2. Lista de Progreso de Otros Grupos (DETALLADA) */}
+              <div className="lg:col-span-1 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 h-fit">
+                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Equipos en Misión</h3>
+                <div className="space-y-6">
+                  {todosLosGrupos.map((g, idx) => {
+                    // Calcular hitos pendientes (Mock logic: fases del proyecto)
+                    const proyecto = PROYECTOS_MOCK.find(p => p.id === g.proyecto_id) || PROYECTOS_MOCK[0];
+                    const hitosTotales = proyecto.fases.flatMap(f => f.hitos || []);
+                    // Asumimos que los hitos en g.hitos están completados/aprobados
+                    const hitosCompletadosLabels = (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => h.titulo);
+                    const hitosPendientes = hitosTotales.filter(h => !hitosCompletadosLabels.includes(h)).slice(0, 3); // Mostrar max 3
+
+                    return (
+                      <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <div className="font-bold text-slate-700 text-sm">{g.nombre}</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{g.departamento}</div>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">
+                            {g.progreso}%
+                          </div>
+                        </div>
+
+                        {/* Miembros mini */}
+                        <div className="flex -space-x-2 mb-4 overflow-hidden py-1 pl-1">
+                          {g.miembros?.map((m, i) => (
+                            <div key={i} title={m} className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-indigo-800 uppercase ring-1 ring-slate-100">
+                              {m.charAt(0)}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Hitos pendientes */}
+                        <div className="space-y-2">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Próximos pasos:</p>
+                          {hitosPendientes.length > 0 ? (
+                            hitosPendientes.map((h, i) => (
+                              <div key={i} className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                <span className="text-[10px] font-medium text-slate-500 truncate">{h}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-[10px] font-medium text-emerald-500">¡Todo completado!</div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

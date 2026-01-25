@@ -150,42 +150,42 @@ export const PASOS_TUTORIAL = [
 export const PASOS_TUTORIAL_ALUMNO = [
     {
         id: 'bienvenida-alumno',
-        titulo: '¡Hola! Bienvenido a tu espacio de trabajo',
-        descripcion: 'Hemos organizado tu panel en 4 secciones clave: Mi Grupo, Todos los Grupos, Mentor IA y Mis Notas.',
+        titulo: '¡Bienvenido a tu nuevo espacio!',
+        descripcion: 'Hemos renovado tu dashboard para que sea más fácil trabajar en equipo. A continuación te haremos un tour rápido por las 4 secciones principales. ¡Solo te tomará un minuto!',
         posicion: 'center' as const
     },
     {
         id: 'mi-grupo',
-        titulo: '1. Mi Grupo',
-        descripcion: 'Aquí gestionas tu equipo. Tienes una vista dividida con tu ficha de grupo a la izquierda y tu Árbol de Progreso a la derecha. Abajo encontrarás el mapa completo del proyecto.',
+        titulo: 'Paso 1: Tu Centro de Mando',
+        descripcion: 'En la pestaña "Mi Grupo" verás la salud de tu equipo. A la izquierda tienes la ficha de tu grupo y a la derecha vuestro Árbol de Progreso, que crecerá conforme completéis tareas. Abajo, el Mapa del Proyecto te enseña todos los pasos a seguir de un vistazo.',
         targetSelector: 'nav button:nth-child(1)',
         posicion: 'bottom' as const
     },
     {
         id: 'subir-tarea',
-        titulo: 'Enviar Trabajo',
-        descripcion: '¿Tenéis un avance listo? Usad este botón en la tarjeta de vuestro grupo para subir evidencias rápidamente.',
+        titulo: '¿Cómo entregar trabajo?',
+        descripcion: 'Cuando tengáis algo listo, pulsad el botón de "Nube" en la tarjeta de vuestro grupo. Es la forma más rápida de subir evidencias, documentos o enlaces para que los revise el profesor.',
         targetSelector: 'button[title="Subir aportación"]',
         posicion: 'left' as const
     },
     {
         id: 'comunidad',
-        titulo: '2. Todos los Grupos',
-        descripcion: '¡NUEVO! Aquí vive la comunidad. Mira cómo crece el Árbol de la Clase y comparte recursos con otros equipos en el Repositorio Colaborativo.',
+        titulo: 'Paso 2: La Comunidad',
+        descripcion: 'En "Todos los Grupos" puedes ver cómo va el resto de la clase. El gran Árbol central representa el esfuerzo de todos. Además, aquí encontrarás el Repositorio Colaborativo para compartir recursos útiles con otros equipos.',
         targetSelector: 'nav button:nth-child(2)',
         posicion: 'bottom' as const
     },
     {
         id: 'mentor-ia-alumno',
-        titulo: '3. Mentor IA',
-        descripcion: 'Tu asistente personal 24/7. Úsalo para desbloquear ideas, pedir feedback o resolver dudas del proyecto.',
+        titulo: 'Paso 3: Tu Mentor Inteligente',
+        descripcion: '¿Atascado? ¿Necesitas ideas? El Mentor IA está aquí para ayudarte 24/7. No te dará las respuestas, pero te guiará con preguntas para que encuentres la solución tú mismo.',
         targetSelector: 'nav button:nth-child(3)',
         posicion: 'bottom' as const
     },
     {
         id: 'mis-notas',
-        titulo: '4. Mis Notas',
-        descripcion: 'Tu espacio personal. Consulta tus calificaciones y estadísticas de aprendizaje en privado, sin distracciones.',
+        titulo: 'Paso 4: Tu Espacio Personal',
+        descripcion: 'Finalmente, en "Mis Notas" tienes tu privacidad. Aquí podrás ver tus calificaciones individuales, reflexiones y estadísticas de aprendizaje que solo tú y el profesor podéis ver.',
         targetSelector: 'nav button:nth-child(4)',
         posicion: 'bottom' as const
     }

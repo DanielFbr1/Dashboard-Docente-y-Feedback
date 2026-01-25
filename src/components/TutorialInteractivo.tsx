@@ -88,20 +88,15 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
 
   return (
     <>
-      {/* Overlay oscuro con efecto de desenfoque */}
-      <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40 pointer-events-none" />
+      {/* Overlay transparente (sin desenfoque) para bloquear clicks fuera */}
+      <div className="fixed inset-0 bg-transparent z-40" />
 
-      {/* Tooltip del tutorial - MEJORADO */}
+      {/* Tooltip del tutorial - PERMANENTEMENTE CENTRADO */}
       <div
-        className="fixed z-50 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in"
+        className="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in top-1/2 left-1/2"
         style={{
-          top: paso.posicion === 'center' ? '50%' : `${posicion.top}px`,
-          left: paso.posicion === 'center' ? '50%' : `${posicion.left}px`,
-          transform: paso.posicion === 'center' ? 'translate(-50%, -50%)' :
-            paso.posicion === 'bottom' ? 'translate(-50%, 0)' :
-              paso.posicion === 'top' ? 'translate(-50%, -100%)' :
-                paso.posicion === 'right' ? 'translate(0, -50%)' :
-                  paso.posicion === 'left' ? 'translate(-100%, -50%)' : 'none'
+          transform: 'translate(-50%, -50%)',
+          margin: 0
         }}
       >
         {/* Decoración superior */}
@@ -144,8 +139,8 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
               <div
                 key={index}
                 className={`h-2 flex-1 rounded-full transition-all duration-300 ${index <= pasoActual
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-md'
-                    : 'bg-gray-200'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-md'
+                  : 'bg-gray-200'
                   }`}
               />
             ))}

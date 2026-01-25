@@ -8,11 +8,68 @@ interface RoadmapViewProps {
     onToggleHito: (faseId: string, hitoTitulo: string, currentEstado: string) => void;
     currentPhaseId?: string;
     readOnly?: boolean;
-    layout?: 'horizontal' | 'vertical';
+    layout?: 'horizontal' | 'vertical' | 'compact-grid';
 }
 
 export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhaseId, readOnly = false, layout = 'horizontal' }: RoadmapViewProps) {
     const [activePhase, setActivePhase] = useState<string>(currentPhaseId || (fases.length > 0 ? fases[0].id : ''));
+
+    // Helper to find the status of a specific milestone for this group
+    const getHitoStatus = (faseId: string, hitoTitulo: string) => {
+        const hito = hitosGrupo.find(h => h.fase_id === faseId && h.titulo === hitoTitulo);
+        return hito?.estado || 'pendiente';
+    };
+
+    // LAYOUT COMPACTO (HORIZONTAL SIN SCROLL)
+    if (layout === 'compact-grid') {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {(fases || []).map((fase) => (
+                    <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
+                        }`}>
+                        {/* Header Fase Mini */}
+                        <div className={`px-3 py-2 border-b border-slate-100 flex items-center justify-between ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
+                            }`}>
+                            <h4 className="font-bold text-slate-800 text-xs truncate max-w-[120px]" title={fase.nombre}>{fase.nombre}</h4>
+                            <span className={`text-[9px] font-black uppercase tracking-wider ${fase.estado === 'completado' ? 'text-emerald-500' :
+                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                                }`}>
+                                {fase.estado === 'completado' ? 'Listo' : fase.estado}
+                            </span>
+                        </div>
+
+                        {/* Lista Hitos Compacta */}
+                        <div className="p-2 space-y-1.5 bg-white flex-1">
+                            {fase.hitos?.map((hitoTitulo, index) => {
+                                const status = getHitoStatus(fase.id, hitoTitulo);
+                                return (
+                                    <div key={index} className="flex items-center gap-2 group">
+                                        <button
+                                            disabled={readOnly || status === 'aprobado' || status === 'revision'}
+                                            onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
+                                            className={`shrink-0 transition-transform active:scale-90 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                                        >
+                                            {status === 'aprobado' ? (
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                            ) : status === 'revision' ? (
+                                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                            ) : (
+                                                <Circle className="w-3.5 h-3.5 text-slate-300 group-hover:text-purple-400" />
+                                            )}
+                                        </button>
+                                        <span className={`text-[10px] leading-tight truncate ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-600 font-medium'
+                                            }`} title={hitoTitulo}>
+                                            {hitoTitulo}
+                                        </span>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
 
     // Si layout es vertical, mostramos todo en una lista expandida
     if (layout === 'vertical') {
@@ -69,11 +126,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
         )
     }
 
-    // Helper to find the status of a specific milestone for this group
-    const getHitoStatus = (faseId: string, hitoTitulo: string) => {
-        const hito = hitosGrupo.find(h => h.fase_id === faseId && h.titulo === hitoTitulo);
-        return hito?.estado || 'pendiente';
-    };
+
 
     return (
         <div className="w-full">
