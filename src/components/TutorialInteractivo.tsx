@@ -27,14 +27,14 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
       const element = document.querySelector(paso.targetSelector);
       if (element) {
         const rect = element.getBoundingClientRect();
-        
+
         // Añadir highlight al elemento
         element.classList.add('tutorial-highlight');
-        
+
         // Calcular posición del tooltip
         let top = rect.top;
         let left = rect.left;
-        
+
         switch (paso.posicion) {
           case 'bottom':
             top = rect.bottom + 20;
@@ -56,14 +56,14 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
             top = window.innerHeight / 2;
             left = window.innerWidth / 2;
         }
-        
+
         setPosicion({ top, left });
-        
+
         // Scroll suave al elemento
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-    
+
     // Limpiar highlights anteriores
     return () => {
       document.querySelectorAll('.tutorial-highlight').forEach(el => {
@@ -89,19 +89,19 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
   return (
     <>
       {/* Overlay oscuro con efecto de desenfoque */}
-      <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-40 pointer-events-none" />
-      
+      <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40 pointer-events-none" />
+
       {/* Tooltip del tutorial - MEJORADO */}
       <div
         className="fixed z-50 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl border-2 border-blue-400 p-6 max-w-md animate-bounce-in"
         style={{
           top: paso.posicion === 'center' ? '50%' : `${posicion.top}px`,
           left: paso.posicion === 'center' ? '50%' : `${posicion.left}px`,
-          transform: paso.posicion === 'center' ? 'translate(-50%, -50%)' : 
-                     paso.posicion === 'bottom' ? 'translate(-50%, 0)' :
-                     paso.posicion === 'top' ? 'translate(-50%, -100%)' :
-                     paso.posicion === 'right' ? 'translate(0, -50%)' :
-                     paso.posicion === 'left' ? 'translate(-100%, -50%)' : 'none'
+          transform: paso.posicion === 'center' ? 'translate(-50%, -50%)' :
+            paso.posicion === 'bottom' ? 'translate(-50%, 0)' :
+              paso.posicion === 'top' ? 'translate(-50%, -100%)' :
+                paso.posicion === 'right' ? 'translate(0, -50%)' :
+                  paso.posicion === 'left' ? 'translate(-100%, -50%)' : 'none'
         }}
       >
         {/* Decoración superior */}
@@ -143,11 +143,10 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
             {pasos.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-                  index <= pasoActual 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-md' 
+                className={`h-2 flex-1 rounded-full transition-all duration-300 ${index <= pasoActual
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-md'
                     : 'bg-gray-200'
-                }`}
+                  }`}
               />
             ))}
           </div>
@@ -165,7 +164,7 @@ export function TutorialInteractivo({ pasos, onComplete, onSkip }: TutorialInter
           >
             Saltar tutorial
           </button>
-          
+
           <div className="flex gap-2">
             {pasoActual > 0 && (
               <button

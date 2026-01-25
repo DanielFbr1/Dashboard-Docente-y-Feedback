@@ -4,17 +4,18 @@ interface LivingTreeProps {
     progress: number; // 0 to 100
     health?: number; // 0 to 100
     size?: number;
+    isDark?: boolean;
 }
 
-export function LivingTree({ progress, health = 100, size = 300 }: LivingTreeProps) {
+export function LivingTree({ progress, health = 100, size = 300, isDark = false }: LivingTreeProps) {
     const isSad = health < 50;
 
     // Configuración de colores
     const colors = {
-        trunk: isSad ? '#5D4037' : '#5D4037',
-        bark: isSad ? '#4E342E' : '#3E2723',
-        leafPrimary: isSad ? '#8D6E63' : '#22C55E',
-        leafSecondary: isSad ? '#795548' : '#16a34a',
+        trunk: isSad ? (isDark ? '#8d6e63' : '#5D4037') : (isDark ? '#a1887f' : '#5D4037'),
+        bark: isSad ? (isDark ? '#6d4c41' : '#4E342E') : (isDark ? '#8d6e63' : '#3E2723'),
+        leafPrimary: isSad ? '#8D6E63' : (isDark ? '#4ade80' : '#22C55E'),
+        leafSecondary: isSad ? '#795548' : (isDark ? '#22c55e' : '#16a34a'),
         glow: isSad ? 'none' : '#4ade8055',
         firefly: '#fbbf24',
         fruit: '#f43f5e'

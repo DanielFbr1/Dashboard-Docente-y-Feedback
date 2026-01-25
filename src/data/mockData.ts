@@ -151,35 +151,42 @@ export const PASOS_TUTORIAL_ALUMNO = [
     {
         id: 'bienvenida-alumno',
         titulo: '¡Hola! Bienvenido a tu espacio de trabajo',
-        descripcion: 'Hemos simplificado tu panel. Ahora tienes todo organizado en 3 secciones principales: Mi Grupo, Mentor IA y Mis Notas.',
+        descripcion: 'Hemos organizado tu panel en 4 secciones clave: Mi Grupo, Todos los Grupos, Mentor IA y Mis Notas.',
         posicion: 'center' as const
     },
     {
         id: 'mi-grupo',
-        titulo: '1. Tu Grupo y Progreso',
-        descripcion: 'Esta es tu base de operaciones. Aquí verás a tu equipo, vuestro Árbol de Progreso y el Mapa de Ruta, todo en un solo lugar.',
+        titulo: '1. Mi Grupo',
+        descripcion: 'Aquí gestionas tu equipo. Tienes una vista dividida con tu ficha de grupo a la izquierda y tu Árbol de Progreso a la derecha. Abajo encontrarás el mapa completo del proyecto.',
         targetSelector: 'nav button:nth-child(1)',
         posicion: 'bottom' as const
     },
     {
         id: 'subir-tarea',
-        titulo: 'Nuevo: Subir Aportación',
-        descripcion: '¿Tienes un avance? Usa este botón directo en la tarjeta de tu grupo para subir archivos y evidencias rápidamente.',
+        titulo: 'Enviar Trabajo',
+        descripcion: '¿Tenéis un avance listo? Usad este botón en la tarjeta de vuestro grupo para subir evidencias rápidamente.',
         targetSelector: 'button[title="Subir aportación"]',
         posicion: 'left' as const
     },
     {
-        id: 'mentor-ia-alumno',
-        titulo: '2. Tu Mentor IA',
-        descripcion: 'Usa el chat para pedir ayuda, generar ideas o recibir feedback inmediato sobre tu trabajo.',
+        id: 'comunidad',
+        titulo: '2. Todos los Grupos',
+        descripcion: '¡NUEVO! Aquí vive la comunidad. Mira cómo crece el Árbol de la Clase y comparte recursos con otros equipos en el Repositorio Colaborativo.',
         targetSelector: 'nav button:nth-child(2)',
         posicion: 'bottom' as const
     },
     {
-        id: 'mis-notas',
-        titulo: '3. Mis Notas y Recursos',
-        descripcion: 'Consulta tus evaluaciones y accede al Repositorio Compartido (la antigua pestaña "Compartir" ahora vive aquí).',
+        id: 'mentor-ia-alumno',
+        titulo: '3. Mentor IA',
+        descripcion: 'Tu asistente personal 24/7. Úsalo para desbloquear ideas, pedir feedback o resolver dudas del proyecto.',
         targetSelector: 'nav button:nth-child(3)',
+        posicion: 'bottom' as const
+    },
+    {
+        id: 'mis-notas',
+        titulo: '4. Mis Notas',
+        descripcion: 'Tu espacio personal. Consulta tus calificaciones y estadísticas de aprendizaje en privado, sin distracciones.',
+        targetSelector: 'nav button:nth-child(4)',
         posicion: 'bottom' as const
     }
 ];
