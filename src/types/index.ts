@@ -74,4 +74,5 @@ export interface ProyectoActivo {
     tipo: string;
     codigo_sala: string;
     clase?: string;
+    fases: ProyectoFase[];
 }

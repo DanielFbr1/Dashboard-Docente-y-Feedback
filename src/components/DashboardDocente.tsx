@@ -165,7 +165,7 @@ export function DashboardDocente({
       {modalAsignarAbierto && grupoParaTareas && (
         <ModalAsignarTareas
           grupoNombre={grupoParaTareas.nombre}
-          faseId={(proyectoActual as any)?.fases?.find((f: any) => f.estado === 'actual')?.id || '1'}
+          faseId={proyectoActual?.fases?.find(f => f.estado === 'actual')?.id || '1'}
           onClose={() => setModalAsignarAbierto(false)}
           onSave={async (nuevosHitos) => {
             const updatedHitos = [...(grupoParaTareas.hitos || []), ...nuevosHitos] as HitoGrupo[];

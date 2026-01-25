@@ -38,36 +38,61 @@ export function ModalAsignarTareas({ grupoNombre, faseId, onClose, onSave }: Mod
 
         setTimeout(() => {
             let aiResponse = "";
-            const lowerInput = userMsg.toLowerCase();
+            const lower = userMsg.toLowerCase();
 
-            if (lowerInput.includes("hola")) {
-                aiResponse = "Hola. ¿Definimos tareas de investigación, desarrollo o entrega?";
-            } else if (lowerInput.includes("investig")) {
-                aiResponse = "Perfecto. Puedo sugerir tareas como 'Buscar 3 fuentes', 'Resumir artículo', etc. Dale a 'Generar Tareas' cuando quieras.";
+            // Simple Keyword Analysis
+            if (lower.includes("hola") || lower.includes("buenas")) {
+                aiResponse = "¡Hola! Soy tu asistente. Cuéntame qué parte del proyecto queréis abordar: ¿Investigación, Guion, Grabación o Edición?";
+            } else if (lower.includes("investig") || lower.includes("busc")) {
+                aiResponse = "Entendido. Para la fase de Investigación puedo sugerir: 'Búsqueda de referentes', 'Análisis de competencia' o 'Recopilación de recursos'. ¿Te parece bien si genero tareas sobre esto? (Escribe 'Sí' o dale al botón)";
+            } else if (lower.includes("guion") || lower.includes("escrib") || lower.includes("redac")) {
+                aiResponse = "Perfecto. Para el Guion: 'Estructura inicial', 'Primer borrador', 'Revisión de diálogos'. ¿Generamos estas tareas?";
+            } else if (lower.includes("grab") || lower.includes("rodaj")) {
+                aiResponse = "Fase de Producción. Tareas sugeridas: 'Plan de rodaje', 'Pruebas de cámara', 'Grabación de escenas'.";
+            } else if (lower.includes("si") || lower.includes("gener") || lower.includes("adelante")) {
+                handleGenerateMilestones(lower); // Pass context
+                return; // Generating handles the response
             } else {
-                aiResponse = "Entendido. Escribe 'Generar' o usa el botón cuando hayas descrito lo que deben hacer.";
+                aiResponse = `Entendido: "${userMsg}". Puedo convertir eso en una tarea específica o desglosarlo. ¿Quieres que genere las tareas ahora?`;
             }
 
             setMessages(prev => [...prev, { role: 'ai', content: aiResponse }]);
             setIsTyping(false);
-        }, 1000);
+        }, 800);
     };
 
-    const handleGenerateMilestones = () => {
+    const handleGenerateMilestones = (context: string = "") => {
         setIsTyping(true);
         setTimeout(() => {
-            // Mock Teacher AI Generation
-            const newHitos = [
-                { titulo: "Lectura de Documentación", descripcion: "Leer el PDF de requisitos del proyecto." },
-                { titulo: "Lluvia de Ideas Inicial", descripcion: "Listar 5 posibles enfoques para el problema." },
-                { titulo: "Planificación Temporal", descripcion: "Cronograma simple de las sesiones de trabajo." }
-            ];
+            // Context-aware generation
+            let newHitos = [];
 
-            setMessages(prev => [...prev, { role: 'ai', content: "Aquí tienes una propuesta de tareas iniciales. Puedes editarlas antes de asignarlas." }]);
+            if (context.includes("investig") || context.includes("busc")) {
+                newHitos = [
+                    { titulo: "Búsqueda de Referentes", descripcion: "Encontrar 3 ejemplos similares al proyecto." },
+                    { titulo: "Análisis de Fuentes", descripcion: "Validar la fiabilidad de la información recopilada." },
+                    { titulo: "Resumen de Hallazgos", descripcion: "Documento breve con las conclusiones." }
+                ];
+            } else if (context.includes("guion")) {
+                newHitos = [
+                    { titulo: "Escaleta del Guion", descripcion: "Esquema secuencial de la historia." },
+                    { titulo: "Borrador de Diálogos", descripcion: "Primera versión de los textos." },
+                    { titulo: "Lectura Dramatizada", descripcion: "Prueba de ritmo con el equipo." }
+                ];
+            } else {
+                // Generic or based on last interactions (mock)
+                newHitos = [
+                    { titulo: "Reunión de Coordinación", descripcion: "Definir objetivos de la semana." },
+                    { titulo: "Reparto de Roles", descripcion: "Asignar responsables por tarea." },
+                    { titulo: "Cronograma de Trabajo", descripcion: "Establecer fechas de entrega internas." }
+                ];
+            }
+
+            setMessages(prev => [...prev, { role: 'ai', content: "Aquí tienes una propuesta de tareas basada en tu petición. Puedes editar los detalles a la derecha antes de asignar." }]);
             setHitos(prev => [...prev, ...newHitos]);
             setIsTyping(false);
             toast.success("Tareas generadas");
-        }, 1500);
+        }, 1000);
     };
 
     const handleRemoveHito = (index: number) => {
@@ -134,7 +159,7 @@ export function ModalAsignarTareas({ grupoNombre, faseId, onClose, onSave }: Mod
                     <div className="p-4 bg-white border-t border-slate-200 space-y-3">
                         {messages.length > 1 && (
                             <button
-                                onClick={handleGenerateMilestones}
+                                onClick={() => handleGenerateMilestones("")}
                                 type="button"
                                 className="w-full py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100"
                             >
