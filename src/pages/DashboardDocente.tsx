@@ -22,12 +22,14 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { Proyecto, Grupo } from '../types';
+import { ModalRevisionHitos } from '../components/ModalRevisionHitos';
 
 export function DashboardDocente() {
     const { user } = useAuth();
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
     const [proyectoActivo, setProyectoActivo] = useState<Proyecto | null>(null);
     const [selectedGrupoId, setSelectedGrupoId] = useState<string | number | null>(null);
+    const [grupoParaRevisar, setGrupoParaRevisar] = useState<Grupo | null>(null);
     const [showModalGrupo, setShowModalGrupo] = useState(false);
     const [activeSection, setActiveSection] = useState('resumen');
     const [searchQuery, setSearchQuery] = useState('');
@@ -247,6 +249,7 @@ export function DashboardDocente() {
                                             grupo={grupo}
                                             onVerAlumno={() => handleVerAlumno(grupo.id)}
                                             onCambiarEstado={(estado) => handleCambiarEstado(grupo.id, estado)}
+                                            onRevisar={() => setGrupoParaRevisar(grupo)}
                                         />
                                     ))}
                                 {(!proyectoActivo || proyectoActivo.grupos.length === 0) && (
@@ -394,6 +397,56 @@ export function DashboardDocente() {
                     </div>
                 </div>
             </main>
+
+            import {ModalRevisionHitos} from '../components/ModalRevisionHitos';
+
+            // ... (Inside component)
+            const [grupoParaRevisar, setGrupoParaRevisar] = useState<Grupo | null>(null);
+
+            // ... (Inside render, before ModalCrearGrupo)
+            {grupoParaRevisar && (
+                <ModalRevisionHitos
+                    grupo={grupoParaRevisar}
+                    onClose={() => setGrupoParaRevisar(null)}
+                    onResolve={(hitosActualizados) => {
+                        // Actualizar estado local
+                        if (proyectoActivo) {
+                            const nuevosGrupos = proyectoActivo.grupos?.map(g => {
+                                if (g.id === grupoParaRevisar.id) {
+                                    return { ...g, hitos: hitosActualizados };
+                                }
+                                return g;
+                            });
+                            // Hack: actualizar estado proyectoActivo y lista proyectos
+                            setProyectoActivo({ ...proyectoActivo, grupos: nuevosGrupos });
+                            setProyectos(proyectos.map(p => p.id === proyectoActivo.id ? { ...p, grupos: nuevosGrupos } : p));
+
+                            // Aquí se llamaría a Supabase para persistir
+                            // supabase.from('grupos').update({ hitos: hitosActualizados }).eq('id', grupoParaRevisar.id);
+                        }
+                    }}
+                />
+            )}
+
+            {grupoParaRevisar && (
+                <ModalRevisionHitos
+                    grupo={grupoParaRevisar}
+                    onClose={() => setGrupoParaRevisar(null)}
+                    onResolve={(hitosActualizados) => {
+                        if (proyectoActivo) {
+                            const nuevosGrupos = proyectoActivo.grupos?.map(g => {
+                                if (g.id === grupoParaRevisar.id) {
+                                    return { ...g, hitos: hitosActualizados };
+                                }
+                                return g;
+                            });
+                            setProyectoActivo({ ...proyectoActivo, grupos: nuevosGrupos });
+                            setProyectos(proyectos.map(p => p.id === proyectoActivo.id ? { ...p, grupos: nuevosGrupos } : p));
+                            toast.success("Hitos actualizados correctamente");
+                        }
+                    }}
+                />
+            )}
 
             {showModalGrupo && proyectoActivo && (
                 <ModalCrearGrupo

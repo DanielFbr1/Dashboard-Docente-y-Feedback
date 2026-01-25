@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, AlertCircle, Sparkles } from 'lucide-react';
 import { ProyectoFase, HitoGrupo } from '../types';
 
 interface RoadmapViewProps {
@@ -11,7 +11,7 @@ interface RoadmapViewProps {
     layout?: 'horizontal' | 'vertical' | 'compact-grid';
 }
 
-export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhaseId, readOnly = false, layout = 'horizontal' }: RoadmapViewProps) {
+export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhaseId, readOnly = false, layout = 'horizontal', onProposeMilestones }: RoadmapViewProps & { onProposeMilestones?: (faseId: string) => void }) {
     const [activePhase, setActivePhase] = useState<string>(currentPhaseId || (fases.length > 0 ? fases[0].id : ''));
 
     // Helper to find the status of a specific milestone for this group
@@ -32,7 +32,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                             }`}>
                             <h4 className="font-bold text-slate-800 text-lg leading-tight">{fase.nombre}</h4>
                             <span className={`shrink-0 text-xs font-black uppercase tracking-wider py-1 ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                    fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
                                 }`}>
                                 {fase.estado === 'completado' ? 'Listo' : fase.estado}
                             </span>

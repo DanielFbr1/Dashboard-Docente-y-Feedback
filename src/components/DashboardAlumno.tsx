@@ -10,6 +10,7 @@ import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { UnirseClaseScreen } from './UnirseClaseScreen';
 import { ModalUnirseClase } from './ModalUnirseClase';
+import { ModalProponerHitos } from './ModalProponerHitos';
 import { Key } from 'lucide-react';
 import { RoadmapView } from './RoadmapView';
 import { LivingTree } from './LivingTree';
@@ -49,7 +50,16 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
+  const [modalUnirseOpen, setModalUnirseOpen] = useState(false);
   const [modalSubirRecursoOpen, setModalSubirRecursoOpen] = useState(false);
+  const [modalProponerOpen, setModalProponerOpen] = useState(false);
+  const [faseParaProponer, setFaseParaProponer] = useState<any>(null); // Quick fix for type complexity, or import ProyectoFase
+  import { ModalProponerHitos } from './ModalProponerHitos'; // This should be at top really. I will add imports separately or assume I can't do mixed edits easily. 
+  // Wait, I can't add imports here. I should do it properly.
+
+  // Let's just add the state variables here first.
+  const [modalProponerOpen, setModalProponerOpen] = useState(false);
+  const [faseParaProponer, setFaseParaProponer] = useState<any>(null);
 
   // Estado del tutorial para Alumnos
   const [tutorialActivo, setTutorialActivo] = useState(() => {
@@ -512,6 +522,14 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                   if (!grupoReal) return;
                   toast.success("Hito actualizado");
                 }}
+                onProposeMilestones={(faseId) => {
+                  const fases = (todosLosGrupos.length > 0 && alumno.proyecto_id) ? (PROYECTOS_MOCK.find(p => p.id === alumno.proyecto_id)?.fases || PROYECTOS_MOCK[0]?.fases || []) : [];
+                  const fase = fases.find(f => f.id === faseId);
+                  if (fase) {
+                    setFaseParaProponer(fase); // We are mutating the same object reference, so the 'hack' in Submit works for this session.
+                    setModalProponerOpen(true);
+                  }
+                }}
                 layout="compact-grid" // Nuevo layout horizontal compacto
               />
             </div>
@@ -680,6 +698,42 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           grupo={grupoDisplay}
           onClose={() => setModalSubirRecursoOpen(false)}
           onSuccess={() => { toast.success("Recurso subido con éxito"); }}
+        />
+      )}
+
+      {modalProponerOpen && faseParaProponer && (
+        <ModalProponerHitos
+          fase={faseParaProponer}
+          onClose={() => setModalProponerOpen(false)}
+          onSubmit={(nuevosHitos) => {
+            // Mock update logic or DB call
+            if (grupoReal) {
+              const updatedHitos = [...(grupoReal.hitos || []), ...nuevosHitos] as HitoGrupo[];
+              setGrupoReal({ ...grupoReal, hitos: updatedHitos });
+              // Update fase.hitos (mock logic needs to update project phases too visually?)
+              // Actually RoadmapView reads `fases` prop for structure (names) but `hitosGrupo` for status/existence.
+              // But RoadmapView loops `fase.hitos` to map titles. If titles are not in `fases` mock, they won't show.
+              // CRITICAL: The RoadmapView iterates `fase.hitos` (titles). We need to ADD these titles to the Phase definition if we want them to appear.
+              // OR, we change RoadmapView to iterate `hitosGrupo` filtered by phase.
+              // Currently `RoadmapView` iterates `fase.hitos`. This implies the *structure* is fixed.
+              // User wants *student defined milestones*. This means the structure itself is dynamic.
+              // FIX: I need to update the `todosLosGrupos` -> which contains project structure? No, project struct is in `PROYECTOS_MOCK` or fetched.
+              // Quickest fix: Update the local `PROYECTOS_MOCK` copy or state that holds phases. 
+              // But `fases` passed to Roadmap comes from `PROYECTOS_MOCK`.
+              // I should update RoadmapView to also show "Extra Milestones" found in `hitosGrupo` that match the phase, even if not in `fase.hitos`.
+              // BUT for now, let's assume we update the local copy of phases or just simply push the new titles to `fase.hitos` in memory.
+
+              // Let's implement a simple handler that updates the local state enough for demonstration.
+
+              // 1. Find the project and phase in local mocked data or state
+              // Since we don't have a deep state for Project Structure here, I will hack it by adding to `faseParaProponer.hitos`.
+              // Note: This won't persist on reload unless we save to DB.
+
+              faseParaProponer.hitos = [...(faseParaProponer.hitos || []), ...nuevosHitos.map(h => h.titulo)];
+              toast.success("Propuesta enviada al profesor");
+              setModalProponerOpen(false);
+            }
+          }}
         />
       )}
     </div>

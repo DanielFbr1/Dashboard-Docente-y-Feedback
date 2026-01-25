@@ -6,9 +6,10 @@ interface Props {
     grupo: Grupo;
     onVerAlumno: (nombre: string) => void;
     onCambiarEstado: (nuevoEstado: Grupo['estado']) => void;
+    onRevisar?: () => void;
 }
 
-export function GrupoCard({ grupo, onVerAlumno, onCambiarEstado }: Props) {
+export function GrupoCard({ grupo, onVerAlumno, onCambiarEstado, onRevisar }: Props) {
     const getEstadoColor = (estado: Grupo['estado']) => {
         switch (estado) {
             case 'Bloqueado': return 'bg-rose-50 border-rose-100 text-rose-600';
@@ -44,6 +45,22 @@ export function GrupoCard({ grupo, onVerAlumno, onCambiarEstado }: Props) {
                         <span key={miembro} className="px-3 py-1 bg-slate-50 rounded-lg text-xs font-bold text-slate-700">{miembro}</span>
                     ))}
                 </div>
+
+                {/* Visualización de Hitos Propuestos */}
+                {(grupo.hitos || []).filter(h => h.estado === 'propuesto').length > 0 && (
+                    <div className="absolute top-0 right-0 p-4">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRevisar && onRevisar();
+                            }}
+                            className="bg-amber-100 text-amber-600 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all border border-amber-200 font-bold text-[10px] uppercase tracking-wider animate-pulse"
+                        >
+                            <AlertCircle className="w-3 h-3" />
+                            {(grupo.hitos || []).filter(h => h.estado === 'propuesto').length} Propuestas
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -19,8 +19,9 @@ export interface HitoGrupo {
     id: string;
     fase_id: string;
     titulo: string;
-    estado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado';
+    estado: 'propuesto' | 'pendiente' | 'revision' | 'aprobado' | 'rechazado';
     comentario_docente?: string;
+    descripcion?: string;
 }
 
 export interface Grupo {
