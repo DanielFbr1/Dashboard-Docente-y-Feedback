@@ -10,7 +10,6 @@ import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { UnirseClaseScreen } from './UnirseClaseScreen';
 import { ModalUnirseClase } from './ModalUnirseClase';
-import { ModalProponerHitos } from './ModalProponerHitos';
 import { Key } from 'lucide-react';
 import { RoadmapView } from './RoadmapView';
 import { LivingTree } from './LivingTree';
