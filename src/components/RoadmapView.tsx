@@ -25,40 +25,41 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(fases || []).map((fase) => (
-                    <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
+                    <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col h-full ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
                         }`}>
-                        {/* Header Fase Mini */}
-                        <div className={`px-4 py-3 border-b border-slate-100 flex items-center justify-between ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
+                        {/* Header Fase Mini - AUMENTADO */}
+                        <div className={`px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
                             }`}>
-                            <h4 className="font-bold text-slate-800 text-sm truncate max-w-[140px]" title={fase.nombre}>{fase.nombre}</h4>
-                            <span className={`text-[10px] font-black uppercase tracking-wider ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
+                            <h4 className="font-bold text-slate-800 text-lg leading-tight">{fase.nombre}</h4>
+                            <span className={`shrink-0 text-xs font-black uppercase tracking-wider py-1 ${fase.estado === 'completado' ? 'text-emerald-500' :
+                                    fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
                                 }`}>
                                 {fase.estado === 'completado' ? 'Listo' : fase.estado}
                             </span>
                         </div>
 
-                        {/* Lista Hitos Compacta */}
-                        <div className="p-3 space-y-2 bg-white flex-1">
+                        {/* Lista Hitos Compacta - AUMENTADA */}
+                        <div className="p-5 space-y-3 bg-white flex-1">
                             {fase.hitos?.map((hitoTitulo, index) => {
                                 const status = getHitoStatus(fase.id, hitoTitulo);
                                 return (
-                                    <div key={index} className="flex items-center gap-2.5 group">
+                                    <div key={index} className="flex items-start gap-3 group">
                                         <button
                                             disabled={readOnly || status === 'aprobado' || status === 'revision'}
                                             onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
-                                            className={`shrink-0 transition-transform active:scale-90 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                                            className={`mt-0.5 shrink-0 transition-transform active:scale-90 p-1 -m-1 rounded-full hover:bg-slate-50 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+                                            title={status === 'completado' ? 'Marcar como pendiente' : 'Marcar como completado'}
                                         >
                                             {status === 'aprobado' ? (
-                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                                             ) : status === 'revision' ? (
-                                                <Clock className="w-4 h-4 text-amber-500" />
+                                                <Clock className="w-6 h-6 text-amber-500" />
                                             ) : (
-                                                <Circle className="w-4 h-4 text-slate-300 group-hover:text-purple-400" />
+                                                <Circle className="w-6 h-6 text-slate-300 group-hover:text-purple-400 transition-colors" />
                                             )}
                                         </button>
-                                        <span className={`text-xs leading-tight truncate ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-600 font-medium'
-                                            }`} title={hitoTitulo}>
+                                        <span className={`text-sm leading-snug ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-700 font-medium'
+                                            }`}>
                                             {hitoTitulo}
                                         </span>
                                     </div>
