@@ -28,7 +28,7 @@ export interface Grupo {
     id: number | string;
     nombre: string;
     departamento: string;
-    estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado';
+    estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado' | 'Pendiente';
     progreso: number;
     interacciones_ia: number;
     miembros: string[];

@@ -16,6 +16,7 @@ import { LivingTree } from './LivingTree';
 import { PROYECTOS_MOCK } from '../data/mockData';
 import { HitoGrupo } from '../types';
 import { toast } from 'sonner';
+import { ModalProponerHitos } from './ModalProponerHitos';
 import {
   DropdownMenu,
   DropdownMenuContent,
