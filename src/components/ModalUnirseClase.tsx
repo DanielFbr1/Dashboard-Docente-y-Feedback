@@ -41,6 +41,12 @@ export function ModalUnirseClase({ onClose, onJoinSuccess }: ModalUnirseClasePro
 
             if (updateError) throw updateError;
 
+            // 3. CRITICAL: Sincronizar tabla pública 'profiles' para que el profesor lo vea
+            await supabase.from('profiles').update({
+                codigo_sala: proyecto.codigo_sala,
+                proyecto_id: proyecto.id
+            }).eq('id', (await supabase.auth.getUser()).data.user?.id);
+
             // Guardar en historial local
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {

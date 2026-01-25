@@ -160,16 +160,16 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       } else {
         const placeholderGrupo: Grupo = {
           id: 0,
-          nombre: 'Equipo de Bienvenida',
-          departamento: 'Pendiente',
-          estado: 'En progreso',
+          nombre: 'Sin Equipo Asignado',
+          departamento: 'General',
+          estado: 'Pendiente',
           progreso: 0,
           interacciones_ia: 0,
           miembros: [alumno.nombre],
           proyecto_id: targetProjectId
         };
         setGrupoReal(placeholderGrupo);
-        setTodosLosGrupos([placeholderGrupo]);
+        setTodosLosGrupos([]);
       }
     } catch (err) {
       console.error('Error fetching student data:', err);
@@ -190,6 +190,12 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         }
       });
       if (updateError) throw updateError;
+
+      // Sync public profile as well
+      await supabase.from('profiles').update({
+        codigo_sala: classData.codigo,
+        proyecto_id: classData.id
+      }).eq('id', alumno.id);
 
       toast.success(`Cambiando a clase: ${classData.nombre}`);
       // Force reload data by triggering re-fetch via auth state change/reload or just calling fetch
@@ -441,83 +447,98 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         {/* VISTA MI GRUPO (Split 50/50 + Roadmap Vertical completo abajo) */}
         {vistaActiva === 'grupo' && grupoDisplay && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            {grupoDisplay.id === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[3rem] shadow-sm border border-slate-200 text-center px-6">
+                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                  <Users className="w-10 h-10 text-slate-300" />
+                </div>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2">¡Bienvenido a la clase!</h2>
+                <p className="text-slate-500 font-medium max-w-md mx-auto mb-8">
+                  Todavía no tienes un equipo asignado. Espera a que tu profesor te incluya en uno para comenzar.
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Esperando asignación...
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-              {/* COLUMNA 1: Tarjeta de Grupo */}
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 relative overflow-hidden h-full">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 -z-0"></div>
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase leading-none mb-2">{grupoDisplay.nombre}</h2>
-                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{grupoDisplay.departamento}</p>
-                      </div>
-                      <button
-                        onClick={() => setModalSubirRecursoOpen(true)}
-                        className="bg-slate-900 text-white w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all group"
-                        title="Subir aportación"
-                      >
-                        <Upload className="w-6 h-6 group-hover:text-purple-400 transition-colors" />
-                      </button>
-                    </div>
-
-                    <div className="mb-8">
-                      <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoDisplay.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                        grupoDisplay.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                          grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
-                            'bg-emerald-50 text-emerald-600 border-emerald-200'
-                        }`}>
-                        {grupoDisplay.estado}
-                      </span>
-                    </div>
-
-                    <div className="mb-8">
-                      <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">
-                        <span>Progreso del equipo</span>
-                        <span className="text-slate-800">{grupoDisplay.progreso}%</span>
-                      </div>
-                      <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
-                        <div
-                          className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${grupoDisplay.progreso}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                          <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-purple-600 font-bold text-xs">
-                            {miembro.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="font-bold text-slate-700 text-xs tracking-tight truncate">{miembro}</span>
+                {/* COLUMNA 1: Tarjeta de Grupo */}
+                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 relative overflow-hidden h-full">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 -z-0"></div>
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="flex items-start justify-between mb-6">
+                        <div>
+                          <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase leading-none mb-2">{grupoDisplay.nombre}</h2>
+                          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{grupoDisplay.departamento}</p>
                         </div>
-                      ))}
+                        <button
+                          onClick={() => setModalSubirRecursoOpen(true)}
+                          className="bg-slate-900 text-white w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all group"
+                          title="Subir aportación"
+                        >
+                          <Upload className="w-6 h-6 group-hover:text-purple-400 transition-colors" />
+                        </button>
+                      </div>
+
+                      <div className="mb-8">
+                        <span className={`px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-full border-2 ${grupoDisplay.estado === 'Casi terminado' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                          grupoDisplay.estado === 'En progreso' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                            grupoDisplay.estado === 'Bloqueado' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                              'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          }`}>
+                          {grupoDisplay.estado}
+                        </span>
+                      </div>
+
+                      <div className="mb-8">
+                        <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">
+                          <span>Progreso del equipo</span>
+                          <span className="text-slate-800">{grupoDisplay.progreso}%</span>
+                        </div>
+                        <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-[2px] border border-slate-200">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${grupoDisplay.progreso}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-purple-600 font-bold text-xs">
+                              {miembro.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-bold text-slate-700 text-xs tracking-tight truncate">{miembro}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* COLUMNA 2: Árbol de Progreso */}
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden h-full min-h-[400px]">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
-                <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-4 z-10 w-full text-center">Nuestro Árbol</h2>
-                <div className="relative z-10 transform scale-100">
-                  <LivingTree progress={grupoDisplay.progreso || 0} health={100} size={280} />
-                </div>
-                <div className="mt-8 flex gap-8 text-center">
-                  <div>
-                    <div className="text-2xl font-black text-slate-800">{grupoDisplay.progreso}%</div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
+                {/* COLUMNA 2: Árbol de Progreso */}
+                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden h-full min-h-[400px]">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
+                  <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-4 z-10 w-full text-center">Nuestro Árbol</h2>
+                  <div className="relative z-10 transform scale-100">
+                    <LivingTree progress={grupoDisplay.progreso || 0} health={100} size={280} />
+                  </div>
+                  <div className="mt-8 flex gap-8 text-center">
+                    <div>
+                      <div className="text-2xl font-black text-slate-800">{grupoDisplay.progreso}%</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-            </div>
+              </div>
 
             {/* ROW 2: Roadmap Completo (Sin Scroll Horizontal) */}
             <div className="bg-slate-50 rounded-[2.5rem] p-6 border border-slate-200">
@@ -542,208 +563,221 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             </div>
           </div>
         )}
-
-        {/* VISTA TODOS LOS GRUPOS (NUEVA: Comunidad con detalles) */}
-        {vistaActiva === 'comunidad' && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            {/* 1. Árbol Global */}
-            <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 mb-4 backdrop-blur-md">
-                    <Sparkles className="w-3 h-3 text-indigo-300" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-100">Progreso Global de la Clase</span>
-                  </div>
-                  <h2 className="text-4xl font-black tracking-tight mb-4 leading-none">Jardín Colaborativo</h2>
-                  <p className="text-indigo-200 max-w-lg text-lg leading-relaxed">
-                    Así es como vuestro esfuerzo conjunto hace crecer el proyecto global. Cada hito de cada grupo cuenta.
-                  </p>
-                </div>
-                <div className="shrink-0 bg-white/5 rounded-full p-8 backdrop-blur-sm border border-white/10">
-                  <LivingTree
-                    progress={todosLosGrupos.reduce((acc, g) => acc + g.progreso, 0) / (todosLosGrupos.length || 1)}
-                    health={100}
-                    size={200}
-                    isDark
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* 2. Lista de Progreso de Otros Grupos (DETALLADA) */}
-              <div className="lg:col-span-1 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 h-fit">
-                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Equipos en Misión</h3>
-                <div className="space-y-6">
-                  {todosLosGrupos.map((g, idx) => {
-                    // Calcular hitos pendientes (Mock logic: fases del proyecto)
-                    const proyecto = PROYECTOS_MOCK.find(p => p.id === g.proyecto_id) || PROYECTOS_MOCK[0];
-                    const hitosTotales = proyecto.fases.flatMap(f => f.hitos || []);
-                    // Asumimos que los hitos en g.hitos están completados/aprobados
-                    const hitosCompletadosLabels = (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => h.titulo);
-                    const hitosPendientes = hitosTotales.filter(h => !hitosCompletadosLabels.includes(h)).slice(0, 3); // Mostrar max 3
-
-                    return (
-                      <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <div className="font-bold text-slate-700 text-sm">{g.nombre}</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{g.departamento}</div>
-                          </div>
-                          <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">
-                            {g.progreso}%
-                          </div>
-                        </div>
-
-                        {/* Miembros mini */}
-                        <div className="flex -space-x-2 mb-4 overflow-hidden py-1 pl-1">
-                          {g.miembros?.map((m, i) => (
-                            <div key={i} title={m} className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-indigo-800 uppercase ring-1 ring-slate-100">
-                              {m.charAt(0)}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Hitos pendientes */}
-                        <div className="space-y-2">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Próximos pasos:</p>
-                          {hitosPendientes.length > 0 ? (
-                            hitosPendientes.map((h, i) => (
-                              <div key={i} className="flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                                <span className="text-[10px] font-medium text-slate-500 truncate">{h}</span>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-[10px] font-medium text-emerald-500">¡Todo completado!</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 3. Repositorio Compartido */}
-              <div className="lg:col-span-2">
-                <RepositorioColaborativo
-                  grupo={grupoReal || grupoEjemplo} // Solo para contexto de permisos
-                  todosLosGrupos={todosLosGrupos}
-                  mostrarEjemplo={showExample}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* VISTA MENTOR IA */}
-        {vistaActiva === 'chat' && grupoDisplay && (
-          <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 min-h-[600px]">
-            <ChatIA grupo={grupoDisplay} mostrarEjemplo={showExample} />
-          </div>
-        )}
-
-        {/* VISTA MIS NOTAS (Revertido a solo notas) */}
-        {vistaActiva === 'perfil' && grupoDisplay && (
-          <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-[2rem] p-6 shadow-lg text-white">
-                <div className="text-3xl font-bold">{notaMedia.toFixed(1)}</div>
-                <div className="text-xs font-bold uppercase tracking-widest opacity-90">Nota media</div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-[2rem] p-6 shadow-lg text-white">
-                <div className="text-3xl font-bold">{Math.floor((grupoDisplay.interacciones_ia || 0) / (grupoDisplay.miembros?.length || 1))}</div>
-                <div className="text-xs font-bold uppercase tracking-widest opacity-90">Preguntas IA</div>
-              </div>
-              <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-[2rem] p-6 shadow-lg text-white">
-                <div className="text-3xl font-bold">{grupoDisplay.progreso}%</div>
-                <div className="text-xs font-bold uppercase tracking-widest opacity-90">Progreso Global</div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200">
-              <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tight uppercase">Tus notas</h2>
-              <div className="space-y-6">
-                {evaluacionAlumno.map((item, index) => (
-                  <div key={index} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="flex justify-between mb-2">
-                      <span className="font-bold text-slate-700 uppercase tracking-widest text-xs">{item.criterio}</span>
-                      <span className="font-black text-slate-900">{item.puntos}/10</span>
-                    </div>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-800" style={{ width: `${item.puntos * 10}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* YA NO HAY REPOSITORIO AQUÍ */}
-          </div>
-        )}
-      </main>
-
-      {tutorialActivo && (
-        <TutorialInteractivo
-          pasos={PASOS_TUTORIAL_ALUMNO}
-          onComplete={handleTutorialComplete}
-          onSkip={handleTutorialComplete}
-          onStepChange={(index) => {
-            const paso = PASOS_TUTORIAL_ALUMNO[index];
-            if (paso.vista) {
-              // Mapeo de la vista del tutorial a la vista interna del componente
-              const targetView = paso.vista === 'notas' ? 'perfil' : paso.vista;
-              setVistaActiva(targetView as 'grupo' | 'comunidad' | 'chat' | 'perfil');
-            }
-          }}
-        />
-      )}
-      {modalUnirseOpen && <ModalUnirseClase onClose={() => setModalUnirseOpen(false)} onJoinSuccess={handleJoinSuccess} />}
-
-      {modalSubirRecursoOpen && grupoDisplay && (
-        <ModalSubirRecurso
-          grupo={grupoDisplay}
-          onClose={() => setModalSubirRecursoOpen(false)}
-          onSuccess={() => { toast.success("Recurso subido con éxito"); }}
-        />
-      )}
-
-      {modalProponerOpen && faseParaProponer && (
-        <ModalProponerHitos
-          fase={faseParaProponer}
-          onClose={() => setModalProponerOpen(false)}
-          onSubmit={(nuevosHitos) => {
-            // Mock update logic or DB call
-            if (grupoReal) {
-              const updatedHitos = [...(grupoReal.hitos || []), ...nuevosHitos] as HitoGrupo[];
-              setGrupoReal({ ...grupoReal, hitos: updatedHitos });
-              // Update fase.hitos (mock logic needs to update project phases too visually?)
-              // Actually RoadmapView reads `fases` prop for structure (names) but `hitosGrupo` for status/existence.
-              // But RoadmapView loops `fase.hitos` to map titles. If titles are not in `fases` mock, they won't show.
-              // CRITICAL: The RoadmapView iterates `fase.hitos` (titles). We need to ADD these titles to the Phase definition if we want them to appear.
-              // OR, we change RoadmapView to iterate `hitosGrupo` filtered by phase.
-              // Currently `RoadmapView` iterates `fase.hitos`. This implies the *structure* is fixed.
-              // User wants *student defined milestones*. This means the structure itself is dynamic.
-              // FIX: I need to update the `todosLosGrupos` -> which contains project structure? No, project struct is in `PROYECTOS_MOCK` or fetched.
-              // Quickest fix: Update the local `PROYECTOS_MOCK` copy or state that holds phases. 
-              // But `fases` passed to Roadmap comes from `PROYECTOS_MOCK`.
-              // I should update RoadmapView to also show "Extra Milestones" found in `hitosGrupo` that match the phase, even if not in `fase.hitos`.
-              // BUT for now, let's assume we update the local copy of phases or just simply push the new titles to `fase.hitos` in memory.
-
-              // Let's implement a simple handler that updates the local state enough for demonstration.
-
-              // 1. Find the project and phase in local mocked data or state
-              // Since we don't have a deep state for Project Structure here, I will hack it by adding to `faseParaProponer.hitos`.
-              // Note: This won't persist on reload unless we save to DB.
-
-              faseParaProponer.hitos = [...(faseParaProponer.hitos || []), ...nuevosHitos.map(h => h.titulo)];
-              toast.success("Propuesta enviada al profesor");
-              setModalProponerOpen(false);
-            }
-          }}
-        />
-      )}
     </div>
+  )
+}
+
+{/* VISTA TODOS LOS GRUPOS (NUEVA: Comunidad con detalles) */ }
+{
+  vistaActiva === 'comunidad' && (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* 1. Árbol Global */}
+      <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 mb-4 backdrop-blur-md">
+              <Sparkles className="w-3 h-3 text-indigo-300" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-100">Progreso Global de la Clase</span>
+            </div>
+            <h2 className="text-4xl font-black tracking-tight mb-4 leading-none">Jardín Colaborativo</h2>
+            <p className="text-indigo-200 max-w-lg text-lg leading-relaxed">
+              Así es como vuestro esfuerzo conjunto hace crecer el proyecto global. Cada hito de cada grupo cuenta.
+            </p>
+          </div>
+          <div className="shrink-0 bg-white/5 rounded-full p-8 backdrop-blur-sm border border-white/10">
+            <LivingTree
+              progress={todosLosGrupos.reduce((acc, g) => acc + g.progreso, 0) / (todosLosGrupos.length || 1)}
+              health={100}
+              size={200}
+              isDark
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 2. Lista de Progreso de Otros Grupos (DETALLADA) */}
+        <div className="lg:col-span-1 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 h-fit">
+          <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Equipos en Misión</h3>
+          <div className="space-y-6">
+            {todosLosGrupos.map((g, idx) => {
+              // Calcular hitos pendientes (Mock logic: fases del proyecto)
+              const proyecto = PROYECTOS_MOCK.find(p => p.id === g.proyecto_id) || PROYECTOS_MOCK[0];
+              const hitosTotales = proyecto.fases.flatMap(f => f.hitos || []);
+              // Asumimos que los hitos en g.hitos están completados/aprobados
+              const hitosCompletadosLabels = (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => h.titulo);
+              const hitosPendientes = hitosTotales.filter(h => !hitosCompletadosLabels.includes(h)).slice(0, 3); // Mostrar max 3
+
+              return (
+                <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="font-bold text-slate-700 text-sm">{g.nombre}</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{g.departamento}</div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">
+                      {g.progreso}%
+                    </div>
+                  </div>
+
+                  {/* Miembros mini */}
+                  <div className="flex -space-x-2 mb-4 overflow-hidden py-1 pl-1">
+                    {g.miembros?.map((m, i) => (
+                      <div key={i} title={m} className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-indigo-800 uppercase ring-1 ring-slate-100">
+                        {m.charAt(0)}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Hitos pendientes */}
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Próximos pasos:</p>
+                    {hitosPendientes.length > 0 ? (
+                      hitosPendientes.map((h, i) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                          <span className="text-[10px] font-medium text-slate-500 truncate">{h}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-[10px] font-medium text-emerald-500">¡Todo completado!</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Repositorio Compartido */}
+        <div className="lg:col-span-2">
+          <RepositorioColaborativo
+            grupo={grupoReal || grupoEjemplo} // Solo para contexto de permisos
+            todosLosGrupos={todosLosGrupos}
+            mostrarEjemplo={showExample}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+{/* VISTA MENTOR IA */ }
+{
+  vistaActiva === 'chat' && grupoDisplay && (
+    <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 min-h-[600px]">
+      <ChatIA grupo={grupoDisplay} mostrarEjemplo={showExample} />
+    </div>
+  )
+}
+
+{/* VISTA MIS NOTAS (Revertido a solo notas) */ }
+{
+  vistaActiva === 'perfil' && grupoDisplay && (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-[2rem] p-6 shadow-lg text-white">
+          <div className="text-3xl font-bold">{notaMedia.toFixed(1)}</div>
+          <div className="text-xs font-bold uppercase tracking-widest opacity-90">Nota media</div>
+        </div>
+        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-[2rem] p-6 shadow-lg text-white">
+          <div className="text-3xl font-bold">{Math.floor((grupoDisplay.interacciones_ia || 0) / (grupoDisplay.miembros?.length || 1))}</div>
+          <div className="text-xs font-bold uppercase tracking-widest opacity-90">Preguntas IA</div>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-[2rem] p-6 shadow-lg text-white">
+          <div className="text-3xl font-bold">{grupoDisplay.progreso}%</div>
+          <div className="text-xs font-bold uppercase tracking-widest opacity-90">Progreso Global</div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200">
+        <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tight uppercase">Tus notas</h2>
+        <div className="space-y-6">
+          {evaluacionAlumno.map((item, index) => (
+            <div key={index} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex justify-between mb-2">
+                <span className="font-bold text-slate-700 uppercase tracking-widest text-xs">{item.criterio}</span>
+                <span className="font-black text-slate-900">{item.puntos}/10</span>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-slate-800" style={{ width: `${item.puntos * 10}%` }}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* YA NO HAY REPOSITORIO AQUÍ */}
+    </div>
+  )
+}
+      </main >
+
+  { tutorialActivo && (
+    <TutorialInteractivo
+      pasos={PASOS_TUTORIAL_ALUMNO}
+      onComplete={handleTutorialComplete}
+      onSkip={handleTutorialComplete}
+      onStepChange={(index) => {
+        const paso = PASOS_TUTORIAL_ALUMNO[index];
+        if (paso.vista) {
+          // Mapeo de la vista del tutorial a la vista interna del componente
+          const targetView = paso.vista === 'notas' ? 'perfil' : paso.vista;
+          setVistaActiva(targetView as 'grupo' | 'comunidad' | 'chat' | 'perfil');
+        }
+      }}
+    />
+  )}
+{ modalUnirseOpen && <ModalUnirseClase onClose={() => setModalUnirseOpen(false)} onJoinSuccess={handleJoinSuccess} /> }
+
+{
+  modalSubirRecursoOpen && grupoDisplay && (
+    <ModalSubirRecurso
+      grupo={grupoDisplay}
+      onClose={() => setModalSubirRecursoOpen(false)}
+      onSuccess={() => { toast.success("Recurso subido con éxito"); }}
+    />
+  )
+}
+
+{
+  modalProponerOpen && faseParaProponer && (
+    <ModalProponerHitos
+      fase={faseParaProponer}
+      onClose={() => setModalProponerOpen(false)}
+      onSubmit={(nuevosHitos) => {
+        // Mock update logic or DB call
+        if (grupoReal) {
+          const updatedHitos = [...(grupoReal.hitos || []), ...nuevosHitos] as HitoGrupo[];
+          setGrupoReal({ ...grupoReal, hitos: updatedHitos });
+          // Update fase.hitos (mock logic needs to update project phases too visually?)
+          // Actually RoadmapView reads `fases` prop for structure (names) but `hitosGrupo` for status/existence.
+          // But RoadmapView loops `fase.hitos` to map titles. If titles are not in `fases` mock, they won't show.
+          // CRITICAL: The RoadmapView iterates `fase.hitos` (titles). We need to ADD these titles to the Phase definition if we want them to appear.
+          // OR, we change RoadmapView to iterate `hitosGrupo` filtered by phase.
+          // Currently `RoadmapView` iterates `fase.hitos`. This implies the *structure* is fixed.
+          // User wants *student defined milestones*. This means the structure itself is dynamic.
+          // FIX: I need to update the `todosLosGrupos` -> which contains project structure? No, project struct is in `PROYECTOS_MOCK` or fetched.
+          // Quickest fix: Update the local `PROYECTOS_MOCK` copy or state that holds phases. 
+          // But `fases` passed to Roadmap comes from `PROYECTOS_MOCK`.
+          // I should update RoadmapView to also show "Extra Milestones" found in `hitosGrupo` that match the phase, even if not in `fase.hitos`.
+          // BUT for now, let's assume we update the local copy of phases or just simply push the new titles to `fase.hitos` in memory.
+
+          // Let's implement a simple handler that updates the local state enough for demonstration.
+
+          // 1. Find the project and phase in local mocked data or state
+          // Since we don't have a deep state for Project Structure here, I will hack it by adding to `faseParaProponer.hitos`.
+          // Note: This won't persist on reload unless we save to DB.
+
+          faseParaProponer.hitos = [...(faseParaProponer.hitos || []), ...nuevosHitos.map(h => h.titulo)];
+          toast.success("Propuesta enviada al profesor");
+          setModalProponerOpen(false);
+        }
+      }}
+    />
+  )
+}
+    </div >
   );
 }
 // Dashboard Alumno Component
