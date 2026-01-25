@@ -95,6 +95,11 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, onAssignTasks, mo
               <span>Pendiente</span>
             </div>
           )}
+          {grupo.pedir_ayuda && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-rose-200 animate-pulse">
+              <span>✋ Ayuda</span>
+            </div>
+          )}
         </div>
 
         <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors tracking-tight uppercase">

@@ -36,6 +36,8 @@ export interface Grupo {
     conversacionesIA?: Conversacion[];
     hitos?: HitoGrupo[];
     ultima_actividad?: string; // Fecha ISO
+    pedir_ayuda?: boolean;
+    pedir_ayuda_timestamp?: string;
 }
 
 export type ProyectoEstado = 'En preparación' | 'En curso' | 'Finalizado';

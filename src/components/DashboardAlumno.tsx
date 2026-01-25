@@ -358,11 +358,33 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <span className="hidden sm:inline">Unirse a Clase</span>
               </button>
               <button
-                onClick={() => setTutorialActivo(true)}
-                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                onClick={async () => {
+                  if (!grupoReal) return;
+                  const newState = !grupoReal.pedir_ayuda;
+                  // Optimistic
+                  setGrupoReal({ ...grupoReal, pedir_ayuda: newState });
+
+                  try {
+                    await supabase.from('grupos').update({ pedir_ayuda: newState }).eq('id', grupoReal.id);
+                    if (newState) toast("✋ ¡Duda enviada al profesor!");
+                    else toast("✅ Duda resuelta/cancelada");
+                  } catch (e) {
+                    console.error(e);
+                    toast.error("Error de conexión");
+                  }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-sm border-2 ${grupoReal?.pedir_ayuda
+                    ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse shadow-rose-100 shadow-lg'
+                    : 'text-slate-400 border-transparent hover:text-rose-600 hover:bg-rose-50'
+                  }`}
               >
-                <CircleHelp className="w-5 h-5" />
+                <div className="relative">
+                  <CircleHelp className={`w-5 h-5 ${grupoReal?.pedir_ayuda ? 'fill-rose-600 text-white' : ''}`} />
+                  {grupoReal?.pedir_ayuda && <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />}
+                </div>
+                <span className="hidden sm:inline">{grupoReal?.pedir_ayuda ? 'ESPERANDO AYUDA' : 'TENGO UNA DUDA'}</span>
               </button>
+
               <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm">
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Salir</span>
@@ -686,7 +708,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                                 return activeTasks.slice(0, 3).map((h, i) => (
                                   <div key={i} className="flex items-center gap-1.5">
                                     <div className={`w-1.5 h-1.5 rounded-full ${h.estado === 'revision' ? 'bg-amber-400 animate-pulse' :
-                                        h.estado === 'en_progreso' ? 'bg-indigo-400' : 'bg-slate-300'
+                                      h.estado === 'en_progreso' ? 'bg-indigo-400' : 'bg-slate-300'
                                       }`}></div>
                                     <span className="text-[10px] font-medium text-slate-500 truncate" title={h.titulo}>{h.titulo}</span>
                                   </div>
