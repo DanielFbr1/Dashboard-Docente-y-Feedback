@@ -673,17 +673,29 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
                           {/* Hitos pendientes */}
                           <div className="space-y-2">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Próximos pasos:</p>
-                            {hitosPendientes.length > 0 ? (
-                              hitosPendientes.map((h, i) => (
-                                <div key={i} className="flex items-center gap-1.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                                  <span className="text-[10px] font-medium text-slate-500 truncate">{h}</span>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-[10px] font-medium text-emerald-500">¡Todo completado!</div>
-                            )}
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Trabajando en:</p>
+                            {(() => {
+                              // Logic: Show actual incomplete tasks (assignments)
+                              const activeTasks = (g.hitos || []).filter(h => h.estado !== 'aprobado');
+                              // If no custom tasks, maybe show defaults from mock?
+                              // User rejected "examples", so let's stick to real data or "Sin tareas".
+                              // If activeTasks is empty and progress < 100, they might be using defaults but we don't have them in 'g'.
+                              // We'll show activeTasks if they exist.
+
+                              if (activeTasks.length > 0) {
+                                return activeTasks.slice(0, 3).map((h, i) => (
+                                  <div key={i} className="flex items-center gap-1.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${h.estado === 'revision' ? 'bg-amber-400 animate-pulse' :
+                                        h.estado === 'en_progreso' ? 'bg-indigo-400' : 'bg-slate-300'
+                                      }`}></div>
+                                    <span className="text-[10px] font-medium text-slate-500 truncate" title={h.titulo}>{h.titulo}</span>
+                                  </div>
+                                ));
+                              }
+
+                              if (g.progreso === 100) return <div className="text-[10px] font-medium text-emerald-500">¡Proyecto Completado!</div>;
+                              return <div className="text-[10px] font-medium text-slate-400 italic">Planificando próximas tareas...</div>;
+                            })()}
                           </div>
                         </div>
                       );
