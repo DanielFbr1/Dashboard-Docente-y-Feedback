@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle2, Circle, Brain, Share2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { ChatIA } from './ChatIA';
@@ -23,9 +23,9 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
   const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
 
   // Asegurar que empezamos arriba al entrar al detalle
-  useState(() => {
+  useEffect(() => {
     window.scrollTo(0, 0);
-  });
+  }, []);
 
   // Hardcoded stats can remain for now or be derived
   const tiposPreguntas: TipoPregunta[] = [
@@ -215,7 +215,7 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
             </div>
 
 
-          </>
+          </div>
         ) : vistaActiva === 'compartir' ? (
           <RepositorioColaborativo grupo={grupo} todosLosGrupos={[]} />
         ) : (
