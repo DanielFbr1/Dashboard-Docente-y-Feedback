@@ -217,13 +217,23 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                 {proyectos.length > 0 ? (
                     Object.entries(proyectosPorClase).map(([clase, proyectosClase]) => (
                         <section key={clase} className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 ${getClaseStyles(clase).header}`}>
-                                    {getClaseIcon(clase)}
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 shrink-0 ${getClaseStyles(clase).header}`}>
+                                        {getClaseIcon(clase)}
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+                                        <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase whitespace-nowrap">{clase}</h2>
+                                        <span className="md:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                            {proyectosClase.length} {proyectosClase.length === 1 ? 'Proyecto' : 'Proyectos'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">{clase}</h2>
-                                <div className="h-[2px] flex-1 bg-slate-100 ml-4"></div>
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{proyectosClase.length} {proyectosClase.length === 1 ? 'PROYECTO' : 'PROYECTOS'}</span>
+
+                                <div className="hidden md:block h-[2px] flex-1 bg-slate-100 ml-4"></div>
+                                <span className="hidden md:block text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] whitespace-nowrap">
+                                    {proyectosClase.length} {proyectosClase.length === 1 ? 'PROYECTO' : 'PROYECTOS'}
+                                </span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
