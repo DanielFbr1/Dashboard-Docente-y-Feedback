@@ -324,7 +324,7 @@ export function DashboardDocente({
                 <span>{proyectoActual?.codigo_sala || '---'}</span>
               </div>
 
-// ... (rest of header buttons)
+
 
               {/* MODALES */}
 
