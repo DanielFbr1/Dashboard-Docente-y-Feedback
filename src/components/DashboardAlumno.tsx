@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
+import { useGroupTracking } from '../hooks/useGroupTracking';
+
 interface DashboardAlumnoProps {
   alumno: {
     id: string;
@@ -94,6 +96,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [realEvaluacion, setRealEvaluacion] = useState<any[]>([]);
 
   const evaluacionAlumno = showExample ? evaluacionEjemplo : realEvaluacion;
+
+  // Tracking de tiempo de conexión (Heartbeat) - Solo si tiene grupo real
+  useGroupTracking(grupoReal?.id);
 
   const fetchDatosAlumno = async () => {
     try {

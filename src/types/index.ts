@@ -31,6 +31,7 @@ export interface Grupo {
     estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado' | 'Pendiente';
     progreso: number;
     interacciones_ia: number;
+    tiempo_uso_minutos?: number;
     miembros: string[];
     proyecto_id?: string;
     conversacionesIA?: Conversacion[];

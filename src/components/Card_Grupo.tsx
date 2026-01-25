@@ -31,7 +31,15 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, onAssignTasks, mo
     if (progreso >= 100) return 'bg-emerald-500';
     if (progreso >= 50) return 'bg-blue-500';
     if (progreso >= 25) return 'bg-amber-500';
+    if (progreso >= 25) return 'bg-amber-500';
     return 'bg-rose-500';
+  };
+
+  const formatTime = (mins?: number) => {
+    if (!mins) return '0m';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
   return (
@@ -130,6 +138,14 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, onAssignTasks, mo
             </div>
             <span className="text-[10px] font-black uppercase tracking-tighter">{grupo.miembros.length} Miembros</span>
           </div>
+
+          <div className="flex items-center gap-2 text-slate-400">
+            <div className="p-1.5 bg-purple-50 rounded-lg">
+              <Clock className="w-3.5 h-3.5 text-purple-500" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-tighter text-purple-600">{formatTime(grupo.tiempo_uso_minutos)}</span>
+          </div>
+
           <div className="flex items-center gap-2 text-blue-500/70">
             <div className="p-1.5 bg-blue-50 rounded-lg">
               <MessageSquare className="w-3.5 h-3.5" />
