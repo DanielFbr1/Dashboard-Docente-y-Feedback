@@ -20,106 +20,101 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
         return hito?.estado || 'pendiente';
     };
 
-    // LAYOUT COMPACTO (HORIZONTAL SIN SCROLL)
+    // LAYOUT TAREAS (KANBAN: Pendientes, En Curso, Completadas)
     if (layout === 'compact-grid') {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(fases || []).map((fase) => (
-                    <div key={fase.id} className={`rounded-xl border border-slate-200 overflow-hidden flex flex-col h-full ${fase.estado === 'actual' ? 'ring-2 ring-purple-100 shadow-sm' : 'opacity-90'
-                        }`}>
-                        {/* Header Fase Mini - AUMENTADO */}
-                        <div className={`px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 ${fase.estado === 'actual' ? 'bg-purple-50' : 'bg-slate-50'
-                            }`}>
-                            <h4 className="font-bold text-slate-800 text-lg leading-tight">{fase.nombre}</h4>
-                            <span className={`shrink-0 text-xs font-black uppercase tracking-wider py-1 ${fase.estado === 'completado' ? 'text-emerald-500' :
-                                fase.estado === 'actual' ? 'text-purple-600' : 'text-slate-400'
-                                }`}>
-                                {fase.estado === 'completado' ? 'Listo' : fase.estado}
-                            </span>
-                        </div>
+        // Flatten all milestones from all phases (respecting the "custom only" rule)
+        const allTasks: { faseId: string, faseNombre: string, titulo: string, status: string }[] = [];
 
-                        {(() => {
-                            // Logic: If filter is "student-only" (implied by context or if we have custom ones), we prefer custom.
-                            // User said: "no quiero que automaticamente se pongan por defecto los que están, sino que solo salgan los de los alumnos"
-                            // So, if there are custom milestones for this phase, SHOW ONLY THEM.
-                            // If NO custom milestones, show template? Or show empty? 
-                            // " cuando se cree un grupo desde cero, quiero que en la sesion del alumno se cree un botón... " -> implied Empty initially.
-                            // So, we will simply NOT merge. We will check `hitosGrupo` for this phase.
-                            // If `hitosGrupo` has entries for this phase, use them.
-                            // What if they haven't proposed any? Then show Template? Or Empty?
-                            // "no quiero que automaticamente se pongan por defecto los que están". This implies Template is HIDDEN for groups.
-                            // But we need a fallback for the "First View". 
-                            // Let's try this: If `hitosGrupo` has ANY entry for ANY phase, we assume "Custom Mode" and ignore templates physically.
-                            // If `hitosGrupo` is completely empty, maybe show Template? Or just Empty?
-                            // User: "cuando se cree un grupo desde cero... se cree un botón para empezar".
-                            // So if empty, we showed the button in DashboardAlumno. Here in RoadmapView we might receive empty list.
+        fases.forEach(fase => {
+            const customHitos = hitosGrupo.filter(h => h.fase_id === fase.id);
+            // Logic: If custom hitos exist, use them. If not, use template (unless strict student-only mode).
+            // Per previous instructions: "solo salgan los de los alumnos".
+            // So we iterate `customHitos`.
+            if (customHitos.length > 0) {
+                customHitos.forEach(h => {
+                    allTasks.push({
+                        faseId: fase.id,
+                        faseNombre: fase.nombre,
+                        titulo: h.titulo,
+                        status: h.estado || 'pendiente'
+                    });
+                });
+            } else if (!readOnly) {
+                // If not readOnly (student view), and no custom hitos, we show nothing (as they need to propose).
+                // If readOnly (teacher view inspecting), maybe show nothing too?
+            }
+        });
 
-                            const customHitos = hitosGrupo.filter(h => h.fase_id === fase.id).map(h => h.titulo);
-                            // FIX: If we want ONLY students, we just map customHitos.
-                            // But we need to handle the "Template" case for Teacher or other views? 
-                            // Let's look at `DashboardAlumno`: It renders the "Start" button if NO hitos exist at all.
-                            // So if we are here, there ARE hitos. So they must be custom (or we are in Teacher view).
-                            // Teacher view passes `hitosGrupo`.
+        // Group by Status
+        // Status keys: 'pendiente', 'propuesto', 'revision', 'aprobado', 'rechazado'
+        // Mapping to Columns:
+        // PENDIENTES: 'pendiente', 'propuesto' (maybe?)
+        // EN CURSO: 'revision' (The user wants "En curso". In our flow, 'revision' is waiting for approval.
+        //            To have a real "En curso", we'd need a new status. 
+        //            For now, let's treat 'revision' as the "In Progress" column roughly, or explain it.)
+        //            Actually, let's put 'pendiente' in "Pendientes".
+        //            'revision' in "En Curso" (Validation phase).
+        //            'aprobado' in "Completadas".
 
-                            // DECISION: Use primarily custom hitos. If 0 custom hitos, check if we should fallback.
-                            // User request is strong: "only theirs". So let's stick to customHitos.
+        const pendientes = allTasks.filter(t => t.status === 'pendiente' || t.status === 'propuesto' || t.status === 'rechazado');
+        const enCurso = allTasks.filter(t => t.status === 'revision');
+        // Note: 'revision' technically means "Done by student, waiting for teacher".
+        // If we want a true "Doing" state, we need to add it. But for this refactor, we map what we have.
+        // Pending consideration: A task "En curso" usually isn't "Entregada".
+        // Maybe the user wants to filter tasks that are "Unlocked"?
+        // Let's stick to the visual request: 3 columns.
 
-                            const displayHitos = customHitos.length > 0 ? customHitos : (fase.hitos || []);
-                            // WAIT: If I use fallback, I violate "no por defecto".
-                            // But if I don't use fallback, existing groups (legacy) might break?
-                            // Let's assume this new rule applies to NEW groups workflow.
-                            // I will force "Custom Only" if `hitosGrupo` has any content for this phase.
-                            // Actually, `hitosGrupo` contains specific milestones with status.
-                            // If I only map titles from `hitosGrupo`, I get only what DB has.
+        const completadas = allTasks.filter(t => t.status === 'aprobado');
 
-                            const finalHitos = customHitos.length > 0 ? customHitos : [];
-                            // If empty, we show nothing? Or template? 
-                            // If I show nothing, the loop below is empty.
-                            // Let's use `finalHitos` but fallback to template ONLY if it's "legacy" (maybe check prop?).
-                            // Safe bet: Mix them BUT prioritizing custom. 
-                            // Re-reading: "no quiero que automaticamente se pongan por defecto los que están".
-                            // This means: DO NOT MERGE.
-                            // If I have custom milestones, I SHOW ONLY CUSTOM.
-                            // If I have NO custom milestones, I SHOW NOTHING (so they can create them), UNLESS it's a read-only view that expects defaults?
-                            // DashboardAlumno handles the "Empty" state with the big button.
-                            // So here, if `customHitos` is empty, render nothing.
+        const Column = ({ title, tasks, colorClass, icon: Icon }: any) => (
+            <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                <div className={`px-4 py-3 border-b border-slate-100 flex items-center justify-between ${colorClass}`}>
+                    <h4 className="font-bold text-slate-800 uppercase tracking-wide text-xs">{title}</h4>
+                    <span className="bg-white/50 px-2 py-0.5 rounded text-xs font-black text-slate-700">{tasks.length}</span>
+                </div>
+                <div className="p-3 space-y-3 bg-slate-50/50 flex-1 overflow-y-auto max-h-[400px]">
+                    {tasks.length === 0 ? (
+                        <div className="text-center py-6 text-slate-300 text-xs italic">Vacío</div>
+                    ) : (
+                        tasks.map((task: any, i: number) => (
+                            <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                                <div className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">{task.faseNombre}</div>
+                                <div className="text-sm font-bold text-slate-700 mb-2 leading-snug">{task.titulo}</div>
 
-                            // Exception: The PROYECTOS_MOCK might still be used for structure.
-                            // Let's stick to: If we have custom, show custom. If not, show empty.
-                            // Removing `templateHitos` from the mix.
-
-                            const hitosToRender = customHitos.length > 0 ? customHitos : (readOnly ? (fase.hitos || []) : []);
-
-                            if (hitosToRender.length === 0) return <div className="text-sm text-slate-400 italic">Sin hitos definidos</div>;
-
-                            return hitosToRender.map((hitoTitulo, index) => {
-                                const status = getHitoStatus(fase.id, hitoTitulo);
-                                return (
-                                    <div key={index} className="flex items-start gap-3 group">
-                                        <button
-                                            disabled={readOnly || status === 'aprobado' || status === 'revision'}
-                                            onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
-                                            className={`mt-0.5 shrink-0 transition-transform active:scale-90 p-1 -m-1 rounded-full hover:bg-slate-50 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
-                                            title={status === 'aprobado' ? 'Marcar como pendiente' : 'Marcar como completado'}
-                                        >
-                                            {status === 'aprobado' ? (
-                                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                                            ) : status === 'revision' ? (
-                                                <Clock className="w-6 h-6 text-amber-500" />
-                                            ) : (
-                                                <Circle className="w-6 h-6 text-slate-300 group-hover:text-purple-400 transition-colors" />
-                                            )}
-                                        </button>
-                                        <span className={`text-sm leading-snug ${status === 'aprobado' ? 'text-slate-500 line-through' : 'text-slate-700 font-medium'
-                                            }`}>
-                                            {hitoTitulo}
-                                        </span>
+                                {task.status === 'pendiente' && (
+                                    <button
+                                        onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
+                                        className="w-full py-1.5 bg-slate-50 hover:bg-indigo-50 text-indigo-500 rounded-lg text-xs font-bold border border-slate-100 hover:border-indigo-100 transition-colors"
+                                    >
+                                        Empezar / Entregar
+                                    </button>
+                                )}
+                                {task.status === 'revision' && (
+                                    <div className="text-[10px] flex items-center gap-1 text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">
+                                        <Clock className="w-3 h-3" />
+                                        En Revisión
                                     </div>
-                                )
-                            })
-                        })()}
-                    </div>
-                ))}
+                                )}
+                                {task.status === 'aprobado' && (
+                                    <div className="text-[10px] flex items-center gap-1 text-emerald-500 font-bold bg-emerald-50 px-2 py-1 rounded">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Completado
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        );
+
+        if (allTasks.length === 0) return <div className="text-center py-8 text-slate-400 italic">No hay tareas definidas. Usa el asistente IA para crear algunas.</div>;
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Column title="Pendientes" tasks={pendientes} colorClass="bg-slate-100" />
+                <Column title="En Curso / Revisión" tasks={enCurso} colorClass="bg-amber-50" />
+                <Column title="Completadas" tasks={completadas} colorClass="bg-emerald-50" />
             </div>
         )
     }

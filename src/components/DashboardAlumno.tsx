@@ -543,7 +543,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
                 {/* ROW 2: Roadmap Completo (Sin Scroll Horizontal) */}
                 <div className="bg-slate-50 rounded-[2.5rem] p-6 border border-slate-200">
-                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 px-2">Mapa del Proyecto</h3>
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 px-2">Tareas</h3>
 
                   {(!grupoReal?.hitos || grupoReal.hitos.length === 0) ? (
                     <div className="text-center py-12 px-6 bg-white rounded-3xl border-2 border-dashed border-slate-200">
@@ -770,33 +770,28 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           <ModalProponerHitos
             fase={faseParaProponer}
             onClose={() => setModalProponerOpen(false)}
-            onSubmit={(nuevosHitos) => {
-              // Mock update logic or DB call
+            onSubmit={async (nuevosHitos) => {
               if (grupoReal) {
-                const updatedHitos = [...(grupoReal.hitos || []), ...nuevosHitos] as HitoGrupo[];
-                setGrupoReal({ ...grupoReal, hitos: updatedHitos });
-                // Update fase.hitos (mock logic needs to update project phases too visually?)
-                // Actually RoadmapView reads `fases` prop for structure (names) but `hitosGrupo` for status/existence.
-                // But RoadmapView loops `fase.hitos` to map titles. If titles are not in `fases` mock, they won't show.
-                // CRITICAL: The RoadmapView iterates `fase.hitos` (titles). We need to ADD these titles to the Phase definition if we want them to appear.
-                // OR, we change RoadmapView to iterate `hitosGrupo` filtered by phase.
-                // Currently `RoadmapView` iterates `fase.hitos`. This implies the *structure* is fixed.
-                // User wants *student defined milestones*. This means the structure itself is dynamic.
-                // FIX: I need to update the `todosLosGrupos` -> which contains project structure? No, project struct is in `PROYECTOS_MOCK` or fetched.
-                // Quickest fix: Update the local `PROYECTOS_MOCK` copy or state that holds phases. 
-                // But `fases` passed to Roadmap comes from `PROYECTOS_MOCK`.
-                // I should update RoadmapView to also show "Extra Milestones" found in `hitosGrupo` that match the phase, even if not in `fase.hitos`.
-                // BUT for now, let's assume we update the local copy of phases or just simply push the new titles to `fase.hitos` in memory.
+                try {
+                  const updatedHitos = [...(grupoReal.hitos || []), ...nuevosHitos] as HitoGrupo[];
 
-                // Let's implement a simple handler that updates the local state enough for demonstration.
+                  // Optimistic update
+                  setGrupoReal({ ...grupoReal, hitos: updatedHitos });
 
-                // 1. Find the project and phase in local mocked data or state
-                // Since we don't have a deep state for Project Structure here, I will hack it by adding to `faseParaProponer.hitos`.
-                // Note: This won't persist on reload unless we save to DB.
+                  // DB Update
+                  const { error } = await supabase
+                    .from('grupos')
+                    .update({ hitos: updatedHitos })
+                    .eq('id', grupoReal.id);
 
-                faseParaProponer.hitos = [...(faseParaProponer.hitos || []), ...nuevosHitos.map(h => h.titulo)];
-                toast.success("Propuesta enviada al profesor");
-                setModalProponerOpen(false);
+                  if (error) throw error;
+
+                  toast.success("Propuesta enviada al profesor correctamente");
+                  setModalProponerOpen(false);
+                } catch (error) {
+                  console.error("Error saving milestones:", error);
+                  toast.error("Error al guardar la propuesta. Inténtalo de nuevo.");
+                }
               }
             }}
           />
