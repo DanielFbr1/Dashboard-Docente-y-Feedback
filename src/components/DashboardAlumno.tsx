@@ -297,14 +297,41 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             <div className="flex items-center gap-3">
               {/* CODE BADGE */}
               {/* CODE BADGE - Polished */}
-              {alumno.codigo_sala && (
-                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-50/50 rounded-xl border border-indigo-100 hover:border-indigo-200 transition-colors">
-                  <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Código</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-indigo-700 tracking-wider text-sm">{alumno.codigo_sala}</span>
-                  </div>
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-50/50 rounded-xl border border-indigo-100 hover:border-indigo-200 transition-colors">
+                <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Código</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-bold text-indigo-700 tracking-wider text-sm">{alumno.codigo_sala}</span>
                 </div>
+              </div>
               )}
+
+              {/* Botón de Ayuda (Moved) */}
+              <button
+                onClick={async () => {
+                  if (!grupoReal) return;
+                  const newState = !grupoReal.pedir_ayuda;
+                  setGrupoReal({ ...grupoReal, pedir_ayuda: newState });
+
+                  try {
+                    await supabase.from('grupos').update({ pedir_ayuda: newState }).eq('id', grupoReal.id);
+                    if (newState) toast("✋ ¡Duda enviada al profesor!");
+                    else toast("✅ Duda resuelta/cancelada");
+                  } catch (e) {
+                    console.error(e);
+                    toast.error("Error de conexión");
+                  }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-sm border-2 ${grupoReal?.pedir_ayuda
+                  ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse shadow-rose-100 shadow-lg'
+                  : 'text-slate-400 border-transparent hover:text-rose-600 hover:bg-rose-50'
+                  }`}
+              >
+                <div className="relative">
+                  <CircleHelp className={`w-5 h-5 ${grupoReal?.pedir_ayuda ? 'fill-rose-600 text-white' : ''}`} />
+                  {grupoReal?.pedir_ayuda && <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />}
+                </div>
+                <span className="hidden sm:inline">{grupoReal?.pedir_ayuda ? 'ESPERANDO AYUDA' : 'TENGO UNA DUDA'}</span>
+              </button>
 
               {/* CLASS SWITCHER */}
               <DropdownMenu>
@@ -357,33 +384,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <Key className="w-4 h-4" />
                 <span className="hidden sm:inline">Unirse a Clase</span>
               </button>
-              <button
-                onClick={async () => {
-                  if (!grupoReal) return;
-                  const newState = !grupoReal.pedir_ayuda;
-                  // Optimistic
-                  setGrupoReal({ ...grupoReal, pedir_ayuda: newState });
 
-                  try {
-                    await supabase.from('grupos').update({ pedir_ayuda: newState }).eq('id', grupoReal.id);
-                    if (newState) toast("✋ ¡Duda enviada al profesor!");
-                    else toast("✅ Duda resuelta/cancelada");
-                  } catch (e) {
-                    console.error(e);
-                    toast.error("Error de conexión");
-                  }
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-sm border-2 ${grupoReal?.pedir_ayuda
-                    ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse shadow-rose-100 shadow-lg'
-                    : 'text-slate-400 border-transparent hover:text-rose-600 hover:bg-rose-50'
-                  }`}
-              >
-                <div className="relative">
-                  <CircleHelp className={`w-5 h-5 ${grupoReal?.pedir_ayuda ? 'fill-rose-600 text-white' : ''}`} />
-                  {grupoReal?.pedir_ayuda && <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />}
-                </div>
-                <span className="hidden sm:inline">{grupoReal?.pedir_ayuda ? 'ESPERANDO AYUDA' : 'TENGO UNA DUDA'}</span>
-              </button>
 
               <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm">
                 <LogOut className="w-4 h-4" />
@@ -696,28 +697,21 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                           {/* Hitos pendientes */}
                           <div className="space-y-2">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Trabajando en:</p>
-                            {(() => {
-                              // Logic: Show actual incomplete tasks (assignments)
-                              const activeTasks = (g.hitos || []).filter(h => h.estado !== 'aprobado');
-                              // If no custom tasks, maybe show defaults from mock?
-                              // User rejected "examples", so let's stick to real data or "Sin tareas".
-                              // If activeTasks is empty and progress < 100, they might be using defaults but we don't have them in 'g'.
-                              // We'll show activeTasks if they exist.
-
-                              if (activeTasks.length > 0) {
-                                return activeTasks.slice(0, 3).map((h, i) => (
-                                  <div key={i} className="flex items-center gap-1.5">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${h.estado === 'revision' ? 'bg-amber-400 animate-pulse' :
-                                      h.estado === 'en_progreso' ? 'bg-indigo-400' : 'bg-slate-300'
-                                      }`}></div>
-                                    <span className="text-[10px] font-medium text-slate-500 truncate" title={h.titulo}>{h.titulo}</span>
-                                  </div>
-                                ));
-                              }
-
-                              if (g.progreso === 100) return <div className="text-[10px] font-medium text-emerald-500">¡Proyecto Completado!</div>;
-                              return <div className="text-[10px] font-medium text-slate-400 italic">Planificando próximas tareas...</div>;
-                            })()}
+                            {(g.hitos && g.hitos.length > 0) ? (
+                              g.hitos.map((h, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <div className={`shrink-0 w-1.5 h-1.5 rounded-full ${h.estado === 'aprobado' ? 'bg-emerald-300' :
+                                    h.estado === 'revision' ? 'bg-amber-400 animate-pulse' :
+                                      'bg-indigo-400'
+                                    }`}></div>
+                                  <span className={`text-[10px] font-medium truncate ${h.estado === 'aprobado' ? 'text-emerald-600 line-through opacity-60' : 'text-slate-600'}`} title={h.titulo}>
+                                    {h.titulo}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-[10px] font-medium text-slate-400 italic">Sin tareas asignadas</div>
+                            )}
                           </div>
                         </div>
                       );
