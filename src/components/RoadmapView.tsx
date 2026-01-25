@@ -100,7 +100,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                                             disabled={readOnly || status === 'aprobado' || status === 'revision'}
                                             onClick={() => onToggleHito(fase.id, hitoTitulo, status)}
                                             className={`mt-0.5 shrink-0 transition-transform active:scale-90 p-1 -m-1 rounded-full hover:bg-slate-50 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
-                                            title={status === 'completado' ? 'Marcar como pendiente' : 'Marcar como completado'}
+                                            title={status === 'aprobado' ? 'Marcar como pendiente' : 'Marcar como completado'}
                                         >
                                             {status === 'aprobado' ? (
                                                 <CheckCircle2 className="w-6 h-6 text-emerald-500" />
