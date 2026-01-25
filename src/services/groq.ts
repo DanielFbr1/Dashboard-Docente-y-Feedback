@@ -21,21 +21,7 @@ export const callGroq = async (messages: GroqMessage[]): Promise<string> => {
             },
             body: JSON.stringify({
                 model: 'llama-3.3-70b-versatile',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `Eres un Mentor IA experto en Aprendizaje Basado en Proyectos (ABP). 
-                        Tu objetivo es actuar como un mentor socrático para alumnos de Primaria y Secundaria.
-                        
-                        REGLAS CRÍTICAS:
-                        1. NO des la respuesta directamente. Haz preguntas que les inviten a pensar.
-                        2. Sé animador, positivo y cercano (usa un lenguaje adecuado para niños/adolescentes).
-                        3. Enfócate en el proceso, la colaboración y la creatividad.
-                        4. Si te preguntan algo técnico, guía su investigación en lugar de darles el manual.
-                        5. Mantén las respuestas breves y estructuradas (usa negritas para enfatizar conceptos clave).`
-                    },
-                    ...messages
-                ],
+                messages: messages,
                 temperature: 0.7,
                 max_tokens: 1024
             })

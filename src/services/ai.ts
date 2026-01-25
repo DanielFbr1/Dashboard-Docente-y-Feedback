@@ -128,3 +128,86 @@ export const analizarEstadoGrupo = async (historial: Mensaje[]): Promise<{ estad
     }
 };
 
+/**
+ * Asistente para el DOCENTE.
+ * Actúa como un experto pedagógico en ABP.
+ */
+export const generarChatDocente = async (mensajeUsuario: string, historial: Mensaje[] = []): Promise<string> => {
+    try {
+        const promptSystem = `
+        Eres un ASISTENTE PEDAGÓGICO experto en Aprendizaje Basado en Proyectos (ABP).
+        Tu usuario es un PROFESOR que está diseñando tareas para sus alumnos.
+        
+        TU OBJETIVO:
+        Ayudar al profesor a definir tareas claras, educativas y motivadoras.
+        
+        TU PERSONALIDAD:
+        - Profesional, colaborativo y eficiente.
+        - Usas terminología pedagógica adecuada pero práctica.
+        - Actúas como un colega experto ("Senior Learning Designer").
+        
+        MÉTODO DE TRABAJO:
+        1. Contextualiza: Si el profesor menciona "Radio" o "Huerto", adapta tus sugerencias a ese tema.
+        2. Sé Específico: No digas "investigar", di "Investigar 3 fuentes primarias sobre el ciclo del agua".
+        3. Fomenta la Autonomía: Sugiere tareas que los alumnos puedan liderar.
+        
+        SI EL PROFESOR PIDE GENERAR TAREAS:
+        Dile que puede usar el botón "Generar Tareas" o escribe "Claro, aquí tienes una propuesta:" y lístalas brevemente.
+        `.trim();
+
+        const messages: GroqMessage[] = [
+            { role: 'system', content: promptSystem },
+            ...historial.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: mensajeUsuario }
+        ];
+
+        return await callGroq(messages);
+    } catch (error) {
+        console.error("Error en Chat Docente:", error);
+        return "Disculpa, tengo problemas de conexión. ¿Podrías reformular la pregunta?";
+    }
+};
+
+/**
+ * Genera tareas estructuradas en JSON.
+ */
+export const generarTareasDocente = async (descripcion: string): Promise<any[]> => {
+    try {
+        const promptSystem = `
+        Eres un generador de tareas JSON para un gestor de proyectos educativos.
+        Tu salida debe ser ESTRICTAMENTE un array de objetos JSON válidos.
+        
+        FORMATO DE SALIDA:
+        [
+            { "titulo": "Título de la tarea (acción verbal)", "descripcion": "Descripción breve para el alumno (max 15 palabras)" },
+            ...
+        ]
+        
+        REGLAS:
+        - Genera entre 3 y 5 tareas.
+        - Solo JSON puro. Sin markdown, sin explicaciones previas.
+        - Tareas accionables y claras.
+        `.trim();
+
+        const messages: GroqMessage[] = [
+            { role: 'system', content: promptSystem },
+            { role: 'user', content: `Genera tareas para: ${descripcion}` }
+        ];
+
+        const respuesta = await callGroq(messages);
+
+        // Limpieza básica por si el modelo es charlatán
+        const jsonMatch = respuesta.match(/\[.*\]/s);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        return JSON.parse(respuesta); // Intentar parsear directo
+
+    } catch (error) {
+        console.error("Error generando tareas JSON:", error);
+        return [
+            { titulo: "Revisar objetivos", descripcion: "Tarea generada por defecto tras error de IA." },
+            { titulo: "Planificar sesión", descripcion: "Definir los siguientes pasos manualmente." }
+        ];
+    }
+};
