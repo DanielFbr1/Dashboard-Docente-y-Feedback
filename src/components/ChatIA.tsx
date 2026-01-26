@@ -54,10 +54,10 @@ const mensajesEjemplo: Mensaje[] = [
 ];
 
 const preguntasSugeridas = [
-  { texto: "¿Cómo podemos enganchar a nuestra audiencia desde el inicio?", categoria: 'Creativa' as const },
-  { texto: "¿Qué herramientas necesitamos para editar audio?", categoria: 'Técnica' as const },
-  { texto: "¿Cómo dividimos el trabajo entre nosotros?", categoria: 'Organizativa' as const },
-  { texto: "¿Qué hemos aprendido hasta ahora del proyecto?", categoria: 'Metacognitiva' as const }
+  { texto: "¿Por dónde empezamos este proyecto?", categoria: 'Organizativa' as const },
+  { texto: "¿Qué pasos deberíamos seguir ahora?", categoria: 'Organizativa' as const },
+  { texto: "¿Cómo podemos mejorar nuestra idea?", categoria: 'Creativa' as const },
+  { texto: "¿Qué nos falta para completar la tarea?", categoria: 'Metacognitiva' as const }
 ];
 
 export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyectoNombre }: ChatIAProps) {
@@ -169,7 +169,8 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
         mensajeTexto,
         grupo.nombre, // Nombre del Grupo
         mostrarEjemplo ? 'Proyecto Demo' : (proyectoNombre || 'Proyecto'), // Nombre del Proyecto
-        historialParaIA
+        historialParaIA,
+        grupo.hitos || [] // Tareas del grupo
       );
 
       // 4. Guardar mensaje de IA en Base de Datos

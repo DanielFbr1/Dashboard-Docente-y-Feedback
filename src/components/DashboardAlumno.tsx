@@ -358,8 +358,8 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const handleJoinSuccess = async () => {
     setShowExample(false);
     localStorage.removeItem('isNewStudent');
-    await fetchDatosAlumno();
-    setLoading(false);
+    // Force reload to sync auth provider state (metadata)
+    window.location.reload();
   };
 
   useEffect(() => {
