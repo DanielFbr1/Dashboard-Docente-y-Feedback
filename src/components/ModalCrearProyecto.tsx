@@ -10,7 +10,7 @@ interface ModalCrearProyectoProps {
 export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps) {
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [tipo, setTipo] = useState('Radio/Podcast');
+    const [tipo, setTipo] = useState('PROYECTOS');
     const [clase, setClase] = useState('1.º Primaria - A');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -94,10 +94,10 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                                         onChange={(e) => setTipo(e.target.value)}
                                         className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold shadow-sm cursor-pointer appearance-none"
                                     >
-                                        <option value="Radio/Podcast">Radio / Podcast</option>
-                                        <option value="Video/YouTube">Video / YouTube</option>
-                                        <option value="STEM/Robótica">STEM / Robótica</option>
-                                        <option value="Investigación">Investigación</option>
+                                        <option value="PROYECTOS">PROYECTOS</option>
+                                        <option value="PROBLEMAS">PROBLEMAS</option>
+                                        <option value="SERVICIO">SERVICIO</option>
+                                        <option value="INDAGACIÓN">INDAGACIÓN</option>
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                         <div className="w-2 h-2 border-b-2 border-r-2 border-slate-400 rotate-45 transform"></div>
