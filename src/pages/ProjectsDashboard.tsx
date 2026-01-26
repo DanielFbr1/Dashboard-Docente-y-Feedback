@@ -101,7 +101,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                 if (p.grupos && p.grupos.length > 0) {
                     const groupsToInsert = p.grupos.map(g => ({
                         nombre: g.nombre,
-                        departamento: g.departamento,
+                        // departamento: g.departamento, // Removed
                         miembros: g.miembros,
                         progreso: g.progreso,
                         estado: g.estado,
@@ -139,6 +139,16 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     }, {} as Record<string, Proyecto[]>);
 
     const getClaseStyles = (clase: string) => {
+        if (clase.includes('1.º') || clase.includes('2.º')) return {
+            header: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+            bg: 'bg-emerald-500',
+            light: 'bg-emerald-50'
+        };
+        if (clase.includes('3.º') || clase.includes('4.º')) return {
+            header: 'bg-orange-50 border-orange-200 text-orange-700',
+            bg: 'bg-orange-500',
+            light: 'bg-orange-50'
+        };
         if (clase.includes('5.º')) return {
             header: 'bg-blue-50 border-blue-200 text-blue-700',
             bg: 'bg-blue-500',
@@ -157,6 +167,8 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     };
 
     const getClaseIcon = (clase: string) => {
+        if (clase.includes('1.º') || clase.includes('2.º')) return <School className="w-5 h-5" />;
+        if (clase.includes('3.º') || clase.includes('4.º')) return <School className="w-5 h-5" />;
         if (clase.includes('5.º')) return <School className="w-5 h-5" />;
         if (clase.includes('6.º')) return <GraduationCap className="w-5 h-5" />;
         return <Folder className="w-5 h-5" />;

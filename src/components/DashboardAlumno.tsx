@@ -48,6 +48,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   useEffect(() => { console.log("Dashboard Alumno: Multi-Class Update Active"); }, []);
 
   const [grupoReal, setGrupoReal] = useState<Grupo | null>(null);
+  const [nombreProyecto, setNombreProyecto] = useState<string>(''); // New state for AI context
   const [todosLosGrupos, setTodosLosGrupos] = useState<Grupo[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
@@ -133,6 +134,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           return;
         }
         targetProjectId = proyecto.id;
+        setNombreProyecto(proyecto.nombre); // Capture name from Room Code resolution
       }
 
       if (!targetProjectId) {
@@ -144,6 +146,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       if (alumno.id && targetProjectId && roomCode) {
         const { data: projDetails } = await supabase.from('proyectos').select('nombre').eq('id', targetProjectId).single();
         if (projDetails) {
+          setNombreProyecto(projDetails.nombre); // Capture name from ID resolution
           const historyKey = `student_classes_history_${alumno.id}`;
           const historyStr = localStorage.getItem(historyKey);
           let history = historyStr ? JSON.parse(historyStr) : [];
@@ -851,7 +854,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         {
           vistaActiva === 'chat' && grupoDisplay && (
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 min-h-[600px]">
-              <ChatIA grupo={grupoDisplay} mostrarEjemplo={showExample} />
+              <ChatIA grupo={grupoDisplay} mostrarEjemplo={showExample} proyectoNombre={nombreProyecto} />
             </div>
           )
         }

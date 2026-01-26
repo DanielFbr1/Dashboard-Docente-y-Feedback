@@ -11,7 +11,7 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [tipo, setTipo] = useState('Radio/Podcast');
-    const [clase, setClase] = useState('5.º Primaria - A');
+    const [clase, setClase] = useState('1.º Primaria - A');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,6 +116,14 @@ export function ModalCrearProyecto({ onClose, onCrear }: ModalCrearProyectoProps
                                         onChange={(e) => setClase(e.target.value)}
                                         className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black shadow-sm cursor-pointer appearance-none"
                                     >
+                                        <option value="1.º Primaria - A">1.º Primaria - A</option>
+                                        <option value="1.º Primaria - B">1.º Primaria - B</option>
+                                        <option value="2.º Primaria - A">2.º Primaria - A</option>
+                                        <option value="2.º Primaria - B">2.º Primaria - B</option>
+                                        <option value="3.º Primaria - A">3.º Primaria - A</option>
+                                        <option value="3.º Primaria - B">3.º Primaria - B</option>
+                                        <option value="4.º Primaria - A">4.º Primaria - A</option>
+                                        <option value="4.º Primaria - B">4.º Primaria - B</option>
                                         <option value="5.º Primaria - A">5.º Primaria - A</option>
                                         <option value="5.º Primaria - B">5.º Primaria - B</option>
                                         <option value="6.º Primaria - A">6.º Primaria - A</option>

@@ -312,16 +312,7 @@ export function LoginPage() {
                             {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                         </button>
 
-                        <button
-                            type="button"
-                            onClick={() => {
-                                localStorage.clear();
-                                window.location.reload();
-                            }}
-                            className="text-slate-300 hover:text-rose-400 text-[9px] uppercase tracking-widest transition-colors"
-                        >
-                            Restablecer datos / Borrar historial
-                        </button>
+
                     </div>
                 </form>
             </div>

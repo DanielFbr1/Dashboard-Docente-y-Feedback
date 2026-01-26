@@ -19,6 +19,7 @@ interface ChatIAProps {
   onNuevoMensaje?: (mensaje: Mensaje) => void;
   readOnly?: boolean;
   mostrarEjemplo?: boolean;
+  proyectoNombre?: string;
 }
 
 const mensajesEjemplo: Mensaje[] = [
@@ -59,7 +60,7 @@ const preguntasSugeridas = [
   { texto: "¿Qué hemos aprendido hasta ahora del proyecto?", categoria: 'Metacognitiva' as const }
 ];
 
-export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo }: ChatIAProps) {
+export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyectoNombre }: ChatIAProps) {
   const { user, perfil } = useAuth();
   const isReadOnly = readOnly || perfil?.rol === 'profesor';
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -166,8 +167,8 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo }: Chat
 
       const respuestaTexto = await generarRespuestaIA(
         mensajeTexto,
-        grupo.departamento,
-        grupo.nombre, // Usamos el nombre del grupo como contexto del proyecto/grupo
+        grupo.nombre, // Nombre del Grupo
+        mostrarEjemplo ? 'Proyecto Demo' : (proyectoNombre || 'Proyecto'), // Nombre del Proyecto
         historialParaIA
       );
 
