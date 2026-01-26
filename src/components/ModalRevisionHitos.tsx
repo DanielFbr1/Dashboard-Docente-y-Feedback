@@ -66,7 +66,7 @@ export function ModalRevisionHitos({ grupos, onClose, onUpdateBatch }: ModalRevi
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full p-8 relative flex flex-col max-h-[90vh]">
                 <button
                     onClick={onClose}
@@ -108,7 +108,7 @@ export function ModalRevisionHitos({ grupos, onClose, onUpdateBatch }: ModalRevi
                                         </div>
                                         <div className="text-left">
                                             <h4 className="font-bold text-slate-800 group-hover:text-indigo-700">{g.nombre}</h4>
-                                            <p className="text-xs text-slate-500 uppercase tracking-wider">{g.departamento}</p>
+                                            <p className="text-xs text-slate-500 uppercase tracking-wider">{g.miembros?.length || 0} miembros</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">

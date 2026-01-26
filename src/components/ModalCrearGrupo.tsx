@@ -22,7 +22,7 @@ const departamentos = [
 
 export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, codigoSala }: ModalCrearGrupoProps) {
   const [nombre, setNombre] = useState(grupoEditando?.nombre || '');
-  const [departamento, setDepartamento] = useState(grupoEditando?.departamento || '');
+  const [descripcion, setDescripcion] = useState(grupoEditando?.descripcion || '');
   const [miembros, setMiembros] = useState<string[]>(grupoEditando?.miembros || []);
   const [nuevoMiembro, setNuevoMiembro] = useState('');
   const [alumnosClase, setAlumnosClase] = useState<any[]>([]); // Usamos any[] para simplificar la transición de AlumnoConectado a Perfil
@@ -74,10 +74,10 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nombre.trim() && departamento && miembros.length > 0) {
+    if (nombre.trim() && miembros.length > 0) {
       onCrear({
         nombre: nombre.trim(),
-        departamento,
+        descripcion: descripcion.trim(),
         miembros,
         estado: grupoEditando?.estado || 'En progreso',
         progreso: grupoEditando?.progreso || 0,
@@ -88,7 +88,7 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
@@ -101,7 +101,7 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
                 <h2 className="text-3xl font-black tracking-tight">
                   {grupoEditando ? 'Editar Grupo' : 'Crear Nuevo Grupo'}
                 </h2>
-                <p className="text-blue-100 font-medium italic">Asigna miembros y define su departamento</p>
+                <p className="text-blue-100 font-medium italic">Define los detalles y miembros del equipo</p>
               </div>
             </div>
             <button onClick={onClose} className="text-white/70 hover:text-white hover:bg-white/20 rounded-2xl p-2 transition-all">
@@ -115,42 +115,30 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
           <div className="space-y-8">
             {/* Nombre del grupo */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-3">
-                <Tag className="w-4 h-4 text-blue-500" />
-                Nombre del Equipo
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                Nombre del Grupo / Proyecto
               </label>
               <input
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                placeholder="Ej: Los Locutores del Mañana"
-                className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none text-xl font-bold transition-all"
-                required
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                placeholder="Ej: Equipo Alpha..."
+                autoFocus
               />
             </div>
 
-            {/* Departamento */}
+            {/* Descripción del Grupo (Opcional) */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-3">
-                <Radio className="w-4 h-4 text-purple-500" />
-                Departamento / Especialidad
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                Descripción (Opcional)
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {departamentos.map((dept) => (
-                  <button
-                    key={dept.nombre}
-                    type="button"
-                    onClick={() => setDepartamento(dept.nombre)}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all ${departamento === dept.nombre
-                      ? `${dept.color} border-current shadow-lg scale-[1.02] font-black`
-                      : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-200 font-bold'
-                      }`}
-                  >
-                    <span className="text-2xl mr-2">{dept.icon}</span>
-                    <span className="text-sm">{dept.nombre}</span>
-                  </button>
-                ))}
-              </div>
+              <textarea
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium min-h-[100px] resize-none"
+                placeholder="Breve descripción de los objetivos del grupo..."
+              />
             </div>
           </div>
 
@@ -233,21 +221,21 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
               </div>
             </div>
           </div>
-        </form>
+        </form >
 
         {/* Footer */}
-        <div className="p-8 border-t-2 border-gray-100 bg-gray-50 flex items-center justify-between">
+        < div className="p-8 border-t-2 border-gray-100 bg-gray-50 flex items-center justify-between" >
           <button onClick={onClose} className="px-8 py-4 text-gray-500 font-bold hover:text-gray-700 transition-colors">Cancelar</button>
           <button
             onClick={handleSubmit}
-            disabled={!nombre.trim() || !departamento || miembros.length === 0}
+            disabled={!nombre.trim() || miembros.length === 0}
             className="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-xl hover:shadow-blue-200 hover:scale-105 active:scale-95 disabled:grayscale disabled:scale-100 transition-all flex items-center gap-3"
           >
             <Check className="w-6 h-6" />
             {grupoEditando ? 'Guardar Cambios' : 'Confirmar y Crear Grupo'}
           </button>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 }

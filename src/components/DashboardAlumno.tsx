@@ -67,6 +67,20 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     return localStorage.getItem('isNewStudent') === 'true';
   });
 
+  const [historialClases, setHistorialClases] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (alumno?.id) {
+      const historyKey = `student_classes_history_${alumno.id}`;
+      try {
+        const stored = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        setHistorialClases(stored);
+      } catch (e) {
+        console.error("Error loading history", e);
+      }
+    }
+  }, [alumno?.id]);
+
   useEffect(() => {
     fetchDatosAlumno();
   }, [alumno.id]);
@@ -76,7 +90,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const grupoEjemplo: Grupo = {
     id: 999,
     nombre: 'Beta Test Team',
-    departamento: 'Investigación',
+    // departamento: removed
     estado: 'Casi terminado',
     progreso: 85,
     interacciones_ia: 42,
@@ -100,9 +114,9 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   // Tracking de tiempo de conexión (Heartbeat) - Solo si tiene grupo real
   useGroupTracking(grupoReal?.id);
 
-  const fetchDatosAlumno = async () => {
+  const fetchDatosAlumno = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setErrorStatus(null);
       let targetProjectId = alumno.proyecto_id;
       let roomCode = alumno.codigo_sala || '';
@@ -134,13 +148,17 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           const historyStr = localStorage.getItem(historyKey);
           let history = historyStr ? JSON.parse(historyStr) : [];
           if (!history.some((h: any) => h.id === targetProjectId)) {
-            history.push({
+            history.unshift({ // Add to top
               id: targetProjectId,
               nombre: projDetails.nombre,
               codigo: roomCode,
               lastAccessed: Date.now()
             });
+            // Keep max 5
+            if (history.length > 5) history = history.slice(0, 5);
+
             localStorage.setItem(historyKey, JSON.stringify(history));
+            setHistorialClases(history); // Update local state immediately
           }
         }
       }
@@ -168,7 +186,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         const placeholderGrupo: Grupo = {
           id: 0,
           nombre: 'Sin Equipo Asignado',
-          departamento: 'General',
+          // departamento: removed
           estado: 'Pendiente',
           progreso: 0,
           interacciones_ia: 0,
@@ -240,18 +258,86 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
   useEffect(() => {
     if (!grupoReal || !alumno) return;
-    const channel = supabase.channel(`room:${grupoReal.proyecto_id}`)
+
+    // Channel for presence (online tracking)
+    const channelpresence = supabase.channel(`room:${grupoReal.proyecto_id}`)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({
+          await channelpresence.track({
             id: alumno.id,
             nombre: alumno.nombre,
             online_at: new Date().toISOString(),
           });
         }
       });
-    return () => { supabase.removeChannel(channel); };
-  }, [grupoReal, alumno]);
+
+    // Channel for data updates (hitos, etc.)
+    // Suscribimos a TODOS los cambios en la tabla grupos para este proyecto
+    // Si el filtro específico falla, escuchar todo 'public:grupos' es un fallback seguro para depuración.
+    const channelupdates = supabase.channel(`updates_project_${grupoReal.proyecto_id}_${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'grupos',
+          filter: `proyecto_id=eq.${grupoReal.proyecto_id}` // Filtramos por proyecto
+        },
+        async (payload) => {
+          console.log("🔔 Realtime payload received:", payload);
+
+          // Actualización silenciosa de datos
+          await fetchDatosAlumno(true).catch(e => console.error(e));
+
+          if (payload.eventType === 'UPDATE') {
+            const oldRecord = payload.old as Grupo;
+            const newRecord = payload.new as Grupo;
+
+            // 1. Notificar si el profesor resolvió dudas
+            if (oldRecord.pedir_ayuda === true && newRecord.pedir_ayuda === false) {
+              toast.success("✅ ¡El profesor ha resuelto vuestra duda!", { duration: 4000 });
+            }
+
+            // 2. Notificar cambios en Hitos (Feedback o Aprobación)
+            // Comparamos el array de hitos para ver si alguno cambió de estado
+            if (oldRecord.hitos && newRecord.hitos) {
+              const oldHitosMap = new Map((oldRecord.hitos as any[]).map(h => [h.id || h.titulo, h])); // Fallback to titulo if id missing
+
+              let feedbackReceived = false;
+              let approvalReceived = false;
+
+              (newRecord.hitos as any[]).forEach(newHito => {
+                const oldHito = oldHitosMap.get(newHito.id || newHito.titulo);
+                if (oldHito && oldHito.estado !== newHito.estado) {
+                  if (newHito.estado === 'revision') feedbackReceived = true;
+                  if (newHito.estado === 'aprobado' || newHito.estado === 'completado') approvalReceived = true;
+                }
+              });
+
+              if (feedbackReceived) toast.info("📩 Tienes nuevas correcciones en tus tareas", { duration: 5000 });
+              if (approvalReceived) toast.success("⭐ ¡Tarea aprobada! Gran trabajo", { duration: 5000 });
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log(`Supabase Realtime Status (${grupoReal.proyecto_id}):`, status);
+      });
+
+    // POLLING FALLBACK: Ensure updates happen even if sockets fail locally
+    const intervalId = setInterval(() => {
+      // Only poll if we have a valid group/project
+      if (grupoReal?.id) {
+        fetchDatosAlumno(true).catch(e => console.error("Polling error", e));
+      }
+    }, 4000); // Check every 4 seconds
+
+    return () => {
+      supabase.removeChannel(channelpresence);
+      supabase.removeChannel(channelupdates);
+      clearInterval(intervalId);
+    };
+  }, [grupoReal?.proyecto_id, alumno.id, grupoReal?.id]);
 
   const notaMedia = evaluacionAlumno.length > 0
     ? evaluacionAlumno.reduce((sum, e) => sum + Number(e.puntos), 0) / evaluacionAlumno.length
@@ -313,7 +399,10 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
               </div>
               <div>
                 <h1 className="text-lg md:text-xl font-black text-slate-800 tracking-tight">¡Hola, {(alumno.nombre || 'Alumno').split(' ')[0]}!</h1>
-                <p className="text-[10px] md:text-[11px] text-slate-400 font-black uppercase tracking-widest">{alumno.clase || 'Clase'} • {grupoDisplay?.nombre || 'Mi grupo'}</p>
+                <p className="text-[10px] md:text-[11px] text-slate-400 font-black uppercase tracking-widest">
+                  {alumno.clase || 'Clase'} • {grupoDisplay?.nombre || 'Mi grupo'}
+                </p>
+                <p className="text-[9px] text-slate-300 font-mono mt-0.5">Room: {grupoReal?.proyecto_id?.slice(0, 8)}...</p>
               </div>
             </div>
 
@@ -324,12 +413,26 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 onClick={async () => {
                   if (!grupoReal) return;
                   const newState = !grupoReal.pedir_ayuda;
+
+                  // Optimistic Update
                   setGrupoReal({ ...grupoReal, pedir_ayuda: newState });
+
                   try {
-                    await supabase.from('grupos').update({ pedir_ayuda: newState }).eq('id', grupoReal.id);
-                    if (newState) toast("✋ ¡Duda enviada!");
-                    else toast("✅ Duda resuelta");
-                  } catch (e) { console.error(e); toast.error("Error"); }
+                    const { error } = await supabase
+                      .from('grupos')
+                      .update({ pedir_ayuda: newState })
+                      .eq('id', grupoReal.id);
+
+                    if (error) throw error;
+
+                    if (newState) toast.success("✋ ¡Duda enviada!");
+                    else toast.info("✅ Duda resuelta");
+                  } catch (e: any) {
+                    console.error("Error updating help status:", e);
+                    toast.error(`Error: ${e.message || 'No se pudo actualizar'}`);
+                    // Revert on error
+                    setGrupoReal({ ...grupoReal, pedir_ayuda: !newState });
+                  }
                 }}
                 className={`flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-xl transition-all font-bold text-xs border-2 ${grupoReal?.pedir_ayuda
                   ? 'bg-yellow-100 text-yellow-700 border-yellow-300 animate-pulse'
@@ -351,7 +454,27 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                 <DropdownMenuContent align="end" className="w-80 p-2 rounded-2xl border-slate-200 shadow-xl bg-white z-[100]">
                   <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-400">Historial</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {/* ... (historial content remains same) ... */}
+                  {historialClases.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <p className="text-[10px] uppercase text-slate-300 font-bold tracking-widest">Sin historial reciente</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {historialClases.map((hist, i) => (
+                        <DropdownMenuItem
+                          key={i}
+                          onClick={() => handleSwitchClass(hist)}
+                          className="group flex flex-col items-start gap-1 p-3 rounded-xl cursor-pointer hover:bg-indigo-50 data-[highlighted]:bg-indigo-50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-bold text-slate-700 text-xs group-hover:text-indigo-700">{hist.nombre}</span>
+                            {alumno.codigo_sala === hist.codigo && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase tracking-widest group-hover:bg-indigo-100 group-hover:text-indigo-500">{hist.codigo}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -473,7 +596,6 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                         <div className="flex items-start justify-between mb-6">
                           <div>
                             <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase leading-none mb-2">{grupoDisplay.nombre}</h2>
-                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{grupoDisplay.departamento}</p>
                           </div>
                           <button
                             onClick={() => setModalSubirRecursoOpen(true)}
@@ -510,7 +632,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
                       <div>
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compañeros</h3>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3 mb-8">
                           {(grupoDisplay.miembros || []).map((miembro: string, index: number) => (
                             <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
                               <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-purple-600 font-bold text-xs">
@@ -519,6 +641,22 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                               <span className="font-bold text-slate-700 text-xs tracking-tight truncate">{miembro}</span>
                             </div>
                           ))}
+                        </div>
+                      </div>
+
+                      {/* Recursos del Equipo (Mini Dashboard) */}
+                      <div>
+                        <div className="mb-4">
+                          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Recursos del Equipo</h3>
+                        </div>
+                        <div className="bg-slate-50 rounded-2xl p-0 border border-slate-100 max-h-96 overflow-y-auto custom-scrollbar">
+                          <RepositorioColaborativo
+                            grupo={grupoDisplay}
+                            todosLosGrupos={todosLosGrupos}
+                            esDocente={false}
+                            filterByGroupId={grupoDisplay.id}
+                            className="!gap-0"
+                          />
                         </div>
                       </div>
                     </div>
@@ -624,7 +762,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                     </div>
                     <h2 className="text-4xl font-black tracking-tight mb-4 leading-none">Jardín Colaborativo</h2>
                     <p className="text-indigo-200 max-w-lg text-lg leading-relaxed">
-                      Así es como vuestro esfuerzo conjunto hace crecer el proyecto global. Cada hito de cada grupo cuenta.
+                      Así es como vuestro esfuerzo conjunto hace crecer el proyecto global. Cada tarea de cada grupo cuenta.
                     </p>
                   </div>
                   <div className="shrink-0 bg-white/5 rounded-full p-8 backdrop-blur-sm border border-white/10">
@@ -656,7 +794,6 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <div className="font-bold text-slate-700 text-sm">{g.nombre}</div>
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{g.departamento}</div>
                             </div>
                             <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm">
                               {g.progreso}%
@@ -780,9 +917,12 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
       {
         modalSubirRecursoOpen && grupoDisplay && (
           <ModalSubirRecurso
-            grupo={grupoDisplay}
+            grupo={grupoReal || grupoEjemplo}
             onClose={() => setModalSubirRecursoOpen(false)}
-            onSuccess={() => { toast.success("Recurso subido con éxito"); }}
+            onSuccess={() => {
+              toast.success("Recurso subido correctamente");
+              // El repositorio usa suscripción realtime, así que se actualizará solo.
+            }}
           />
         )
       }

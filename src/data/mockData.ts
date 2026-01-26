@@ -5,7 +5,7 @@ export const GRUPOS_MOCK: Grupo[] = [
     {
         id: 1,
         nombre: 'Grupo 1 – Guion',
-        departamento: 'Guion',
+        // departamento: removed
         estado: 'En progreso',
         progreso: 60,
         interacciones_ia: 12,
@@ -14,7 +14,7 @@ export const GRUPOS_MOCK: Grupo[] = [
     {
         id: 2,
         nombre: 'Grupo 2 – Locución',
-        departamento: 'Locución',
+        // departamento: removed
         estado: 'Casi terminado',
         progreso: 85,
         interacciones_ia: 18,
@@ -23,7 +23,7 @@ export const GRUPOS_MOCK: Grupo[] = [
     {
         id: 3,
         nombre: 'Grupo 3 – Edición',
-        departamento: 'Edición',
+        // departamento: removed
         estado: 'Bloqueado',
         progreso: 35,
         interacciones_ia: 8,

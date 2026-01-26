@@ -38,7 +38,7 @@ export function Login({ onLogin }: LoginProps) {
                 <Brain className="w-12 h-12 text-purple-600" />
               </div>
             </div>
-            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">Panel ABP + IA</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">AI Tico</h1>
             <p className="text-2xl text-white font-medium drop-shadow-md">Aprendizaje Basado en Proyectos con Inteligencia Artificial</p>
             <div className="mt-6 flex justify-center gap-4">
               <span className="px-5 py-2.5 bg-white bg-opacity-90 backdrop-blur-md rounded-full text-indigo-900 text-sm font-bold shadow-lg flex items-center gap-2">

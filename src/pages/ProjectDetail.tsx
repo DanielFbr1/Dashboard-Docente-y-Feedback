@@ -1,21 +1,31 @@
 import { DashboardDocente } from '../components/DashboardDocente';
 import { TutorialInteractivo } from '../components/TutorialInteractivo';
 import { Grupo, Proyecto } from '../types';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { PASOS_TUTORIAL, GRUPOS_MOCK } from '../data/mockData';
+import { toast } from 'sonner';
 
 interface ProjectDetailProps {
     proyecto: Proyecto;
     onSelectGrupo: (grupo: Grupo) => void;
     onBack: () => void;
     onSwitchProject: (proyecto: Proyecto) => void;
+    onUpdateProjectValues?: (updatedProject: Proyecto) => void;
 }
 
 export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject }: ProjectDetailProps) {
     const [localGrupos, setLocalGrupos] = useState<Grupo[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('resumen');
+
+    const [isDemoMode, setIsDemoMode] = useState(() => {
+        return localStorage.getItem(`is_demo_project_${proyecto.id}`) === 'true';
+    });
+
+    useEffect(() => {
+        setIsDemoMode(localStorage.getItem(`is_demo_project_${proyecto.id}`) === 'true');
+    }, [proyecto.id]);
 
     // Estado del tutorial: Mostrar SOLO si acaba de registrarse (isNewTeacher)
     // O si nunca lo ha visto y queremos forzarlo (opcional, pero el usuario pidió solo al registrarse)
@@ -30,28 +40,62 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
         return false;
     });
 
+    // Use Ref to track previous state for diffing (Robust Alerting)
+    const prevGruposRef = useStateRef(localGrupos);
+
+    function useStateRef(initialValue: Grupo[]) {
+        const ref = React.useRef(initialValue);
+        useEffect(() => {
+            ref.current = localGrupos;
+        }, [localGrupos]);
+        return ref;
+    }
+
+    const checkForAlerts = (newGrupos: Grupo[]) => {
+        const oldGrupos = prevGruposRef.current;
+        newGrupos.forEach(newGroup => {
+            const oldGroup = oldGrupos.find(og => og.id === newGroup.id);
+            // Detect Hand Raise
+            // Si antes no pedía ayuda y ahora sí (o si es nuevo y pide ayuda)
+            if (newGroup.pedir_ayuda && (!oldGroup || !oldGroup.pedir_ayuda)) {
+                toast.warning(`✋ El grupo "${newGroup.nombre}" pide ayuda!`, {
+                    duration: 5000,
+                    className: '!rounded-[2rem] !border-amber-200 !bg-amber-50'
+                });
+            }
+        });
+    };
+
     useEffect(() => {
         fetchGrupos();
 
-        // Realtime Subscription
+        // Realtime Subscription (Generic Trigger)
         const channel = supabase.channel(`project_groups_${proyecto.id}`)
             .on(
                 'postgres_changes',
                 {
-                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    event: '*',
                     schema: 'public',
                     table: 'grupos',
                     filter: `proyecto_id=eq.${proyecto.id}`
                 },
                 (payload) => {
                     console.log('Cambio detectado en grupos:', payload);
-                    fetchGrupos(); // Simple re-fetch strategy for consistency
+                    fetchGrupos(true); // Silent re-fetch, logic inside fetchGrupos handles checks
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log(`Realtime Teacher Status for ${proyecto.id}:`, status);
+            });
+
+        // Polling Fallback
+        const intervalId = setInterval(() => {
+            fetchGrupos(true).catch(e => console.error(e));
+        }, 4000);
 
         return () => {
             supabase.removeChannel(channel);
+            clearInterval(intervalId);
         };
     }, [proyecto.id]);
 
@@ -77,19 +121,25 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
         }
     };
 
-    const fetchGrupos = async () => {
-        setLoading(true);
+    const fetchGrupos = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const { data, error } = await supabase
                 .from('grupos')
                 .select('*')
                 .eq('proyecto_id', proyecto.id);
             if (error) throw error;
-            setLocalGrupos(data || []);
+
+            const newGrupos = data || [];
+            if (silent) {
+                // Only alert on silent updates (realtime/polling) to avoid alert loops on initial load
+                checkForAlerts(newGrupos);
+            }
+            setLocalGrupos(newGrupos);
         } catch (err) {
             console.error('Error fetching groups:', err);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -147,39 +197,31 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                 .eq('proyecto_id', proyecto.id);
             if (error) throw error;
             setLocalGrupos([]);
+            setIsDemoMode(false);
+            localStorage.removeItem(`is_demo_project_${proyecto.id}`);
         } catch (err) {
             console.error('Error clearing groups:', err);
         }
     };
 
     const handleCargarEjemplo = async () => {
-        const HITOS_POR_DEPTO: Record<string, any[]> = {
-            'Guion': [
-                { id: 'h1', titulo: 'Definir tema del programa', estado: 'aprobado', fase_id: 'f1' },
-                { id: 'h2', titulo: 'Redactar escaleta', estado: 'en_progreso', fase_id: 'f1' },
-                { id: 'h3', titulo: 'Escribir guion literario', estado: 'pendiente', fase_id: 'f1' }
-            ],
-            'Locución': [
-                { id: 'h1', titulo: 'Pruebas de micrófono', estado: 'aprobado', fase_id: 'f2' },
-                { id: 'h2', titulo: 'Ensayo de lectura', estado: 'revision', fase_id: 'f2' },
-                { id: 'h3', titulo: 'Grabación Bloque 1', estado: 'pendiente', fase_id: 'f2' }
-            ],
-            'Edición': [
-                { id: 'h1', titulo: 'Selección de músicas', estado: 'aprobado', fase_id: 'f3' },
-                { id: 'h2', titulo: 'Montaje preliminar', estado: 'bloqueado', fase_id: 'f3', comentario_docente: 'Faltan los derechos de autor' },
-                { id: 'h3', titulo: 'Masterización final', estado: 'pendiente', fase_id: 'f3' }
-            ]
-        };
+        // Generic milestones for any group
+        const HITOS_GENERICOS = [
+            { id: 'h1', titulo: 'Definir objetivos del equipo', estado: 'aprobado', fase_id: 'f1' },
+            { id: 'h2', titulo: 'Asignar roles internos', estado: 'en_progreso', fase_id: 'f1' },
+            { id: 'h3', titulo: 'Investigación preliminar', estado: 'pendiente', fase_id: 'f1' },
+            { id: 'h4', titulo: 'Primera propuesta de valor', estado: 'pendiente', fase_id: 'f2' }
+        ];
 
-        const gruposEjemplo = GRUPOS_MOCK.map(g => ({
+        const gruposEjemplo = GRUPOS_MOCK.map((g, index) => ({
             nombre: g.nombre,
-            departamento: g.departamento,
+            // departamento: removed
             progreso: g.progreso,
             estado: g.estado,
-            interacciones_ia: 3, // Empezamos con algunas interacciones
+            interacciones_ia: 3 + index, // Varied interactions
             miembros: g.miembros,
             proyecto_id: proyecto.id,
-            hitos: HITOS_POR_DEPTO[g.departamento] || [] // Insertamos hitos JSON
+            hitos: HITOS_GENERICOS // All groups get generic milestones
         }));
 
         try {
@@ -197,13 +239,13 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                     {
                         grupo_id: grupo.id,
                         tipo: 'user', // Alumno
-                        contenido: `Hola Mentor, somos el equipo de ${grupo.departamento}. ¿Por dónde nos recomiendas empezar?`,
+                        contenido: `Hola Mentor, somos el equipo "${grupo.nombre}". ¿Por dónde nos recomiendas empezar?`,
                         created_at: new Date(Date.now() - 3600000).toISOString()
                     },
                     {
                         grupo_id: grupo.id,
                         tipo: 'assistant', // IA
-                        contenido: `¡Hola equipo de ${grupo.departamento}! Me alegra saludaros. Para arrancar con fuerza, ¿habéis revisado los requisitos de la fase actual? Es clave tener eso claro antes de dividir tareas.`,
+                        contenido: `¡Hola equipo! Me alegra saludaros. Para arrancar con fuerza, ¿habéis revisado los requisitos de la fase actual? Es clave tener eso claro antes de dividir tareas.`,
                         created_at: new Date(Date.now() - 3500000).toISOString()
                     },
                     {
@@ -221,9 +263,30 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                 if (errorChat) console.error("Error creating chat examples:", errorChat);
 
                 setLocalGrupos([...localGrupos, ...gruposCreados]);
+                setIsDemoMode(true);
+                localStorage.setItem(`is_demo_project_${proyecto.id}`, 'true');
             }
         } catch (err) {
             console.error('Error loading example groups:', err);
+        }
+    };
+
+    const handleUpdateProjectName = async (newName: string) => {
+        try {
+            const { error } = await supabase
+                .from('proyectos')
+                .update({ nombre: newName })
+                .eq('id', proyecto.id);
+
+            if (error) throw error;
+
+            if (onSwitchProject) {
+                onSwitchProject({ ...proyecto, nombre: newName });
+            }
+
+        } catch (err) {
+            console.error('Error updating project name:', err);
+            alert('Error al actualizar el nombre del proyecto');
         }
     };
 
@@ -234,7 +297,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                 currentSection={currentSection}
                 onSectionChange={setCurrentSection}
                 grupos={localGrupos}
-                mostrandoEjemplo={localGrupos.length > 0}
+                mostrandoEjemplo={isDemoMode}
                 onCargarEjemplo={handleCargarEjemplo}
                 onLimpiarDatos={handleLimpiarDatos}
                 onCrearGrupo={handleCrearGrupo}
@@ -251,6 +314,7 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
                     clase: proyecto.clase,
                     fases: proyecto.fases
                 }}
+                onUpdateProjectName={handleUpdateProjectName}
             />
 
             {showTutorial && (

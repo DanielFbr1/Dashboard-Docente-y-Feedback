@@ -110,13 +110,9 @@ export function Card_Grupo({ grupo, onClick, onEdit, onDelete, onAssignTasks, mo
           )}
         </div>
 
-        <h3 className="text-xl font-black text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors tracking-tight uppercase">
+        <h3 className="text-xl font-black text-slate-800 leading-tight mb-6 group-hover:text-blue-600 transition-colors tracking-tight uppercase">
           {grupo.nombre}
         </h3>
-
-        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">
-          {grupo.departamento}
-        </p>
 
         <div className="space-y-2 mb-6">
           <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">

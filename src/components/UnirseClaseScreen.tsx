@@ -45,6 +45,32 @@ export function UnirseClaseScreen({ alumnoId, onJoinSuccess, onLogout }: UnirseC
             toast.success(`¡Bienvenido a ${proyecto.nombre}!`);
             onJoinSuccess(proyecto.id, proyecto.codigo_sala);
 
+            // Save to LocalStorage History
+            try {
+                const historyKey = `student_classes_history_${alumnoId}`;
+                const historyStr = localStorage.getItem(historyKey);
+                let history = historyStr ? JSON.parse(historyStr) : [];
+
+                if (!history.some((h: any) => h.id === proyecto.id)) {
+                    // Remove if exists to re-add at top (most recent)
+                    history = history.filter((h: any) => h.id !== proyecto.id);
+
+                    history.unshift({
+                        id: proyecto.id,
+                        nombre: proyecto.nombre,
+                        codigo: proyecto.codigo_sala,
+                        lastAccessed: Date.now()
+                    });
+
+                    // Keep max 5 items
+                    if (history.length > 5) history = history.slice(0, 5);
+
+                    localStorage.setItem(historyKey, JSON.stringify(history));
+                }
+            } catch (err) {
+                console.error("Error saving history:", err);
+            }
+
         } catch (err: any) {
             console.error('Error joining class:', err);
             setError('Error al unirse. Inténtalo de nuevo.');

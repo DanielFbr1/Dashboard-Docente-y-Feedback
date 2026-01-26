@@ -56,8 +56,9 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
         //            'revision' in "En Curso" (Validation phase).
         //            'aprobado' in "Completadas".
 
-        const pendientes = allTasks.filter(t => t.status === 'pendiente' || t.status === 'propuesto' || t.status === 'rechazado');
-        const enCurso = allTasks.filter(t => t.status === 'revision' || t.status === 'en_progreso');
+        const pendientes = allTasks.filter(t => t.status === 'pendiente' || t.status === 'propuesto');
+        // Aseguramos que 'rechazado' vaya a 'enCurso' explicitamente
+        const enCurso = allTasks.filter(t => t.status === 'revision' || t.status === 'en_progreso' || t.status === 'rechazado');
         // Note: 'revision' technically means "Done by student, waiting for teacher".
         // If we want a true "Doing" state, we need to add it. But for this refactor, we map what we have.
         // Pending consideration: A task "En curso" usually isn't "Entregada".
@@ -77,7 +78,8 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                         <div className="text-center py-6 text-slate-300 text-xs italic">Vacío</div>
                     ) : (
                         tasks.map((task: any, i: number) => (
-                            <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                            <div key={i} className={`bg-white p-3 rounded-xl border shadow-sm hover:shadow-md transition-all group ${task.status === 'rechazado' ? 'border-rose-200 bg-rose-50/30' : 'border-slate-100'
+                                }`}>
                                 <div className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">{task.faseNombre}</div>
                                 <div className="text-sm font-bold text-slate-700 mb-2 leading-snug">{task.titulo}</div>
 
@@ -89,6 +91,21 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                                         Empezar Tarea
                                     </button>
                                 )}
+                                {/* SAFeguard: If rejected task falls here */}
+                                {task.status === 'rechazado' && (
+                                    <div className="space-y-2">
+                                        <div className="text-[10px] flex items-center gap-1 text-rose-500 font-bold bg-rose-100/50 px-2 py-1 rounded">
+                                            <AlertCircle className="w-3 h-3" />
+                                            Tarea Devuelta
+                                        </div>
+                                        <button
+                                            onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
+                                            className="w-full py-1.5 bg-white hover:bg-rose-50 text-rose-600 rounded-lg text-xs font-bold border border-rose-200 hover:border-rose-300 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                                        >
+                                            Corregir y Reenviar
+                                        </button>
+                                    </div>
+                                )}
                                 {task.status === 'en_progreso' && (
                                     <button
                                         onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
@@ -96,6 +113,20 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                                     >
                                         Enviar a Revisión
                                     </button>
+                                )}
+                                {task.status === 'rechazado' && (
+                                    <div className="space-y-2">
+                                        <div className="text-[10px] flex items-center gap-1 text-rose-500 font-bold bg-rose-100/50 px-2 py-1 rounded">
+                                            <AlertCircle className="w-3 h-3" />
+                                            Tarea Devuelta
+                                        </div>
+                                        <button
+                                            onClick={() => onToggleHito(task.faseId, task.titulo, task.status)}
+                                            className="w-full py-1.5 bg-white hover:bg-rose-50 text-rose-600 rounded-lg text-xs font-bold border border-rose-200 hover:border-rose-300 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                                        >
+                                            Corregir y Reenviar
+                                        </button>
+                                    </div>
                                 )}
                                 {task.status === 'revision' && (
                                     <div className="text-[10px] flex items-center gap-1 text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded justify-center">
@@ -153,7 +184,7 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center gap-2">
                                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isCompleted ? 'bg-emerald-100 text-emerald-600' :
-                                                isCurrent ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'
+                                            isCurrent ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'
                                             }`}>
                                             {fase.estado}
                                         </span>
@@ -185,8 +216,8 @@ export function RoadmapView({ fases = [], hitosGrupo, onToggleHito, currentPhase
 
                                         return (
                                             <div key={index} className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 group ${status === 'aprobado' ? 'bg-emerald-50/50 border-emerald-100' :
-                                                    status === 'revision' ? 'bg-amber-50/50 border-amber-100' :
-                                                        'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'
+                                                status === 'revision' ? 'bg-amber-50/50 border-amber-100' :
+                                                    'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'
                                                 }`}>
                                                 <div className="flex items-center gap-4">
                                                     <button

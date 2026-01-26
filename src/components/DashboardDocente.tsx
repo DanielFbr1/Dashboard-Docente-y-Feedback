@@ -1,11 +1,11 @@
-import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, CircleHelp, Key, FolderOpen, Share2, LogOut, UserCheck, Sparkles } from 'lucide-react';
+import { Settings, LayoutDashboard, Users, MessageSquare, ClipboardCheck, Plus, CircleHelp, Key, FolderOpen, Share2, LogOut, UserCheck, Sparkles, Pencil, Check, X, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { Card_Metrica } from './Card_Metrica';
 import { Card_Grupo } from './Card_Grupo';
-import { GruposDepartamentos } from './GruposDepartamentos';
 import { InteraccionesIA } from './InteraccionesIA';
 import { EvaluacionRubricas } from './EvaluacionRubricas';
 import { ModalCrearGrupo } from './ModalCrearGrupo';
+import { ModalSubirRecurso } from './ModalSubirRecurso';
 import { SistemaCodigoSala } from './SistemaCodigoSala';
 import { ListaAlumnosEnLinea } from './ListaAlumnosEnLinea';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
@@ -19,6 +19,8 @@ import { ModalRevisionHitos } from './ModalRevisionHitos';
 import { ModalAsignarTareas } from './ModalAsignarTareas';
 import { ModalAsistencia } from './ModalAsistencia';
 import { HitoGrupo } from '../types';
+import { supabase } from '../lib/supabase';
+import { useEffect } from 'react';
 
 interface DashboardDocenteProps {
   onSelectGrupo: (grupo: Grupo) => void;
@@ -35,6 +37,7 @@ interface DashboardDocenteProps {
   proyectoActual: ProyectoActivo | null;
   onCambiarProyecto?: () => void;
   onClaseChange: (clase: string) => void;
+  onUpdateProjectName: (newName: string) => Promise<void>;
 }
 
 export function DashboardDocente({
@@ -51,7 +54,8 @@ export function DashboardDocente({
   onIniciarTutorial,
   proyectoActual,
   onCambiarProyecto,
-  onClaseChange
+  onClaseChange,
+  onUpdateProjectName
 }: DashboardDocenteProps) {
   const [modalCrearGrupoAbierto, setModalCrearGrupoAbierto] = useState(false);
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
@@ -64,6 +68,12 @@ export function DashboardDocente({
   const [modalAsignarAbierto, setModalAsignarAbierto] = useState(false);
   const [grupoParaTareas, setGrupoParaTareas] = useState<Grupo | null>(null);
   const [modalAsistenciaOpen, setModalAsistenciaOpen] = useState(false);
+  const [modalSubirRecursoAbierto, setModalSubirRecursoAbierto] = useState(false);
+
+  // Project Renaming State
+  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
+  const [editingProjectName, setEditingProjectName] = useState('');
+
   const { signOut, perfil, user } = useAuth();
 
   const numPendientes = grupos.reduce((acc, g) =>
@@ -89,6 +99,8 @@ export function DashboardDocente({
         );
       });
 
+      console.log("Applying updates to milestones (Batch):", updates);
+
       // 2. Recalcular el progreso dinámicamente (hitos aprobados / total hitos)
       const totalHitos = nuevosHitos.length;
       const hitosAprobados = nuevosHitos.filter(h => h.estado === 'aprobado').length;
@@ -97,7 +109,6 @@ export function DashboardDocente({
       // 3. Persistir cambios usando el prop onEditarGrupo (UNA SOLA VEZ)
       await onEditarGrupo(grupoId, {
         nombre: grupo.nombre,
-        departamento: grupo.departamento,
         miembros: grupo.miembros,
         estado: nuevoProgreso >= 100 ? 'Completado' : 'En progreso',
         progreso: nuevoProgreso,
@@ -111,7 +122,7 @@ export function DashboardDocente({
       if (updates.length > 1) {
         toast.success(`Revisión completada: ${aprobados} aprobados, ${rechazados} rechazados.`);
       } else {
-        toast.success(updates[0].nuevoEstado === 'aprobado' ? "¡Hito aprobado!" : "Hito rechazado.");
+        toast.success(updates[0].nuevoEstado === 'aprobado' ? "¡Tarea aprobada!" : "Tarea rechazada.");
       }
 
     } catch (err) {
@@ -122,7 +133,8 @@ export function DashboardDocente({
 
   const totalInteracciones = grupos.reduce((sum, g) => sum + g.interacciones_ia, 0);
   const hitosCompletados = grupos.reduce((sum, g) => sum + Math.floor(g.progreso / 20), 0);
-  const gruposBloqueados = grupos.filter(g => g.estado === 'Bloqueado').length;
+  // Bloqueados cuenta status 'Bloqueado' O que estén pidiendo ayuda
+  const gruposBloqueados = grupos.filter(g => g.estado === 'Bloqueado' || g.pedir_ayuda).length;
 
   const handleLogout = async () => {
     try {
@@ -299,7 +311,7 @@ export function DashboardDocente({
           </button>
 
           <div className="mt-6 pt-4 border-t border-gray-200">
-            <ListaAlumnosEnLinea proyectoId={proyectoActual?.id} />
+            <ListaAlumnosEnLinea proyectoId={proyectoActual?.id} grupos={grupos} />
           </div>
         </nav>
 
@@ -328,7 +340,7 @@ export function DashboardDocente({
               </button>
               {/* Oculto en móvil para ganar espacio */}
               <div className="hidden md:flex flex-col gap-1">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Panel Principal ABP + IA</h1>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">AI Tico - Panel Docente</h1>
                 <p className="text-sm text-gray-500 font-medium italic">Gestión interactiva del profesorado</p>
               </div>
               {/* Texto visible solo en móvil como indicador */}
@@ -414,7 +426,53 @@ export function DashboardDocente({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Proyecto en curso</div>
-                <div className="font-bold text-slate-900 text-base md:text-xl leading-tight truncate">{proyectoActual.nombre}</div>
+
+                {isEditingProjectName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editingProjectName}
+                      onChange={(e) => setEditingProjectName(e.target.value)}
+                      className="text-base md:text-xl font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
+                      autoFocus
+                    />
+                    <button
+                      onClick={async () => {
+                        if (editingProjectName.trim()) {
+                          await onUpdateProjectName(editingProjectName.trim());
+                          setIsEditingProjectName(false);
+                        }
+                      }}
+                      className="p-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                      title="Guardar nombre"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingProjectName(false)}
+                      className="p-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                      title="Cancelar"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 group/title">
+                    <div className="font-bold text-slate-900 text-base md:text-xl leading-tight truncate">
+                      {proyectoActual.nombre}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingProjectName(proyectoActual.nombre);
+                        setIsEditingProjectName(true);
+                      }}
+                      className="opacity-0 group-hover/title:opacity-100 transition-opacity p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      title="Renombrar proyecto"
+                    >
+                      <Pencil className="w-3 h-3 md:w-4 md:h-4" />
+                    </button>
+                  </div>
+                )}
                 <div className="mt-1 flex items-center gap-2">
                   <div className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 uppercase tracking-tighter">SALA: {proyectoActual.codigo_sala}</div>
                 </div>
@@ -477,7 +535,7 @@ export function DashboardDocente({
                       <div className="flex-1 space-y-4 text-center md:text-left">
                         <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight uppercase leading-tight">Estado Global del Proyecto</h2>
                         <p className="text-slate-500 font-medium leading-relaxed max-w-xl text-sm md:text-base">
-                          Este árbol representa el crecimiento conjunto de toda la clase. Cada hito aprobado en los grupos nutre el progreso general de la sala. ¡Seguid así!
+                          Este árbol representa el crecimiento conjunto de toda la clase. Cada tarea aprobada en los grupos nutre el progreso general de la sala. ¡Seguid así!
                         </p>
                         <div className="grid grid-cols-2 lg:flex gap-4 md:gap-6 justify-center md:justify-start">
                           <div className="bg-blue-50 px-4 md:px-6 py-3 rounded-2xl border border-blue-100 flex-1 md:flex-none">
@@ -581,7 +639,7 @@ export function DashboardDocente({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
                       <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
-                      <Card_Metrica titulo="Hitos" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
+                      <Card_Metrica titulo="Tareas" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
                       <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -606,32 +664,76 @@ export function DashboardDocente({
             {currentSection === 'grupos' && (
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                  <h2 className="text-2xl font-black text-gray-900 hidden md:block">Organización por Departamentos</h2>
+                  <h2 className="text-2xl font-black text-gray-900 hidden md:block">Gestión de Equipos</h2>
                   <button onClick={() => setModalCrearGrupoAbierto(true)} className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-4 md:py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg active:scale-95">
                     <Plus className="w-5 h-5" />
                     Crear nuevo grupo
                   </button>
                 </div>
-                <GruposDepartamentos
-                  grupos={grupos}
-                  onSelectGrupo={onSelectGrupo}
-                  onEditarGrupo={onEditarGrupo}
-                  onEliminarGrupo={onEliminarGrupo}
-                  onAsignarTareas={(g) => { setGrupoParaTareas(g); setModalAsignarAbierto(true); }}
-                  proyectoId={proyectoActual?.id}
-                />
+
+                {/* Simple Grid View (No Departments) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {grupos.map(grupo => (
+                    <Card_Grupo
+                      key={grupo.id}
+                      grupo={grupo}
+                      onClick={() => onSelectGrupo(grupo)}
+                      onEdit={() => {
+                        setGrupoEditando(grupo);
+                        setModalCrearGrupoAbierto(true);
+                      }}
+                      onDelete={() => {
+                        if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id);
+                      }}
+                      onAssignTasks={() => {
+                        setGrupoParaTareas(grupo);
+                        setModalAsignarAbierto(true);
+                      }}
+                      mostrarBotonEditar={true}
+                      mostrarBotonBorrar={true}
+                    />
+                  ))}
+                  {grupos.length === 0 && (
+                    <div className="col-span-full py-16 text-center text-gray-400 bg-gray-100 rounded-3xl border-2 border-dashed border-gray-200">
+                      <p>No hay grupos creados aún.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {currentSection === 'interacciones' && <InteraccionesIA grupos={grupos} onSelectGrupo={onSelectGrupo} />}
 
             {currentSection === 'trabajo-compartido' && (
-              <RepositorioColaborativo
-                grupo={{ id: 0, nombre: 'Docente', departamento: 'Coordinación', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
-                todosLosGrupos={grupos}
-                esDocente={true}
-                mostrarEjemplo={mostrandoEjemplo}
-              />
+              <div className="relative">
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setModalSubirRecursoAbierto(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl active:scale-95"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Subir Archivo Docente
+                  </button>
+                </div>
+
+                <RepositorioColaborativo
+                  grupo={{ id: 0, nombre: 'Docente', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                  todosLosGrupos={grupos}
+                  esDocente={true}
+                  mostrarEjemplo={mostrandoEjemplo}
+                />
+
+                {modalSubirRecursoAbierto && (
+                  <ModalSubirRecurso
+                    grupo={{ id: 0, nombre: 'Docente', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                    onClose={() => setModalSubirRecursoAbierto(false)}
+                    onSuccess={() => {
+                      setModalSubirRecursoAbierto(false);
+                      // Opcional: refrescar datos si fuera necesario, pero RepositorioColaborativo escucha realtime
+                    }}
+                  />
+                )}
+              </div>
             )}
 
             {currentSection === 'evaluacion' && <EvaluacionRubricas grupos={grupos} />}

@@ -27,7 +27,7 @@ export interface HitoGrupo {
 export interface Grupo {
     id: number | string;
     nombre: string;
-    departamento: string;
+    // departamento: removed
     estado: 'En progreso' | 'Casi terminado' | 'Bloqueado' | 'Completado' | 'Pendiente';
     progreso: number;
     interacciones_ia: number;
@@ -39,6 +39,7 @@ export interface Grupo {
     ultima_actividad?: string; // Fecha ISO
     pedir_ayuda?: boolean;
     pedir_ayuda_timestamp?: string;
+    descripcion?: string;
 }
 
 export type ProyectoEstado = 'En preparación' | 'En curso' | 'Finalizado';
@@ -71,6 +72,21 @@ export interface AlumnoConectado {
 
 export type DashboardSection = 'resumen' | 'grupos' | 'interacciones' | 'evaluacion' | 'trabajo-compartido';
 
+
+export interface Recurso {
+    id: string;
+    grupoId: number;
+    grupoNombre: string;
+    // departamento: removed
+    tipo: 'texto' | 'video' | 'audio' | 'imagen';
+    titulo: string;
+    descripcion: string;
+    url?: string;
+    contenido?: string;
+    fechaSubida?: string | Date; // Permite ambos para compatibilidad
+    usuario_id?: string; // Nuevo: quién lo subió
+}
+
 export interface ProyectoActivo {
     id: string;
     nombre: string;
@@ -78,4 +94,5 @@ export interface ProyectoActivo {
     codigo_sala: string;
     clase?: string;
     fases: ProyectoFase[];
+    grupos?: Grupo[];
 }

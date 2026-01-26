@@ -181,6 +181,7 @@ export function DashboardDocente() {
                 return (
                     <DetalleGrupo
                         grupo={grupoSeleccionado}
+                        fases={proyectoActivo.fases}
                         onBack={() => {
                             setActiveSection('resumen');
                             setSelectedGrupoId(null);
@@ -252,7 +253,7 @@ export function DashboardDocente() {
                                             onRevisar={() => setGrupoParaRevisar(grupo)}
                                         />
                                     ))}
-                                {(!proyectoActivo || proyectoActivo.grupos.length === 0) && (
+                                {(!proyectoActivo || (proyectoActivo.grupos || []).length === 0) && (
                                     <div className="col-span-full py-20 text-center">
                                         <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                             <Plus className="w-10 h-10 text-slate-300" />
@@ -398,45 +399,27 @@ export function DashboardDocente() {
                 </div>
             </main>
 
-            import {ModalRevisionHitos} from '../components/ModalRevisionHitos';
-
-            // ... (Inside component)
-            const [grupoParaRevisar, setGrupoParaRevisar] = useState<Grupo | null>(null);
-
-            // ... (Inside render, before ModalCrearGrupo)
-            {grupoParaRevisar && (
+            {grupoParaRevisar && proyectoActivo && (
                 <ModalRevisionHitos
-                    grupo={grupoParaRevisar}
+                    grupos={[grupoParaRevisar]}
                     onClose={() => setGrupoParaRevisar(null)}
-                    onResolve={(hitosActualizados) => {
-                        // Actualizar estado local
+                    onUpdateBatch={async (grupoId, updates) => {
                         if (proyectoActivo) {
-                            const nuevosGrupos = proyectoActivo.grupos?.map(g => {
-                                if (g.id === grupoParaRevisar.id) {
-                                    return { ...g, hitos: hitosActualizados };
+                            const grupo = proyectoActivo.grupos?.find(g => g.id === grupoId);
+                            if (!grupo) return;
+
+                            let nuevosHitos = [...(grupo.hitos || [])];
+                            updates.forEach(update => {
+                                const hitoIndex = nuevosHitos.findIndex(h => h.id === update.hitoId);
+                                if (hitoIndex !== -1) {
+                                    // @ts-ignore - Estado compatible
+                                    nuevosHitos[hitoIndex] = { ...nuevosHitos[hitoIndex], estado: update.nuevoEstado };
                                 }
-                                return g;
                             });
-                            // Hack: actualizar estado proyectoActivo y lista proyectos
-                            setProyectoActivo({ ...proyectoActivo, grupos: nuevosGrupos });
-                            setProyectos(proyectos.map(p => p.id === proyectoActivo.id ? { ...p, grupos: nuevosGrupos } : p));
 
-                            // Aquí se llamaría a Supabase para persistir
-                            // supabase.from('grupos').update({ hitos: hitosActualizados }).eq('id', grupoParaRevisar.id);
-                        }
-                    }}
-                />
-            )}
-
-            {grupoParaRevisar && (
-                <ModalRevisionHitos
-                    grupo={grupoParaRevisar}
-                    onClose={() => setGrupoParaRevisar(null)}
-                    onResolve={(hitosActualizados) => {
-                        if (proyectoActivo) {
                             const nuevosGrupos = proyectoActivo.grupos?.map(g => {
-                                if (g.id === grupoParaRevisar.id) {
-                                    return { ...g, hitos: hitosActualizados };
+                                if (g.id === grupoId) {
+                                    return { ...g, hitos: nuevosHitos };
                                 }
                                 return g;
                             });
