@@ -191,6 +191,14 @@ export function DashboardDocente({
         />
       )}
 
+      {modalAsistenciaOpen && (
+        <ModalAsistencia
+          grupos={grupos}
+          proyectoId={proyectoActual?.id || ''}
+          onClose={() => setModalAsistenciaOpen(false)}
+        />
+      )}
+
       {modalAsignarAbierto && grupoParaTareas && (
         <ModalAsignarTareas
           grupoNombre={grupoParaTareas.nombre}

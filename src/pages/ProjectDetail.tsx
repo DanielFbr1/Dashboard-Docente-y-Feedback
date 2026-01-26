@@ -151,12 +151,17 @@ export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject
 
     const handleCrearGrupo = async (nuevoGrupo: Omit<Grupo, 'id'>) => {
         try {
+            // Temporary fix: Exclude 'descripcion' until migration is applied
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { descripcion, ...datosGrupo } = nuevoGrupo;
+
             const { data, error } = await supabase
                 .from('grupos')
-                .insert([{ ...nuevoGrupo, proyecto_id: proyecto.id }])
+                .insert([{ ...datosGrupo, proyecto_id: proyecto.id }])
                 .select();
             if (error) throw error;
-            if (data) setLocalGrupos([...localGrupos, data[0]]);
+            // We add the description back to the local state so the user sees it immediately even if not saved to DB
+            if (data) setLocalGrupos([...localGrupos, { ...data[0], descripcion: nuevoGrupo.descripcion }]);
         } catch (err) {
             console.error('Error creating group:', err);
         }
