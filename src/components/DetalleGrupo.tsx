@@ -114,7 +114,7 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                       )}
                     </h1>
                     <div className="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-widest leading-none">
-                      DEPARTAMENTO DE <span className="text-gray-900">{grupo.departamento}</span>
+                      DEPARTAMENTO DE <span className="text-gray-900">General</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

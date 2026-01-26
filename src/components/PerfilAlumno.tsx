@@ -200,14 +200,14 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col transform transition-all scale-100">
         {/* Header Mejorado Compacto */}
-        <div className={`bg-gradient-to-r ${getDepartamentoColor(grupo.departamento)} text-white relative overflow-hidden shrink-0`}>
+        <div className={`bg-gradient-to-r ${getDepartamentoColor('General')} text-white relative overflow-hidden shrink-0`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl"></div>
 
           <div className="relative z-10 px-6 py-5 flex items-center justify-between gap-4">
             {/* Info Principal */}
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg text-3xl font-black border-2 border-white/20 shrink-0">
-                <span className={`bg-gradient-to-br ${getDepartamentoColor(grupo.departamento)} bg-clip-text text-transparent`}>
+                <span className={`bg-gradient-to-br ${getDepartamentoColor('General')} bg-clip-text text-transparent`}>
                   {alumno.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -217,7 +217,7 @@ export function PerfilAlumno({ alumno, grupo, onClose }: PerfilAlumnoProps) {
                 <div className="flex items-center gap-2 text-xs font-medium text-white/80">
                   <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {grupo.nombre}</span>
                   <span>•</span>
-                  <span>{grupo.departamento}</span>
+                  <span>General</span>
                 </div>
               </div>
             </div>

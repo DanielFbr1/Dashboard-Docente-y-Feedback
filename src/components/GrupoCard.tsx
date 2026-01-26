@@ -25,7 +25,7 @@ export function GrupoCard({ grupo, onVerAlumno, onCambiarEstado, onRevisar }: Pr
                 <div className="flex justify-between items-start">
                     <div className="space-y-1">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">{grupo.nombre}</h3>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{grupo.departamento}</p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">General</p>
                     </div>
                     <div className={cn("px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest", getEstadoColor(grupo.estado))}>
                         {grupo.estado}
