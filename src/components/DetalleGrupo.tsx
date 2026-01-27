@@ -146,14 +146,23 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                   ))}
                 </div>
 
-                {/* --- NUEVO: Configuración de Aula (Siempre Visible) --- */}
-                <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 items-center justify-between">
-                  <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wide">Permisos del Mentor IA</h3>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                {/* --- CONFIGURACIÓN DE AULA (MOVIMOS AQUÍ PARA VISIBILIDAD) --- */}
+                <div className="mt-6 mb-2 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex flex-wrap gap-4 items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Brain className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-indigo-900 text-sm uppercase tracking-wide">Control de Aula IA</h3>
+                      <p className="text-xs text-indigo-600 font-medium">Gestiona los permisos de este grupo</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${grupo.configuracion?.microfono_activado !== false ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
                       <input
                         type="checkbox"
-                        className="form-checkbox h-3 w-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
                         checked={grupo.configuracion?.microfono_activado ?? true}
                         onChange={async (e) => {
                           const newVal = e.target.checked;
@@ -162,13 +171,13 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                           if (error) toast.error("Error"); else toast.success(`Micrófono ${newVal ? 'activado' : 'desactivado'}`);
                         }}
                       />
-                      <span className="text-xs font-bold text-slate-600">Micrófono</span>
+                      <span className="text-xs font-bold text-slate-700">Micrófono</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${grupo.configuracion?.voz_activada !== false ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
                       <input
                         type="checkbox"
-                        className="form-checkbox h-3 w-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
                         checked={grupo.configuracion?.voz_activada ?? true}
                         onChange={async (e) => {
                           const newVal = e.target.checked;
@@ -177,7 +186,7 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                           if (error) toast.error("Error"); else toast.success(`Voz IA ${newVal ? 'activada' : 'desactivada'}`);
                         }}
                       />
-                      <span className="text-xs font-bold text-slate-600">Voz IA</span>
+                      <span className="text-xs font-bold text-slate-700">Voz IA</span>
                     </label>
                   </div>
                 </div>

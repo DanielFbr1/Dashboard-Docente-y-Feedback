@@ -378,14 +378,14 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.5 (Permissions)</span></h3>
+            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.6 (Fixed)</span></h3>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>
         {vozPermitidaAdmin && (
           <button
             onClick={toggleMute}
-            className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
+            className={`p-2 rounded-full transition-colors ml-auto ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
             title={isMuted ? "Activar voz" : "Silenciar voz"}
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
