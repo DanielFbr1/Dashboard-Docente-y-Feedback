@@ -27,10 +27,17 @@ import {
 } from "./ui/dropdown-menu";
 
 import { useGroupTracking } from '../hooks/useGroupTracking';
-import { Perfil } from '../context/AuthContext';
 
 interface DashboardAlumnoProps {
-  alumno: Perfil;
+  alumno: {
+    id: string;
+    nombre: string;
+    rol: 'profesor' | 'alumno';
+    clase?: string;
+    grupo_id?: number;
+    proyecto_id?: string;
+    codigo_sala?: string;
+  };
   onLogout: () => void;
 }
 
