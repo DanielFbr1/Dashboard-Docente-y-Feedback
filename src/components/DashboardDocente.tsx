@@ -169,7 +169,10 @@ export function DashboardDocente({
       )}
 
       {modalAjustesIAAbierto && (
-        <ModalConfiguracionIA onClose={() => setModalAjustesIAAbierto(false)} />
+        <ModalConfiguracionIA
+          onClose={() => setModalAjustesIAAbierto(false)}
+          proyectoId={proyectoActual?.id}
+        />
       )}
 
       {/* Modal crear grupo */}
