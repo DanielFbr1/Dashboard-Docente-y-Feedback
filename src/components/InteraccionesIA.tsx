@@ -1,7 +1,7 @@
 import { Brain, MessageSquare, TrendingUp, PieChart, Lightbulb, Cog, Users as UsersIcon, Sparkles, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Grupo } from '../types';
-import { ChatIA } from './ChatIA';
+import { MentorChat } from './MentorChat';
 
 interface InteraccionesIAProps {
   grupos: Grupo[];
@@ -79,7 +79,7 @@ export function InteraccionesIA({ grupos, onSelectGrupo }: InteraccionesIAProps)
               </button>
             </div>
             <div className="p-4 bg-white">
-              <ChatIA grupo={grupoChat} />
+              <MentorChat grupo={grupoChat} />
             </div>
           </div>
         </div>
