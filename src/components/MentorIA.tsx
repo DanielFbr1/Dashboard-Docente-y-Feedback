@@ -206,7 +206,7 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                         <Bot className="w-5 h-5 text-indigo-600" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-800">Mentor IA</h3>
+                        <h3 className="font-semibold text-gray-800">Mentor IA <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded ml-1">v3.1 (Voz)</span></h3>
                         <p className="text-xs text-gray-500">Impulsado por Groq Llama 3</p>
                     </div>
                 </div>

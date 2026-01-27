@@ -74,27 +74,35 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
     if (alumno?.nombre) {
       const fetchMisClases = async () => {
         try {
-          // Normalizar nombre para búsqueda flexible (opcional, pero supbase .contains busca exacto en arrays jsonb/text[])
-          // Si miembros es JSONB/Array texto:
-          const { data: gruposDondeEstoy, error } = await supabase
+          // Fetch ALL groups ensuring we get the project data
+          const { data: allGroups, error } = await supabase
             .from('grupos')
             .select(`
               id,
               nombre,
+              miembros,
               proyecto_id,
               proyectos (
                 nombre,
                 codigo_sala
               )
-            `)
-            .contains('miembros', [alumno.nombre]);
+            `);
 
           if (error) {
-            console.error("Error buscando historial de clases:", error);
+            console.error("Error fetching all groups for history:", error);
             return;
           }
 
-          if (gruposDondeEstoy) {
+          if (allGroups) {
+            // Filtrado manual en cliente para mayor robustez con JSONB
+            const gruposDondeEstoy = allGroups.filter((g: any) => {
+              if (!g.miembros) return false;
+              // Check if members array contains the name (case insensitive or exact)
+              const miembrosArr = Array.isArray(g.miembros) ? g.miembros : [];
+              return miembrosArr.some((m: string) => m.includes(alumno.nombre) || alumno.nombre.includes(m));
+            });
+
+            // Mapeamos a la estructura que espera el dropdown
             // Mapeamos a la estructura que espera el dropdown
             const historialReal = gruposDondeEstoy.map((g: any) => ({
               id: g.proyecto_id,
