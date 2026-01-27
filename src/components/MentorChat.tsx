@@ -60,7 +60,7 @@ const preguntasSugeridas = [
   { texto: "¿Qué nos falta para completar la tarea?", categoria: 'Metacognitiva' as const }
 ];
 
-export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyectoNombre }: ChatIAProps) {
+export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyectoNombre }: ChatIAProps) {
   const { user, perfil } = useAuth();
   const isReadOnly = readOnly || perfil?.rol === 'profesor';
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -451,8 +451,8 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
                 type="button"
                 onClick={toggleListening}
                 className={`p-3 rounded-xl transition-all ${isListening
-                    ? 'bg-red-100 text-red-600 animate-pulse'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'bg-red-100 text-red-600 animate-pulse'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 title="Dictar pregunta"
               >

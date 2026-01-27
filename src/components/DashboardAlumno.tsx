@@ -2,7 +2,7 @@ import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2,
 import { useState, useEffect } from 'react';
 import { Grupo } from '../types';
 import { supabase } from '../lib/supabase';
-import { ChatIA } from './ChatIA';
+import { MentorChat } from './MentorChat';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { ModalSubirRecurso } from './ModalSubirRecurso';
 import { TutorialInteractivo } from './TutorialInteractivo';
@@ -875,7 +875,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         {
           vistaActiva === 'chat' && grupoDisplay && (
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 min-h-[600px]">
-              <ChatIA grupo={grupoDisplay} mostrarEjemplo={showExample} proyectoNombre={nombreProyecto} />
+              <MentorChat grupo={grupoDisplay} mostrarEjemplo={showExample} proyectoNombre={nombreProyecto} />
             </div>
           )
         }
