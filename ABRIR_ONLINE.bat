@@ -5,7 +5,8 @@ echo ==========================================
 echo   AI TICO - MODO ONLINE (CLASE)
 echo ==========================================
 echo.
-echo [PASO 1] Arrancando el servidor en tu portatil...
+echo [PASO 1] Actualizando y arrancando servidor...
+call npm run build
 start "AI Tico Server - NO CERRAR" cmd /c "npm run preview"
 echo Servidor iniciado en segundo plano.
 echo.

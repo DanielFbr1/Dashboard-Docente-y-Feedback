@@ -84,7 +84,12 @@ export function LoginPage() {
                 await refreshPerfil();
             }
         } catch (error: any) {
-            setError(error.message);
+            console.error(error);
+            if (error.message?.toLowerCase().includes("limit") || error.message?.toLowerCase().includes("rate")) {
+                setError("🛑 Límite de seguridad alcanzado: Demasiados registros seguidos. Espera unos segundos o pide al profesor que revise la configuración de 'Rate Limits' en Supabase.");
+            } else {
+                setError(error.message || 'Error desconocido al iniciar sesión.');
+            }
         } finally {
             setLoading(false);
         }

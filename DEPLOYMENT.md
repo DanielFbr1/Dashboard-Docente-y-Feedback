@@ -70,3 +70,69 @@ Tu aplicación ahora tiene:
 *   ✅ Usuarios reales (Email/Password).
 *   ✅ Datos persistentes en la nube.
 *   ✅ Chat con IA seguro (tu API Key no es visible para los alumnos).
+
+## 🚑 Solución de Problemas Comunes
+
+### Error: "Limit Exceeded" o "Rate Limit" al registrar alumnos
+Supabase limita por seguridad el número de registros desde una misma IP (algo común en colegios).
+
+1.  Ve a tu proyecto en **Supabase Dashboard**.
+2.  Ve a **Project Settings** (engranaje abajo izquierda) -> **Authentication**.
+3.  Baja hasta la sección **Rate Limits**.
+4.  Desactiva (o aumenta mucho) la opción **"Email Auth Rate Limits"**.
+5.  Desactiva también **"Email Auth Signups per hour"**.
+6.  ¡Guarda los cambios! Ahora todos podrán registrarse a la vez.
+
+## 🚀 Escalando a Futuro (Roadmap)
+Si quieres que esta app la usen otros profesores o colegios, aquí tienes la hoja de ruta:
+
+1.  **Hosting Real (Frontend)**:
+    *   Ahora mismo usas tu portátil como servidor. Si apagas el PC, se apaga la app.
+    *   **Solución**: Sube tu código a **Vercel** o **Netlify** (tienen planes gratuitos excelentes). Así la app estará online 24/7 sin depender de tu ordenador.
+
+2.  **Base de Datos (Backend)**:
+    *   Supabase Free está muy bien, pero si entran cientos de alumnos, se pausará tras una semana de inactividad.
+    *   **Solución**: Pasar al plan **Pro** ($25/mes) para evitar pausas y tener copias de seguridad diarias.
+
+3.  **Correos Profesionales (SMTP)**:
+    *   Ahora hemos desactivado la confirmación para ir rápido.
+    *   **Solución**: Para una app pública, deberías reactivar "Confirm Email" y configurar un servicio de envío de correos como **Resend** (gratis hasta 3000 emails/mes) para que las cuentas sean seguras y verificadas.
+
+4.  **Dominio Propio**:
+    *   Comprar un dominio `.com` o `.edu` (ej: `micolegio-ia.com`) para dar una imagen más profesional en lugar de usar enlaces temporales.
+
+## 🌍 Guía: Desplegar en Vercel (Paso a Paso)
+
+Sigue estos pasos para poner tu app en internet permanentemente:
+
+### Paso 1: Subir código a GitHub
+1.  Ve a [github.com](https://github.com) y crea un nuevo repositorio (vacío).
+2.  Desde la carpeta de tu proyecto (en tu ordenador), abre la terminal y escribe:
+    ```bash
+    git init
+    git add .
+    git commit -m "Versión lista para Vercel"
+    git branch -M main
+    git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+    git push -u origin main
+    ```
+
+### Paso 2: Importar en Vercel
+1.  Ve a [vercel.com](https://vercel.com) y regístrate (puedes usar tu cuenta de GitHub).
+2.  Dale a **"Add New..."** > **"Project"**.
+3.  Selecciona tu repositorio de GitHub y dale a **Import**.
+
+### Paso 3: Configurar Variables (CRUCIAL)
+En la pantalla de configuración de Vercel, antes de darle a Deploy:
+1.  Busca la sección **"Environment Variables"**.
+2.  Abre tu archivo `.env` local, copia una a una las variables y pégalas ahí:
+    *   `VITE_SUPABASE_URL`: (Tu URL de Supabase)
+    *   `VITE_SUPABASE_ANON_KEY`: (Tu clave larga anon)
+    *   `VITE_GROQ_API_KEY`: (Tu clave de Groq)
+3.  Dale a **Add** para cada una.
+
+### Paso 4: ¡Deploy!
+Dale al botón **Deploy**. Espera unos segundos y... ¡listo!
+Vercel te dará una URL (ej: `dashboard-docente.vercel.app`) que podrás compartir con todos.
+
+*Nota: Una vez en Vercel, la app estará siempre disponible, no hace falta que tengas tu PC encendido ni que ejecutes ningún .bat.*

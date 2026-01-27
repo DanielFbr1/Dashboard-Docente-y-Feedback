@@ -4,7 +4,11 @@ echo ==========================================
 echo    INICIANDO DASHBOARD DOCENTE Y FEEDBACK
 echo ==========================================
 echo.
-echo 1. Arrancando servidor (npm run preview)...
+echo 1. Actualizando sistema (npm run build)...
+call npm run build
+
+echo.
+echo 2. Arrancando servidor...
 :: Inicia el servidor en una ventana nueva minimizada para no molestar
 start "Servidor Dashboard" /min cmd /k "npm run preview"
 
