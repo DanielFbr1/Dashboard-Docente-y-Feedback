@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Sparkles, AlertCircle } from 'lucide-react';
+import { Send, Bot, Sparkles, AlertCircle, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { generarRespuestaIA } from '../services/ai';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -29,6 +29,65 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
     // Estado para el efecto de escritura
     const [displayedContent, setDisplayedContent] = useState('');
     const [typingId, setTypingId] = useState<string | null>(null);
+
+    // Estados para Voz
+    const [isListening, setIsListening] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [speechSupported, setSpeechSupported] = useState(false);
+    const recognitionRef = useRef<any>(null);
+
+    // Inicializar reconocimiento de voz
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            setSpeechSupported(true);
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = false;
+            recognitionRef.current.lang = 'es-ES';
+            recognitionRef.current.interimResults = false;
+
+            recognitionRef.current.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setInput((prev) => prev + (prev ? ' ' : '') + transcript);
+                setIsListening(false);
+            };
+
+            recognitionRef.current.onerror = (event: any) => {
+                console.error('Error de voz:', event.error);
+                setIsListening(false);
+            };
+
+            recognitionRef.current.onend = () => {
+                setIsListening(false);
+            };
+        }
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) return;
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+            setIsListening(true);
+        }
+    };
+
+    const toggleMute = () => {
+        if (!isMuted) {
+            window.speechSynthesis.cancel();
+        }
+        setIsMuted(!isMuted);
+    };
+
+    const speakText = (text: string) => {
+        if (isMuted || !text) return;
+        window.speechSynthesis.cancel(); // Parar lo anterior
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,6 +121,8 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 setTimeout(typeChar, randomSpeed);
             } else {
                 setTypingId(null); // Fin del typing
+                // Leer en voz alta al terminar de escribir si no es del usuario (y si no está muteado)
+                speakText(text);
             }
         };
 
@@ -138,20 +199,23 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
 
     return (
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-indigo-500/10 overflow-hidden flex flex-col h-[650px]">
-            <div className="bg-slate-900 p-8 flex items-center gap-5 text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 to-slate-950">
-                <div className="p-3 bg-indigo-500/20 rounded-2xl border border-indigo-500/30 backdrop-blur-sm">
-                    <Bot className="w-8 h-8 text-indigo-400" />
-                </div>
-                <div>
-                    <h3 className="font-black text-xl tracking-tight">MENTOR EXPERTO IA</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="relative flex h-2 w-2">
-                            <span className={`${loading ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">{loading ? 'Pensando...' : 'En línea v2.1'}</p>
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                    <div className="bg-indigo-100 p-2 rounded-xl">
+                        <Bot className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800">Mentor IA</h3>
+                        <p className="text-xs text-gray-500">Impulsado por Groq Llama 3</p>
                     </div>
                 </div>
+                <button
+                    onClick={toggleMute}
+                    className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-gray-100 text-gray-400' : 'bg-indigo-50 text-indigo-600'}`}
+                    title={isMuted ? "Activar voz" : "Silenciar voz"}
+                >
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/50 scroll-smooth">
@@ -196,21 +260,36 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSend} className="p-6 bg-white border-t border-slate-100 flex gap-3 items-center">
-                <input
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    className="flex-1 bg-slate-50 border-0 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium text-slate-700 placeholder:text-slate-400"
-                    placeholder="Escribe tu duda al mentor..."
-                    disabled={loading}
-                />
-                <button
-                    type="submit"
-                    className="bg-slate-900 hover:bg-indigo-600 text-white p-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:hover:bg-slate-900 shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95"
-                    disabled={loading || !input.trim()}
-                >
-                    <Send size={20} />
-                </button>
+            <form onSubmit={handleSend} className="p-6 bg-white border-t border-slate-100">
+                <div className="flex gap-2">
+                    {speechSupported && (
+                        <button
+                            type="button"
+                            onClick={toggleListening}
+                            className={`p-2 rounded-xl transition-all ${isListening
+                                    ? 'bg-red-100 text-red-600 animate-pulse'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                }`}
+                            title="Dictar pregunta"
+                        >
+                            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                        </button>
+                    )}
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={isListening ? "Escuchando..." : "Pregunta sobre tu proyecto..."}
+                        className="flex-1 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    />
+                    <button
+                        type="submit"
+                        disabled={loading || !input.trim()}
+                        className="bg-indigo-600 text-white p-2 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-indigo-200"
+                    >
+                        <Send className="w-5 h-5" />
+                    </button>
+                </div>
             </form>
         </div>
     );
