@@ -378,7 +378,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.6.3 (Debug)</span></h3>
+            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.7.0</span></h3>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>

@@ -57,19 +57,15 @@ export function ModalConfiguracionIA({ onClose, grupo, proyectoId }: ModalConfig
                 toast.success('Ajustes del grupo actualizados');
             } else if (proyectoId) {
                 // Actualizar TODOS
-                const { error, count } = await supabase // Check count if possible, though 'update' returns data if selected
+                const { error } = await supabase
                     .from('grupos')
                     .update({ configuracion: newConfig })
-                    .eq('proyecto_id', proyectoId)
-                    .select();
-
-                console.log("Global update result:", { error, count });
+                    .eq('proyecto_id', proyectoId);
 
                 if (error) throw error;
-                toast.success('Ajustes GLOBALES aplicados a todos los grupos');
+                toast.success('Ajustes aplicados a TODOS los grupos');
             } else {
-                toast.error('Error: No se detectó ID de proyecto. (Modo Simulado)');
-                console.error("Missing proyectoId in Global Mode");
+                toast.error('Error: No se pudo identificar el proyecto activo');
             }
             onClose();
         } catch (error) {
@@ -108,17 +104,11 @@ export function ModalConfiguracionIA({ onClose, grupo, proyectoId }: ModalConfig
                 <div className="p-8 space-y-6 bg-gray-50 flex-1 overflow-y-auto">
 
                     {isGlobal && (
-                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col gap-2">
-                            <div className="flex gap-3 items-start">
-                                <Globe className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-sm font-bold text-blue-800">Has abierto la configuración global</p>
-                                    <p className="text-xs text-blue-600 mt-1">Los cambios que hagas aquí se aplicarán a <strong>todos los grupos</strong> de la clase.</p>
-                                </div>
-                            </div>
-                            {/* DEBUG INFO */}
-                            <div className="text-[10px] font-mono text-blue-400 mt-2 p-1 bg-blue-100/50 rounded">
-                                PID: {proyectoId || 'UNDEFINED'}
+                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex gap-3 items-start">
+                            <Globe className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-bold text-blue-800">Has abierto la configuración global</p>
+                                <p className="text-xs text-blue-600 mt-1">Los cambios que hagas aquí se aplicarán a <strong>todos los grupos</strong> de la clase.</p>
                             </div>
                         </div>
                     )}
