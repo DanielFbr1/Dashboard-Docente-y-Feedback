@@ -2,7 +2,7 @@ import { ArrowLeft, CheckCircle2, Circle, Brain, Share2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
-import { ChatIA } from './ChatIA';
+import { MentorChat } from './MentorChat';
 import { RoadmapView } from './RoadmapView';
 
 interface DetalleGrupoProps {
@@ -228,7 +228,7 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                   <p className="text-sm text-slate-400 font-medium">Observando el diálogo socrático del equipo {grupo.nombre}</p>
                 </div>
               </div>
-              <ChatIA grupo={grupo} readOnly={true} />
+              <MentorChat grupo={grupo} readOnly={true} />
             </div>
           </div>
         )}
