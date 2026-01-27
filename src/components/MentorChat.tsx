@@ -195,7 +195,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
       scrollToBottom();
 
       if (i < text.length) {
-        const randomSpeed = Math.floor(Math.random() * 20) + 20; // Un poco más rápido (20-40ms) para acompañar la voz
+        const randomSpeed = Math.floor(Math.random() * 20) + 70; // 70-90ms para igualar velocidad de voz (aprox 150ppm)
         setTimeout(typeChar, randomSpeed);
       } else {
         setTypingId(null);

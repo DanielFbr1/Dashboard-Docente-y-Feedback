@@ -145,6 +145,42 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                     </span>
                   ))}
                 </div>
+
+                {/* --- NUEVO: Configuración de Aula (Siempre Visible) --- */}
+                <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+                  <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wide">Permisos del Mentor IA</h3>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-3 w-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        checked={grupo.configuracion?.microfono_activado ?? true}
+                        onChange={async (e) => {
+                          const newVal = e.target.checked;
+                          const newConfig = { ...grupo.configuracion, microfono_activado: newVal };
+                          const { error } = await supabase.from('grupos').update({ configuracion: newConfig }).eq('id', grupo.id);
+                          if (error) toast.error("Error"); else toast.success(`Micrófono ${newVal ? 'activado' : 'desactivado'}`);
+                        }}
+                      />
+                      <span className="text-xs font-bold text-slate-600">Micrófono</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-3 w-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        checked={grupo.configuracion?.voz_activada ?? true}
+                        onChange={async (e) => {
+                          const newVal = e.target.checked;
+                          const newConfig = { ...grupo.configuracion, voz_activada: newVal };
+                          const { error } = await supabase.from('grupos').update({ configuracion: newConfig }).eq('id', grupo.id);
+                          if (error) toast.error("Error"); else toast.success(`Voz IA ${newVal ? 'activada' : 'desactivada'}`);
+                        }}
+                      />
+                      <span className="text-xs font-bold text-slate-600">Voz IA</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -230,66 +266,7 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                   <p className="text-sm text-slate-400 font-medium">Observando el diálogo socrático del equipo {grupo.nombre}</p>
                 </div>
               </div>
-              <div className="bg-slate-50 p-4 rounded-xl mb-4 border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Configuración de Aula</h3>
-                </div>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                      checked={grupo.configuracion?.microfono_activado ?? true}
-                      onChange={async (e) => {
-                        const newVal = e.target.checked;
-                        const newConfig = { ...grupo.configuracion, microfono_activado: newVal };
 
-                        // Optimistic UI
-                        // NOTE: Ideally we update parent state, but for now we trust the DB update/refresh or simple toast
-
-                        const { error } = await supabase
-                          .from('grupos')
-                          .update({ configuracion: newConfig })
-                          .eq('id', grupo.id);
-
-                        if (error) {
-                          toast.error("Error actualizando configuración");
-                        } else {
-                          toast.success(`Micrófono ${newVal ? 'activado' : 'desactivado'} para el grupo`);
-                          // Trigger parent refresh if possible, or manual update
-                          // Since 'grupo' prop comes from parent, this won't reflect immediately without reload or parent refresh.
-                          // For MVP/Demo, visual toast is enough, user can refresh.
-                        }
-                      }}
-                    />
-                    <span className="text-sm font-medium text-slate-600">Permitir Micrófono</span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                      checked={grupo.configuracion?.voz_activada ?? true}
-                      onChange={async (e) => {
-                        const newVal = e.target.checked;
-                        const newConfig = { ...grupo.configuracion, voz_activada: newVal };
-
-                        const { error } = await supabase
-                          .from('grupos')
-                          .update({ configuracion: newConfig })
-                          .eq('id', grupo.id);
-
-                        if (error) {
-                          toast.error("Error actualizando configuración");
-                        } else {
-                          toast.success(`Voz IA ${newVal ? 'activada' : 'desactivada'} para el grupo`);
-                        }
-                      }}
-                    />
-                    <span className="text-sm font-medium text-slate-600">Permitir Voz IA</span>
-                  </label>
-                </div>
-              </div>
               <MentorChat grupo={grupo} readOnly={true} />
             </div>
           </div>
