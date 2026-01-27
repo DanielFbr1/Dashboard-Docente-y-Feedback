@@ -71,16 +71,50 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
   const [historialClases, setHistorialClases] = useState<any[]>([]);
 
   useEffect(() => {
-    if (alumno?.id) {
-      const historyKey = `student_classes_history_${alumno.id}`;
-      try {
-        const stored = JSON.parse(localStorage.getItem(historyKey) || '[]');
-        setHistorialClases(stored);
-      } catch (e) {
-        console.error("Error loading history", e);
-      }
+    if (alumno?.nombre) {
+      const fetchMisClases = async () => {
+        try {
+          // Normalizar nombre para búsqueda flexible (opcional, pero supbase .contains busca exacto en arrays jsonb/text[])
+          // Si miembros es JSONB/Array texto:
+          const { data: gruposDondeEstoy, error } = await supabase
+            .from('grupos')
+            .select(`
+              id,
+              nombre,
+              proyecto_id,
+              proyectos (
+                nombre,
+                codigo_sala
+              )
+            `)
+            .contains('miembros', [alumno.nombre]);
+
+          if (error) {
+            console.error("Error buscando historial de clases:", error);
+            return;
+          }
+
+          if (gruposDondeEstoy) {
+            // Mapeamos a la estructura que espera el dropdown
+            const historialReal = gruposDondeEstoy.map((g: any) => ({
+              id: g.proyecto_id,
+              nombre: g.proyectos?.nombre || g.nombre, // Prefer project name, fallback group name
+              codigo: g.proyectos?.codigo_sala || '???',
+              grupo_interno_id: g.id
+            }));
+
+            // Eliminar duplicados por ID de proyecto
+            const uniqueHistory = Array.from(new Map(historialReal.map((item: any) => [item.id, item])).values());
+            setHistorialClases(uniqueHistory);
+          }
+        } catch (err) {
+          console.error("Error en fetchMisClases:", err);
+        }
+      };
+
+      fetchMisClases();
     }
-  }, [alumno?.id]);
+  }, [alumno?.nombre]);
 
   useEffect(() => {
     fetchDatosAlumno();
@@ -142,29 +176,8 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
         return;
       }
 
-      // Sync History logic
-      if (alumno.id && targetProjectId && roomCode) {
-        const { data: projDetails } = await supabase.from('proyectos').select('nombre').eq('id', targetProjectId).single();
-        if (projDetails) {
-          setNombreProyecto(projDetails.nombre); // Capture name from ID resolution
-          const historyKey = `student_classes_history_${alumno.id}`;
-          const historyStr = localStorage.getItem(historyKey);
-          let history = historyStr ? JSON.parse(historyStr) : [];
-          if (!history.some((h: any) => h.id === targetProjectId)) {
-            history.unshift({ // Add to top
-              id: targetProjectId,
-              nombre: projDetails.nombre,
-              codigo: roomCode,
-              lastAccessed: Date.now()
-            });
-            // Keep max 5
-            if (history.length > 5) history = history.slice(0, 5);
-
-            localStorage.setItem(historyKey, JSON.stringify(history));
-            setHistorialClases(history); // Update local state immediately
-          }
-        }
-      }
+      // Sync History logic - REMOVED (Now fetched from server)
+      // if (alumno.id && targetProjectId && roomCode) { ... }
 
       const { data: grupos, error: errorGrupos } = await supabase
         .from('grupos')
