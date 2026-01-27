@@ -117,7 +117,8 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
             scrollToBottom();
 
             if (i < text.length) {
-                const randomSpeed = Math.floor(Math.random() * 20) + 10;
+                // Velocidad más lenta (30ms a 60ms) para que sea más natural y tarde un poco más
+                const randomSpeed = Math.floor(Math.random() * 30) + 30;
                 setTimeout(typeChar, randomSpeed);
             } else {
                 setTypingId(null); // Fin del typing
@@ -267,8 +268,8 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                             type="button"
                             onClick={toggleListening}
                             className={`p-2 rounded-xl transition-all ${isListening
-                                    ? 'bg-red-100 text-red-600 animate-pulse'
-                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                ? 'bg-red-100 text-red-600 animate-pulse'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                 }`}
                             title="Dictar pregunta"
                         >
