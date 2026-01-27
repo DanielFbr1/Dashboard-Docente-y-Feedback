@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Grupo } from '../types';
 import { generarRespuestaIA } from '../services/ai';
 import { supabase } from '../lib/supabase';
@@ -69,6 +69,98 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
   const [escribiendo, setEscribiendo] = useState(false);
   const [loading, setLoading] = useState(true);
   const mensajesEndRef = useRef<HTMLDivElement>(null);
+
+  // --- NUEVO: ESTADOS DE VOZ Y ESCRITURA ---
+  const [displayedContent, setDisplayedContent] = useState('');
+  const [typingId, setTypingId] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Inicializar reconocimiento de voz
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setSpeechSupported(true);
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.lang = 'es-ES';
+      recognitionRef.current.interimResults = false;
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputMensaje((prev) => prev + (prev ? ' ' : '') + transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Error de voz:', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!isMuted) {
+      window.speechSynthesis.cancel();
+    }
+    setIsMuted(!isMuted);
+  };
+
+  const speakText = (text: string) => {
+    if (isMuted || !text) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'es-ES';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Efecto de escritura robusto
+  useEffect(() => {
+    if (!typingId) return;
+
+    const messageToType = mensajes.find(m => m.id === typingId);
+    if (!messageToType || !messageToType.contenido) return;
+
+    const text = messageToType.contenido;
+    let i = 0;
+
+    setDisplayedContent('');
+
+    const typeChar = () => {
+      setDisplayedContent(text.substring(0, i + 1));
+      i++;
+      scrollToBottom();
+
+      if (i < text.length) {
+        const randomSpeed = Math.floor(Math.random() * 30) + 30; // 30-60ms
+        setTimeout(typeChar, randomSpeed);
+      } else {
+        setTypingId(null);
+        speakText(text); // Hablar al terminar
+      }
+    };
+
+    setTimeout(typeChar, 100);
+
+  }, [typingId]);
+  // ----------------------------------------
 
   useEffect(() => {
     fetchMensajes();
@@ -197,6 +289,8 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
       };
 
       setMensajes((prev) => [...prev, mensajeIA]);
+      // TRIGGER TYPEWRITER
+      setTypingId(mensajeIA.id);
 
       if (onNuevoMensaje) {
         onNuevoMensaje(mensajeAlumno);
@@ -238,10 +332,17 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm">Mentor IA</h3>
+            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.2 (Final)</span></h3>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>
+        <button
+          onClick={toggleMute}
+          className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
+          title={isMuted ? "Activar voz" : "Silenciar voz"}
+        >
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
       </div>
 
 
@@ -279,30 +380,41 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
         ) : (
           /* ... list messages logic ... */
           <>
-            {mensajes.map((mensaje) => (
-              <div
-                key={mensaje.id}
-                className={`mb-4 ${mensaje.tipo === 'alumno' ? 'flex justify-end' : 'flex justify-start'}`}
-              >
-                <div className={`max-w-[85%] ${mensaje.tipo === 'alumno' ? 'order-2' : 'order-1'}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    {mensaje.tipo === 'ia' && <Bot className="w-4 h-4 text-gray-600" />}
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                      {mensaje.tipo === 'ia' ? 'Mentor IA' : 'Estudiante'}
-                    </span>
-                  </div>
-                  <div
-                    className={`p-3 rounded-2xl ${mensaje.tipo === 'alumno'
-                      ? 'bg-blue-600 text-white rounded-tr-none'
-                      : 'bg-white border border-gray-200 text-gray-900 rounded-tl-none shadow-sm'
-                      }`}
-                  >
-                    <p className="text-sm leading-relaxed">{mensaje.contenido}</p>
+            {mensajes.map((mensaje) => {
+              // Lógica de visualización parcial
+              const isTypingThis = typingId === mensaje.id;
+              const contentToShow = isTypingThis ? displayedContent : mensaje.contenido;
+
+              return (
+                <div
+                  key={mensaje.id}
+                  className={`mb-4 ${mensaje.tipo === 'alumno' ? 'flex justify-end' : 'flex justify-start'}`}
+                >
+                  <div className={`max-w-[85%] ${mensaje.tipo === 'alumno' ? 'order-2' : 'order-1'}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {mensaje.tipo === 'ia' && <Bot className="w-4 h-4 text-gray-600" />}
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        {mensaje.tipo === 'ia' ? 'Mentor IA' : 'Estudiante'}
+                      </span>
+                    </div>
+                    <div
+                      className={`p-3 rounded-2xl ${mensaje.tipo === 'alumno'
+                        ? 'bg-blue-600 text-white rounded-tr-none'
+                        : 'bg-white border border-gray-200 text-gray-900 rounded-tl-none shadow-sm'
+                        }`}
+                    >
+                      <p className="text-sm leading-relaxed">
+                        {contentToShow}
+                        {isTypingThis && (
+                          <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-blue-500 animate-pulse"></span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {escribiendo && (
+              )
+            })}
+            {escribiendo && !typingId && (
               /* ... bounce animation ... */
               <div className="flex justify-start mb-4">
                 <div className="max-w-[80%]">
@@ -334,12 +446,25 @@ export function ChatIA({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, proyec
           </div>
         ) : (
           <div className="flex gap-2">
+            {speechSupported && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`p-3 rounded-xl transition-all ${isListening
+                    ? 'bg-red-100 text-red-600 animate-pulse'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                title="Dictar pregunta"
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+            )}
             <input
               type="text"
               value={inputMensaje}
               onChange={(e) => setInputMensaje(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && enviarMensaje()}
-              placeholder="Escribe una pregunta al mentor..."
+              placeholder={isListening ? "Escuchando..." : "Escribe una pregunta al mentor..."}
               className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
               disabled={escribiendo}
             />
