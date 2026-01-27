@@ -4,6 +4,7 @@ import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { MentorChat } from './MentorChat';
 import { RoadmapView } from './RoadmapView';
+import { ModalConfiguracionIA } from './ModalConfiguracionIA';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
@@ -23,6 +24,7 @@ interface TipoPregunta {
 
 export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGrupoProps) {
   const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
+  const [showConfigModal, setShowConfigModal] = useState(false);
 
   // Asegurar que empezamos arriba al entrar al detalle
   useEffect(() => {
@@ -146,49 +148,15 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                   ))}
                 </div>
 
-                {/* --- CONFIGURACIÓN DE AULA (MOVIMOS AQUÍ PARA VISIBILIDAD) --- */}
-                <div className="mt-6 mb-2 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex flex-wrap gap-4 items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Brain className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-indigo-900 text-sm uppercase tracking-wide">Control de Aula IA</h3>
-                      <p className="text-xs text-indigo-600 font-medium">Gestiona los permisos de este grupo</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${grupo.configuracion?.microfono_activado !== false ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
-                      <input
-                        type="checkbox"
-                        className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                        checked={grupo.configuracion?.microfono_activado ?? true}
-                        onChange={async (e) => {
-                          const newVal = e.target.checked;
-                          const newConfig = { ...grupo.configuracion, microfono_activado: newVal };
-                          const { error } = await supabase.from('grupos').update({ configuracion: newConfig }).eq('id', grupo.id);
-                          if (error) toast.error("Error"); else toast.success(`Micrófono ${newVal ? 'activado' : 'desactivado'}`);
-                        }}
-                      />
-                      <span className="text-xs font-bold text-slate-700">Micrófono</span>
-                    </label>
-
-                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${grupo.configuracion?.voz_activada !== false ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
-                      <input
-                        type="checkbox"
-                        className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                        checked={grupo.configuracion?.voz_activada ?? true}
-                        onChange={async (e) => {
-                          const newVal = e.target.checked;
-                          const newConfig = { ...grupo.configuracion, voz_activada: newVal };
-                          const { error } = await supabase.from('grupos').update({ configuracion: newConfig }).eq('id', grupo.id);
-                          if (error) toast.error("Error"); else toast.success(`Voz IA ${newVal ? 'activada' : 'desactivada'}`);
-                        }}
-                      />
-                      <span className="text-xs font-bold text-slate-700">Voz IA</span>
-                    </label>
-                  </div>
+                {/* --- CONFIGURACIÓN DE AULA (BOTÓN MODAL) --- */}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowConfigModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 font-bold rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm"
+                  >
+                    <Brain className="w-4 h-4" />
+                    Configurar Mentor IA
+                  </button>
                 </div>
               </div>
             </div>
@@ -281,6 +249,19 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
           </div>
         )}
       </main>
+
+      {/* Floating Config Button (If user is teacher) or placed in header */}
+      {/* Actually, looking at the code, we need a button to OPEN this modal. The user showed a modal image. 
+           In DetalleGrupo, I need to find where this modal is effectively used or add a button to open it. 
+           I see I was importing it but maybe not using it? Wait, I don't see ModalConfiguracionIA used in DetalleGrupo in previous context.
+           I need to import it and add a button to open it.
+       */}
+      {showConfigModal && (
+        <ModalConfiguracionIA
+          grupo={grupo}
+          onClose={() => setShowConfigModal(false)}
+        />
+      )}
     </div>
   );
 }
