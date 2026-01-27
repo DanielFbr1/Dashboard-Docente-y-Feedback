@@ -74,7 +74,13 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
   const [displayedContent, setDisplayedContent] = useState('');
   const [typingId, setTypingId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+
+  // CONFIGURACIÓN: Por defecto muteado (true) y chequeo de permisos de Admin (grupo.configuracion)
+  // Si config es undefined, asumimos TRUE (permitido) por compatibilidad
+  const vozPermitidaAdmin = grupo.configuracion?.voz_activada ?? true;
+  const microPermitidoAdmin = grupo.configuracion?.microfono_activado ?? true;
+
+  const [isMuted, setIsMuted] = useState(true); // Solicitud usuario: desactivado por defecto
   const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -376,13 +382,15 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>
-        <button
-          onClick={toggleMute}
-          className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
-          title={isMuted ? "Activar voz" : "Silenciar voz"}
-        >
-          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-        </button>
+        {vozPermitidaAdmin && (
+          <button
+            onClick={toggleMute}
+            className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
+            title={isMuted ? "Activar voz" : "Silenciar voz"}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+        )}
       </div>
 
 
@@ -486,7 +494,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
           </div>
         ) : (
           <div className="flex gap-2">
-            {speechSupported && (
+            {speechSupported && microPermitidoAdmin && (
               <button
                 type="button"
                 onClick={toggleListening}

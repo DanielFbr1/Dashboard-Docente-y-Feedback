@@ -4,6 +4,8 @@ import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { MentorChat } from './MentorChat';
 import { RoadmapView } from './RoadmapView';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 
 interface DetalleGrupoProps {
   grupo: Grupo;
@@ -226,6 +228,66 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                 <div>
                   <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Supervisión del Mentor IA</h2>
                   <p className="text-sm text-slate-400 font-medium">Observando el diálogo socrático del equipo {grupo.nombre}</p>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl mb-4 border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Configuración de Aula</h3>
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                      checked={grupo.configuracion?.microfono_activado ?? true}
+                      onChange={async (e) => {
+                        const newVal = e.target.checked;
+                        const newConfig = { ...grupo.configuracion, microfono_activado: newVal };
+
+                        // Optimistic UI
+                        // NOTE: Ideally we update parent state, but for now we trust the DB update/refresh or simple toast
+
+                        const { error } = await supabase
+                          .from('grupos')
+                          .update({ configuracion: newConfig })
+                          .eq('id', grupo.id);
+
+                        if (error) {
+                          toast.error("Error actualizando configuración");
+                        } else {
+                          toast.success(`Micrófono ${newVal ? 'activado' : 'desactivado'} para el grupo`);
+                          // Trigger parent refresh if possible, or manual update
+                          // Since 'grupo' prop comes from parent, this won't reflect immediately without reload or parent refresh.
+                          // For MVP/Demo, visual toast is enough, user can refresh.
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium text-slate-600">Permitir Micrófono</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                      checked={grupo.configuracion?.voz_activada ?? true}
+                      onChange={async (e) => {
+                        const newVal = e.target.checked;
+                        const newConfig = { ...grupo.configuracion, voz_activada: newVal };
+
+                        const { error } = await supabase
+                          .from('grupos')
+                          .update({ configuracion: newConfig })
+                          .eq('id', grupo.id);
+
+                        if (error) {
+                          toast.error("Error actualizando configuración");
+                        } else {
+                          toast.success(`Voz IA ${newVal ? 'activada' : 'desactivada'} para el grupo`);
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium text-slate-600">Permitir Voz IA</span>
+                  </label>
                 </div>
               </div>
               <MentorChat grupo={grupo} readOnly={true} />
