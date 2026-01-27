@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
-interface Perfil {
+export interface Perfil {
     id: string;
     nombre: string;
-    rol: 'profesor' | 'alumno';
+    rol: 'profesor' | 'alumno' | 'familia';
     clase?: string;
     grupo_id?: number;
     proyecto_id?: string;
