@@ -195,7 +195,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
       scrollToBottom();
 
       if (i < text.length) {
-        const randomSpeed = Math.floor(Math.random() * 20) + 70; // 70-90ms para igualar velocidad de voz (aprox 150ppm)
+        const randomSpeed = Math.floor(Math.random() * 15) + 20; // 20-35ms (Rápido para igualar voz fluida)
         setTimeout(typeChar, randomSpeed);
       } else {
         setTypingId(null);
@@ -372,13 +372,13 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
   return (
     <div className="flex flex-col h-[600px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-slate-900 p-4 text-white">
+      <div className="bg-slate-900 p-4 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.3 (Admin)</span></h3>
+            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.4 (Fast)</span></h3>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
           </div>
         </div>
