@@ -70,7 +70,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
   const [loading, setLoading] = useState(true);
   const mensajesEndRef = useRef<HTMLDivElement>(null);
 
-  // --- NUEVO: ESTADOS DE VOZ Y ESCRITURA ---
+  // --- NUEVO: ESTADOS DE VOZ Y ESCRITURA MEJORADOS ---
   const [displayedContent, setDisplayedContent] = useState('');
   const [typingId, setTypingId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -84,14 +84,29 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
       setSpeechSupported(true);
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = false; // Mejor precisión para comandos cortos
       recognitionRef.current.lang = 'es-ES';
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.interimResults = true; // Ver lo que escucha en tiempo real
 
       recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputMensaje((prev) => prev + (prev ? ' ' : '') + transcript);
-        setIsListening(false);
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        // Si hay resultado final, lo añadimos
+        if (finalTranscript) {
+          setInputMensaje((prev) => prev + (prev ? ' ' : '') + finalTranscript);
+          setIsListening(false);
+        }
+        // Podríamos mostrar interimTranscript en algún sitio, pero por ahora simplificamos
+        // Para feedback visual inmediato, podríamos usar un placeholder dinámico
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -122,12 +137,34 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
     setIsMuted(!isMuted);
   };
 
+  const cleanTextForTTS = (text: string) => {
+    return text
+      .replace(/[*#_`]/g, '') // Markdown chars
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1F200}-\u{1F2FF}\u{1F004}\u{1F0CF}\u{1F170}\u{1F171}\u{1F17E}\u{1F17F}\u{1F18E}\u{1F191}-\u{1F19A}]/gu, '') // Emojis
+      .trim();
+  };
+
   const speakText = (text: string) => {
     if (isMuted || !text) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+
+    const cleanText = cleanTextForTTS(text);
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'es-ES';
-    utterance.rate = 1.0;
+
+    // Intentar seleccionar una voz "Google" o "Microsoft" que suelen ser más naturales
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(v =>
+      (v.name.includes('Google') || v.name.includes('Microsoft')) && v.lang.includes('es')
+    );
+
+    if (naturalVoice) {
+      utterance.voice = naturalVoice;
+      // Ajustes sutiles para sonar menos robótico
+      utterance.pitch = 1.0;
+      utterance.rate = 1.0;
+    }
+
     window.speechSynthesis.speak(utterance);
   };
 
@@ -143,17 +180,20 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
 
     setDisplayedContent('');
 
+    // --- CAMBIO: Hablar AL PRINCIPIO (Simultáneo) ---
+    speakText(text);
+
     const typeChar = () => {
       setDisplayedContent(text.substring(0, i + 1));
       i++;
       scrollToBottom();
 
       if (i < text.length) {
-        const randomSpeed = Math.floor(Math.random() * 30) + 30; // 30-60ms
+        const randomSpeed = Math.floor(Math.random() * 20) + 20; // Un poco más rápido (20-40ms) para acompañar la voz
         setTimeout(typeChar, randomSpeed);
       } else {
         setTypingId(null);
-        speakText(text); // Hablar al terminar
+        // Ya no hablamos al final
       }
     };
 
