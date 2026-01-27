@@ -5,7 +5,7 @@ import { Session, User } from '@supabase/supabase-js';
 interface Perfil {
     id: string;
     nombre: string;
-    rol: 'profesor' | 'alumno';
+    rol: 'profesor' | 'alumno' | 'familia';
     clase?: string;
     grupo_id?: number;
     proyecto_id?: string;
@@ -36,10 +36,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [perfil, setPerfil] = useState<Perfil | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchPerfil = (user: User) => {
+    const fetchPerfil = async (user: User) => {
         try {
             console.log("👤 Analizando metadata para:", user.id);
-            const metadata = user.user_metadata;
+            let metadata = user.user_metadata;
+
+            // CHECK ROLE SWITCH INTENT
+            const intendedRole = localStorage.getItem('intended_role');
+            if (intendedRole && (intendedRole === 'profesor' || intendedRole === 'alumno' || intendedRole === 'familia')) {
+                if (metadata.rol !== intendedRole) {
+                    console.log(`🔄 Cambio de rol detectado: ${metadata.rol} -> ${intendedRole}`);
+                    // Actualizar en Supabase
+                    const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
+                        data: { rol: intendedRole }
+                    });
+
+                    if (error) {
+                        console.error("Error actualizando rol:", error);
+                    } else if (updatedUser) {
+                        metadata = updatedUser.user_metadata;
+                        // update local user object too
+                        setUser(updatedUser);
+                    }
+                }
+                // Limpiar intent para futuras sesiones (o mantenerlo? Mejor limpiar)
+                localStorage.removeItem('intended_role');
+            }
 
             if (metadata?.rol) {
                 const fetchedPerfil: Perfil = {
@@ -79,7 +101,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(session?.user ?? null);
 
                 if (session?.user) {
-                    fetchPerfil(session.user);
+                    await fetchPerfil(session.user);
                 }
             } catch (err) {
                 console.error("❌ Error en initializeAuth:", err);
@@ -94,11 +116,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!isMounted) return;
             console.log("🔄 Evento Auth:", event, session ? "Hay sesión" : "Sin sesión");
 
+            if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setUser(null);
+                setPerfil(null);
+                setLoading(false);
+                return;
+            }
+
             setSession(session);
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                fetchPerfil(session.user);
+                // Si es un SIGNED_IN, verificamos el perfil (y el posible cambio de rol)
+                await fetchPerfil(session.user);
             } else {
                 setPerfil(null);
             }
@@ -131,7 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const { data: { user: latestUser } } = await supabase.auth.getUser();
             if (latestUser) {
                 setUser(latestUser);
-                fetchPerfil(latestUser);
+                await fetchPerfil(latestUser);
             }
         } catch (err) {
             console.error("❌ Error refrescando perfil:", err);

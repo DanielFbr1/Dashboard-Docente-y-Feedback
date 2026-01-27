@@ -6,6 +6,7 @@ import { ProjectsDashboard } from './pages/ProjectsDashboard';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { GroupDetail } from './pages/GroupDetail';
 import { DashboardAlumno } from './components/DashboardAlumno';
+import { DashboardFamilia } from './components/DashboardFamilia';
 import { Proyecto, Grupo } from './types';
 import { supabase } from './lib/supabase';
 import { Toaster } from 'sonner';
@@ -126,6 +127,11 @@ function AppContent() {
         onLogout={signOut}
       />
     );
+  }
+
+  // Si es familia/padre
+  if (perfil && perfil.rol === 'familia') {
+    return <DashboardFamilia />;
   }
 
   return (
