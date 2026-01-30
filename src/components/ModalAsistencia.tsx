@@ -34,7 +34,14 @@ export function ModalAsistencia({ grupos, proyectoId, onClose }: ModalAsistencia
                         grupo: g.nombre,
                         presente: false // Default to false until checked against DB
                     }))
-                ).sort((a, b) => a.nombre.localeCompare(b.nombre));
+                ).reduce((acc, current) => {
+                    const x = acc.find(item => item.nombre === current.nombre);
+                    if (!x) {
+                        return acc.concat([current]);
+                    } else {
+                        return acc;
+                    }
+                }, [] as AlumnoAsistencia[]).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 // 2. Fetch asistencia existente para esta fecha
                 const { data: asistenciaExistente } = await supabase

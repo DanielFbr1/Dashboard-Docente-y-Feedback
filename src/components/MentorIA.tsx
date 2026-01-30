@@ -276,7 +276,7 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSend} className="p-6 bg-white border-t border-slate-100">
+            <div className="p-6 bg-white border-t border-slate-100">
                 <div className="flex gap-2">
                     {speechSupported && (
                         <button
@@ -295,18 +295,24 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSend(e as any);
+                            }
+                        }}
                         placeholder={isListening ? "Escuchando..." : "Pregunta sobre tu proyecto..."}
                         className="flex-1 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                     <button
-                        type="submit"
+                        type="button"
+                        onClick={(e) => handleSend(e as any)}
                         disabled={loading || !input.trim()}
                         className="bg-indigo-600 text-white p-2 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-indigo-200"
                     >
                         <Send className="w-5 h-5" />
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     );
 }

@@ -8,6 +8,8 @@ import { ModalCrearGrupo } from './ModalCrearGrupo';
 import { ModalSubirRecurso } from './ModalSubirRecurso';
 import { SistemaCodigoSala } from './SistemaCodigoSala';
 import { ListaAlumnosEnLinea } from './ListaAlumnosEnLinea';
+import { ListaAlumnos } from './ListaAlumnos';
+import { PerfilAlumno } from './PerfilAlumno';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { LivingTree } from './LivingTree';
 import { Grupo, DashboardSection, ProyectoActivo } from '../types';
@@ -58,6 +60,7 @@ export function DashboardDocente({
   onUpdateProjectName
 }: DashboardDocenteProps) {
   const [modalCrearGrupoAbierto, setModalCrearGrupoAbierto] = useState(false);
+  const [menuAlumnosAbierto, setMenuAlumnosAbierto] = useState(false); // New state for dropdown
   const [grupoEditando, setGrupoEditando] = useState<Grupo | null>(null);
   const [mostrarCodigoSala, setMostrarCodigoSala] = useState(false);
   const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
@@ -68,7 +71,9 @@ export function DashboardDocente({
   const [modalAsignarAbierto, setModalAsignarAbierto] = useState(false);
   const [grupoParaTareas, setGrupoParaTareas] = useState<Grupo | null>(null);
   const [modalAsistenciaOpen, setModalAsistenciaOpen] = useState(false);
+  const [modalListaAlumnosAbierto, setModalListaAlumnosAbierto] = useState(false);
   const [modalSubirRecursoAbierto, setModalSubirRecursoAbierto] = useState(false);
+  const [alumnoParaEvaluar, setAlumnoParaEvaluar] = useState<{ nombre: string, grupo: Grupo } | null>(null);
 
   // Project Renaming State
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
@@ -230,6 +235,22 @@ export function DashboardDocente({
         />
       )}
 
+      {modalListaAlumnosAbierto && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-2xl font-black text-gray-800">Evaluación y Listado de Alumnado</h2>
+              <button onClick={() => setModalListaAlumnosAbierto(false)} className="p-2 hover:bg-white hover:text-red-500 rounded-xl transition-all font-bold text-gray-400">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+              <ListaAlumnos grupos={grupos} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Asignar Tareas (Profesor) */}
       {grupoEditando && modalCrearGrupoAbierto === false && (
         // We use 'grupoEditando' state to track which group we are assigning tasks to (hacky reuse or new state?)
@@ -273,17 +294,6 @@ export function DashboardDocente({
 
         <nav className="flex-1 p-4">
           <button
-            onClick={() => { onSectionChange('resumen'); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'resumen'
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
-              : 'text-gray-600 hover:bg-gray-100 font-medium'
-              }`}
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span>Resumen general</span>
-          </button>
-
-          <button
             onClick={() => { onSectionChange('grupos'); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'grupos'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
@@ -295,15 +305,17 @@ export function DashboardDocente({
           </button>
 
           <button
-            onClick={() => { onSectionChange('interacciones'); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'interacciones'
+            onClick={() => { onSectionChange('resumen'); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${currentSection === 'resumen'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 font-bold'
               : 'text-gray-600 hover:bg-gray-100 font-medium'
               }`}
           >
-            <MessageSquare className="w-5 h-5" />
-            <span>Interacciones IA</span>
+            <LayoutDashboard className="w-5 h-5" />
+            <span>Progreso</span>
           </button>
+
+
 
           <button
             onClick={() => { onSectionChange('trabajo-compartido'); setMobileMenuOpen(false); }}
@@ -326,6 +338,8 @@ export function DashboardDocente({
             <ClipboardCheck className="w-5 h-5" />
             <span>Evaluación</span>
           </button>
+
+
 
           <div className="mt-6 pt-4 border-t border-gray-200">
             <ListaAlumnosEnLinea proyectoId={proyectoActual?.id} grupos={grupos} />
@@ -356,12 +370,81 @@ export function DashboardDocente({
                 <LayoutDashboard className="w-6 h-6" />
               </button>
               {/* Oculto en móvil para ganar espacio */}
+              {/* Oculto en móvil para ganar espacio */}
               <div className="hidden md:flex flex-col gap-1">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">AI Tico - Panel Docente</h1>
-                <p className="text-sm text-gray-500 font-medium italic">Gestión interactiva del profesorado</p>
+                {proyectoActual ? (
+                  <div className="flex flex-col">
+                    {/* Project Name & Edit */}
+                    {isEditingProjectName ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingProjectName}
+                          onChange={(e) => setEditingProjectName(e.target.value)}
+                          className="text-xl font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                        />
+                        <button
+                          onClick={async () => {
+                            if (editingProjectName.trim()) {
+                              await onUpdateProjectName(editingProjectName.trim());
+                              setIsEditingProjectName(false);
+                            }
+                          }}
+                          className="p-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setIsEditingProjectName(false)}
+                          className="p-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                          <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            {proyectoActual.nombre}
+                            <button
+                              onClick={() => {
+                                setEditingProjectName(proyectoActual.nombre);
+                                setIsEditingProjectName(true);
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Renombrar proyecto"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          </h1>
+                          <button
+                            onClick={onCambiarProyecto}
+                            className="flex items-center gap-1 px-3 py-1 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
+                          >
+                            <FolderOpen className="w-3 h-3" />
+                            Cambiar
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-600 text-white text-sm font-black px-3 py-1 rounded-lg shadow-sm tracking-wider">
+                            CÓDIGO: <span className="text-lg">{proyectoActual.codigo_sala}</span>
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">AI Tico - Panel Docente</h1>
+                  </>
+                )}
               </div>
               {/* Texto visible solo en móvil como indicador */}
-              <div className="md:hidden font-black text-slate-800 text-sm uppercase tracking-widest">Panel Docente</div>
+              <div className="md:hidden font-black text-slate-800 text-sm uppercase tracking-widest">
+                {proyectoActual ? proyectoActual.nombre : 'Panel Docente'}
+              </div>
             </div>
 
             {/* Acciones en Cuadrícula 2x2 en móvil */}
@@ -375,10 +458,16 @@ export function DashboardDocente({
                 <span>Lista</span>
               </button>
 
-              <div className="flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 text-white rounded-xl font-black shadow-md text-xs tracking-tighter md:tracking-widest md:text-lg">
-                <Key className="w-4 h-4 md:w-5 md:h-5" />
-                <span>{proyectoActual?.codigo_sala || '---'}</span>
-              </div>
+              {/* Lista Alumnos Boton Modal */}
+              <button
+                onClick={() => setModalListaAlumnosAbierto(true)}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white text-purple-600 border-2 border-purple-100 hover:border-purple-300 rounded-xl font-bold transition-all text-xs"
+              >
+                <Users className="w-4 h-4 md:w-5 md:h-5" />
+                <span>Alumnado</span>
+              </button>
+
+
 
               {numPendientes > 0 ? (
                 <button
@@ -436,72 +525,7 @@ export function DashboardDocente({
             </div>
           </div>
 
-          {proyectoActual && (
-            <div className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-white rounded-2xl border border-slate-200 mt-4 shadow-sm">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm text-blue-600 shrink-0">
-                <FolderOpen className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Proyecto en curso</div>
 
-                {isEditingProjectName ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editingProjectName}
-                      onChange={(e) => setEditingProjectName(e.target.value)}
-                      className="text-base md:text-xl font-bold text-slate-900 bg-white border border-slate-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto"
-                      autoFocus
-                    />
-                    <button
-                      onClick={async () => {
-                        if (editingProjectName.trim()) {
-                          await onUpdateProjectName(editingProjectName.trim());
-                          setIsEditingProjectName(false);
-                        }
-                      }}
-                      className="p-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                      title="Guardar nombre"
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setIsEditingProjectName(false)}
-                      className="p-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                      title="Cancelar"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 group/title">
-                    <div className="font-bold text-slate-900 text-base md:text-xl leading-tight truncate">
-                      {proyectoActual.nombre}
-                    </div>
-                    <button
-                      onClick={() => {
-                        setEditingProjectName(proyectoActual.nombre);
-                        setIsEditingProjectName(true);
-                      }}
-                      className="opacity-0 group-hover/title:opacity-100 transition-opacity p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Renombrar proyecto"
-                    >
-                      <Pencil className="w-3 h-3 md:w-4 md:h-4" />
-                    </button>
-                  </div>
-                )}
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 uppercase tracking-tighter">SALA: {proyectoActual.codigo_sala}</div>
-                </div>
-              </div>
-              <button
-                onClick={onCambiarProyecto}
-                className="px-4 py-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all text-xs font-bold shadow-sm whitespace-nowrap"
-              >
-                Cambiar
-              </button>
-            </div>
-          )}
 
         </header>
 
@@ -509,173 +533,142 @@ export function DashboardDocente({
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
           <div className="max-w-7xl mx-auto space-y-8">
             {currentSection === 'resumen' && (
-              <div className="space-y-8">
-                {grupos.length === 0 ? (
-                  <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
-                    <h2 className="text-2xl font-black text-gray-900 mb-2 mt-6">Tu espacio está listo</h2>
-                    <p className="text-gray-500 max-w-md mx-auto mb-8 font-medium">Crea los grupos para empezar o carga un ejemplo completo.</p>
-                    <button onClick={onCargarEjemplo} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-xl hover:scale-105 transition-all">Cargar ejemplo completo</button>
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 items-start">
+
+                {/* COLUMNA IZQUIERDA: TABLERO DE MISIONES (MAIN) */}
+                <div className="xl:col-span-3 space-y-8 order-2 xl:order-1">
+
+                  {/* TABLERO GLOBAL DE TAREAS */}
+                  <div className="bg-slate-100 rounded-[2.5rem] p-4 md:p-8 border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600">
+                        <ClipboardCheck className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                          Tablero Global de Misiones
+                          <span className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-full border border-indigo-200">
+                            {grupos.reduce((acc, g) => acc + (g.hitos?.length || 0), 0)} Tareas Totales
+                          </span>
+                        </h2>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seguimiento de todas las tareas activas</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* COLUMNA PENDIENTES */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between px-2">
+                          <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest">En Revisión / Pendientes</h3>
+                          <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                            {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length, 0)}
+                          </span>
+                        </div>
+                        <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[300px] max-h-[600px] overflow-y-auto custom-scrollbar">
+                          {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                            <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="bg-indigo-50 text-indigo-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
+                                {task.estado === 'revision' && <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" title="Pendiente de revisión"></span>}
+                              </div>
+                              <p className="text-sm font-bold text-slate-700 leading-tight">{task.titulo}</p>
+                            </div>
+                          ))}
+                          {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length === 0) && (
+                            <div className="text-center py-8 text-slate-400 text-xs italic font-medium">No hay tareas pendientes</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* COLUMNA EN CURSO */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between px-2">
+                          <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest">En Curso</h3>
+                          <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                            {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length, 0)}
+                          </span>
+                        </div>
+                        <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[300px] max-h-[600px] overflow-y-auto custom-scrollbar">
+                          {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                            <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default relative overflow-hidden">
+                              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                              <div className="flex justify-between items-start mb-2 pl-2">
+                                <span className="bg-slate-50 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
+                              </div>
+                              <p className="text-sm font-bold text-slate-700 leading-tight pl-2">{task.titulo}</p>
+                            </div>
+                          ))}
+                          {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length === 0) && (
+                            <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Todo tranquilo por aquí</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* COLUMNA COMPLETADAS */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between px-2">
+                          <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest">Completadas</h3>
+                          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                            {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'aprobado').length, 0)}
+                          </span>
+                        </div>
+                        <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[300px] max-h-[600px] overflow-y-auto custom-scrollbar">
+                          {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
+                            <div key={idx} className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 opacity-80 hover:opacity-100 transition-all cursor-default">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="bg-white text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px] border border-emerald-100">{task.grupoNombre}</span>
+                              </div>
+                              <p className="text-sm font-bold text-emerald-800 leading-tight line-through decoration-emerald-500/50">{task.titulo}</p>
+                            </div>
+                          ))}
+                          {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'aprobado').length === 0) && (
+                            <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Aún no hay logros desbloqueados</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    {mostrandoEjemplo && (
-                      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-indigo-900">Modo de Demostración / Datos Cargados</p>
-                            <p className="text-xs text-indigo-600 font-medium">Puedes interactuar con los datos o borrarlos para empezar de cero.</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={onLimpiarDatos}
-                          className="w-full md:w-auto px-5 py-2.5 bg-white text-indigo-600 border-2 border-indigo-100 hover:border-indigo-200 hover:bg-indigo-50 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm whitespace-nowrap"
-                        >
-                          Limpiar Datos
-                        </button>
-                      </div>
-                    )}
-                    {/* Árbol del Proyecto Global */}
-                    <div className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-10 overflow-hidden relative">
-                      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
 
-                      <div className="relative z-10 shrink-0">
-                        <LivingTree
-                          progress={grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length}
-                          health={100}
-                          size={240}
-                        />
-                      </div>
+                </div>
 
-                      <div className="flex-1 space-y-4 text-center md:text-left">
-                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight uppercase leading-tight">Estado Global del Proyecto</h2>
-                        <p className="text-slate-500 font-medium leading-relaxed max-w-xl text-sm md:text-base">
-                          Este árbol representa el crecimiento conjunto de toda la clase. Cada tarea aprobada en los grupos nutre el progreso general de la sala. ¡Seguid así!
-                        </p>
-                        <div className="grid grid-cols-2 lg:flex gap-4 md:gap-6 justify-center md:justify-start">
-                          <div className="bg-blue-50 px-4 md:px-6 py-3 rounded-2xl border border-blue-100 flex-1 md:flex-none">
-                            <div className="text-xl md:text-2xl font-black text-blue-600">{(grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length).toFixed(0)}%</div>
-                            <div className="text-[9px] md:text-[10px] font-bold text-blue-400 uppercase tracking-widest leading-none">Crecimiento</div>
-                          </div>
-                          <div className="bg-emerald-50 px-4 md:px-6 py-3 rounded-2xl border border-emerald-100 flex-1 md:flex-none">
-                            <div className="text-xl md:text-2xl font-black text-emerald-600 whitespace-nowrap">Saludable</div>
-                            <div className="text-[9px] md:text-[10px] font-bold text-emerald-400 uppercase tracking-widest leading-none">Estado Vital</div>
-                          </div>
-                        </div>
-                      </div>
+                {/* COLUMNA DERECHA: BIO-ESTADO (STICKY SIDEBAR) */}
+                <div className="xl:col-span-1 order-1 xl:order-2 space-y-6">
+
+                  {/* Living Tree Card - Minimalist Version */}
+                  <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden sticky top-24 p-6 flex flex-col items-center min-h-[500px] justify-center">
+                    <div className="relative w-48 h-48 -my-4">
+                      <LivingTree
+                        progress={grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length}
+                        health={100}
+                        size={200}
+                        showLabels={false}
+                      />
                     </div>
 
-                    {/* TABLERO GLOBAL DE TAREAS */}
-                    <div className="bg-slate-100 rounded-[2.5rem] p-4 md:p-8 border border-slate-200">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600">
-                          <ClipboardCheck className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Tablero Global de Misiones</h2>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seguimiento de todas las tareas activas</p>
-                        </div>
+                    <div className="mt-8 text-center">
+                      <div className="text-3xl font-black text-blue-600">{(grupos.reduce((acc, g) => acc + g.progreso, 0) / grupos.length).toFixed(0)}%</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Crecimiento Global</div>
+                    </div>
+                  </div>
+
+                  {mostrandoEjemplo && (
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 text-center shadow-inner">
+                      <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="w-5 h-5" />
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* COLUMNA PENDIENTES */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest">En Revisión / Pendientes</h3>
-                            <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
-                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length, 0)}
-                            </span>
-                          </div>
-                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
-                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
-                              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default">
-                                <div className="flex justify-between items-start mb-2">
-                                  <span className="bg-indigo-50 text-indigo-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
-                                  {task.estado === 'revision' && <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" title="Pendiente de revisión"></span>}
-                                </div>
-                                <p className="text-sm font-bold text-slate-700 leading-tight">{task.titulo}</p>
-                              </div>
-                            ))}
-                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'revision' || h.estado === 'propuesto').length === 0) && (
-                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">No hay tareas pendientes</div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* COLUMNA EN CURSO */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest">En Curso</h3>
-                            <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full">
-                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length, 0)}
-                            </span>
-                          </div>
-                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
-                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
-                              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-default relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                                <div className="flex justify-between items-start mb-2 pl-2">
-                                  <span className="bg-slate-50 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px]">{task.grupoNombre}</span>
-                                </div>
-                                <p className="text-sm font-bold text-slate-700 leading-tight pl-2">{task.titulo}</p>
-                              </div>
-                            ))}
-                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'en_progreso' || h.estado === 'pendiente').length === 0) && (
-                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Todo tranquilo por aquí</div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* COLUMNA COMPLETADAS */}
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-center justify-between px-2">
-                            <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest">Completadas</h3>
-                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">
-                              {grupos.reduce((acc, g) => acc + (g.hitos || []).filter(h => h.estado === 'aprobado').length, 0)}
-                            </span>
-                          </div>
-                          <div className="space-y-3 bg-slate-200/50 p-4 rounded-2xl min-h-[200px] max-h-[500px] overflow-y-auto">
-                            {grupos.flatMap(g => (g.hitos || []).filter(h => h.estado === 'aprobado').map(h => ({ ...h, grupoNombre: g.nombre, grupoId: g.id }))).map((task, idx) => (
-                              <div key={idx} className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 opacity-80 hover:opacity-100 transition-all cursor-default">
-                                <div className="flex justify-between items-start mb-2">
-                                  <span className="bg-white text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider truncate max-w-[120px] border border-emerald-100">{task.grupoNombre}</span>
-                                </div>
-                                <p className="text-sm font-bold text-emerald-800 leading-tight line-through decoration-emerald-500/50">{task.titulo}</p>
-                              </div>
-                            ))}
-                            {grupos.every(g => (g.hitos || []).filter(h => h.estado === 'aprobado').length === 0) && (
-                              <div className="text-center py-8 text-slate-400 text-xs italic font-medium">Aún no hay logros desbloqueados</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <p className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-3">Modo Demo Activo</p>
+                      <button
+                        onClick={onLimpiarDatos}
+                        className="w-full py-2 bg-white text-indigo-600 border border-indigo-200 hover:border-indigo-300 rounded-xl font-bold text-xs uppercase transition-all shadow-sm"
+                      >
+                        Reiniciar Datos
+                      </button>
                     </div>
+                  )}
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <Card_Metrica titulo="Grupos activos" numero={grupos.length} descripcion="trabajando ahora" color="blue" />
-                      <Card_Metrica titulo="Consultas IA" numero={totalInteracciones} descripcion="preguntas realizadas" color="green" />
-                      <Card_Metrica titulo="Tareas" numero={hitosCompletados} descripcion={`de ${grupos.length * 5} totales`} color="yellow" />
-                      <Card_Metrica titulo="Bloqueados" numero={gruposBloqueados} descripcion="necesitan ayuda" color="red" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {grupos.map((grupo) => (
-                        <Card_Grupo
-                          key={grupo.id}
-                          grupo={grupo}
-                          onClick={() => onSelectGrupo(grupo)}
-                          onEdit={() => { setGrupoEditando(grupo); setModalCrearGrupoAbierto(true); }}
-                          onDelete={() => { if (confirm(`¿Eliminar "${grupo.nombre}"?`)) onEliminarGrupo(grupo.id); }}
-                          onAssignTasks={() => { setGrupoParaTareas(grupo); setModalAsignarAbierto(true); }}
-                          mostrarBotonEditar={true}
-                          mostrarBotonBorrar={true}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
+
             )}
 
             {currentSection === 'grupos' && (
@@ -760,21 +753,33 @@ export function DashboardDocente({
       </div >
 
       {/* Modal código sala */}
-      {
-        mostrarCodigoSala && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
-                <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
-                <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-10">
-                <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
-              </div>
+      {mostrarCodigoSala && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-8 border-b-2 border-gray-100">
+              <h3 className="text-3xl font-black text-gray-900 tracking-tight">Código de Clase</h3>
+              <button onClick={() => setMostrarCodigoSala(false)} className="text-gray-400 hover:text-red-500 font-black text-2xl">×</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-10">
+              <SistemaCodigoSala codigoSala={proyectoActual?.codigo_sala} />
             </div>
           </div>
-        )
+        </div>
+      )
       }
+
+      {/* Modal Evaluación Individual */}
+      {alumnoParaEvaluar && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <PerfilAlumno
+              alumno={alumnoParaEvaluar.nombre}
+              grupo={alumnoParaEvaluar.grupo}
+              onClose={() => setAlumnoParaEvaluar(null)}
+            />
+          </div>
+        </div>
+      )}
     </div >
   );
 }

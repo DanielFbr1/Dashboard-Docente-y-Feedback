@@ -1,10 +1,12 @@
-import { ArrowLeft, CheckCircle2, Circle, Brain, Share2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Brain, Share2, MessageSquare, Users, Bot, Pencil, ClipboardList, ExternalLink, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Grupo, ProyectoFase } from '../types';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { MentorChat } from './MentorChat';
+import { ChatGrupo } from './ChatGrupo';
 import { RoadmapView } from './RoadmapView';
 import { ModalConfiguracionIA } from './ModalConfiguracionIA';
+import { LivingTree } from './LivingTree';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
@@ -13,33 +15,19 @@ interface DetalleGrupoProps {
   fases: ProyectoFase[];
   onBack: () => void;
   onViewFeedback?: () => void;
+  onAssignTask?: () => void;
+  onEditGroup?: () => void;
+  onViewStudent?: (alumno: string) => void;
 }
 
-interface TipoPregunta {
-  tipo: string;
-  cantidad: number;
-  color: string;
-  icon: string | any;
-}
-
-export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGrupoProps) {
-  const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat'>('detalle');
+export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback, onAssignTask, onEditGroup, onViewStudent }: DetalleGrupoProps) {
+  const [vistaActiva, setVistaActiva] = useState<'detalle' | 'compartir' | 'chat' | 'tareas'>('detalle');
   const [showConfigModal, setShowConfigModal] = useState(false);
 
   // Asegurar que empezamos arriba al entrar al detalle
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  // Hardcoded stats can remain for now or be derived
-  const tiposPreguntas: TipoPregunta[] = [
-    { tipo: 'Metacognitivas', cantidad: 5, color: 'bg-purple-500', icon: '💡' },
-    { tipo: 'Técnica', cantidad: 3, color: 'bg-blue-500', icon: '🛠️' },
-    { tipo: 'Organizativas', cantidad: 2, color: 'bg-green-500', icon: '📅' },
-    { tipo: 'Creativas', cantidad: 2, color: 'bg-orange-500', icon: '🎨' }
-  ];
-
-  const maxCantidad = Math.max(...tiposPreguntas.map(t => t.cantidad));
 
   const getEstadoColor = (estado: Grupo['estado']) => {
     switch (estado) {
@@ -53,128 +41,163 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 md:py-5 sticky top-0 z-20">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 sticky top-0 z-30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-all">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 text-sm font-medium"
+          className="group flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold text-sm"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Volver al dashboard</span>
+          <div className="p-2 bg-slate-100 rounded-full group-hover:bg-slate-200 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+          </div>
+          <span>Volver</span>
         </button>
 
-        <div className="flex flex-wrap md:flex-nowrap gap-1 md:gap-4 mt-2">
-          <button
-            onClick={() => setVistaActiva('detalle')}
-            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 text-center ${vistaActiva === 'detalle'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
-              }`}
-          >
-            Detalle
-          </button>
-          <button
-            onClick={() => setVistaActiva('compartir')}
-            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2 text-center ${vistaActiva === 'compartir'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
-              }`}
-          >
-            <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Trabajo compartido</span>
-            <span className="sm:hidden">Recursos</span>
-          </button>
-          <button
-            onClick={() => setVistaActiva('chat')}
-            className={`flex-1 md:flex-none px-4 py-3 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2 text-center ${vistaActiva === 'chat'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50 md:bg-transparent'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
-              }`}
-          >
-            <Brain className="w-4 h-4" />
-            <span className="hidden sm:inline">Control IA</span>
-            <span className="sm:hidden">IA</span>
-          </button>
-        </div>
+        <nav className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-100 mx-auto">
+          {[
+            { id: 'detalle', label: 'Detalles', icon: Circle },
+            { id: 'tareas', label: 'Tareas', icon: CheckCircle2 },
+            { id: 'compartir', label: 'Recursos', icon: Share2 },
+            { id: 'chat', label: 'Comunicaciones', icon: MessageSquare },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setVistaActiva(tab.id as any)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all ${vistaActiva === tab.id
+                ? 'bg-white text-indigo-600 shadow-sm border border-slate-200'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 border border-transparent'
+                }`}
+            >
+              <tab.icon className={`w-4 h-4 ${vistaActiva === tab.id ? 'text-indigo-600' : 'text-slate-400'}`} />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
       </header>
 
       <main className="flex-1 p-4 md:p-8 w-full max-w-7xl mx-auto overflow-hidden">
         {vistaActiva === 'detalle' ? (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white border border-gray-200 rounded-[2rem] p-6 md:p-8 mb-6 shadow-sm">
-              {/* Header Stats & Info */}
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 flex flex-wrap items-center gap-3">
-                      {grupo.nombre}
-                      {grupo.pedir_ayuda && (
-                        <span className="animate-pulse px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-rose-200">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            {/* LEFT COLUMN: INFO & ACTIONS */}
+            <div className="lg:col-span-2 space-y-6">
+
+              {/* Main Card */}
+              <div className="bg-white border border-gray-200 rounded-[2rem] p-8 shadow-sm">
+                <div className="flex flex-col gap-6">
+
+                  {/* Header */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-gray-100 pb-6">
+                    <div>
+                      <h1 className="text-3xl font-black text-gray-900 mb-2 flex flex-wrap items-center gap-3">
+                        {grupo.nombre}
+                        {grupo.pedir_ayuda && (
+                          <span className="animate-pulse px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-rose-200">
+                            Ayuda urgente
                           </span>
-                          Ayuda urgente
-                        </span>
-                      )}
-                    </h1>
-                    <div className="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-widest leading-none">
-                      DEPARTAMENTO DE <span className="text-gray-900">General</span>
+                        )}
+                      </h1>
+                    </div>
+                    <div>
+                      <span className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-full border-2 ${getEstadoColor(grupo.estado)} shadow-sm`}>
+                        {grupo.estado}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <span className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-full border-2 ${getEstadoColor(grupo.estado)} shadow-sm`}>
-                      {grupo.estado}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Progress Bar Compact */}
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between text-xs uppercase tracking-wider font-bold text-slate-400">
-                    <span>Progreso</span>
-                    <span className="text-slate-800">{grupo.progreso}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 transition-all" style={{ width: `${grupo.progreso}%` }} />
-                  </div>
-                </div>
+                  {/* Actions Buttons Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {/* Botón Configuración IA */}
+                    <button
+                      onClick={() => setShowConfigModal(true)}
+                      className="flex items-center gap-3 p-3 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all active:scale-95 group shadow-md shadow-indigo-200"
+                    >
+                      <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                        <Bot className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold text-sm">Configurar Mentor IA</span>
+                    </button>
 
-                {/* Miembros Compact */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {grupo.miembros && grupo.miembros.map((miembro: string, index: number) => (
-                    <span key={index} className="px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-600 text-xs rounded-full font-medium">
-                      {miembro}
-                    </span>
-                  ))}
-                </div>
+                    {onEditGroup && (
+                      <button onClick={onEditGroup} className="flex items-center gap-3 p-3 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 transition-all font-bold text-sm active:scale-95 border border-amber-200 shadow-sm group">
+                        <div className="p-2 bg-white/50 rounded-lg text-amber-600 group-hover:bg-white/80 transition-colors">
+                          <Pencil className="w-5 h-5" />
+                        </div>
+                        Editar Grupo
+                      </button>
+                    )}
 
-                {/* --- CONFIGURACIÓN DE AULA (BOTÓN MODAL) --- */}
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => setShowConfigModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 font-bold rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm"
-                  >
-                    <Brain className="w-4 h-4" />
-                    Configurar Mentor IA
-                  </button>
+                    {onAssignTask && (
+                      <button onClick={onAssignTask} className="flex items-center gap-3 p-3 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition-all font-bold text-sm active:scale-95 border border-indigo-100 shadow-sm group">
+                        <div className="p-2 bg-white rounded-lg text-indigo-500 group-hover:bg-indigo-200 transition-colors">
+                          <ClipboardList className="w-5 h-5" />
+                        </div>
+                        Asignar Tarea
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Miembros */}
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Equipo de Trabajo</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {grupo.miembros && grupo.miembros.map((miembro: string, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => onViewStudent && onViewStudent(miembro)}
+                          className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all text-left w-full group"
+                          title="Ver evaluación del alumno"
+                        >
+                          <div className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold text-lg group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                            {miembro.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-slate-700 truncate group-hover:text-indigo-700">{miembro}</div>
+                            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider flex items-center gap-1 group-hover:text-indigo-500">
+                              Evaluar
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="flex flex-col gap-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div className="flex justify-between text-xs uppercase tracking-wider font-bold text-slate-500">
+                      <span>Progreso de Tareas</span>
+                      <span className="text-slate-800">{grupo.progreso}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-white border border-slate-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 transition-all" style={{ width: `${grupo.progreso}%` }} />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            {/* RIGHT COLUMN: BIG TREE */}
+            <div className="lg:col-span-1">
+              <div className="bg-white border border-gray-200 rounded-[2rem] p-8 shadow-md sticky top-24 flex flex-col items-center justify-center min-h-[500px] h-full">
+                <h3 className="absolute top-6 left-6 text-xs font-black text-slate-300 uppercase tracking-widest">Bio-Estado del Grupo</h3>
+                <LivingTree
+                  progress={grupo.progreso}
+                  health={100}
+                  size={320}
+                  showLabels={true}
+                />
+                <div className="mt-4 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Crecimiento</div>
                 </div>
               </div>
             </div>
 
-            {/* TABLERO KANBAN DE TAREAS (Vision Alumno) */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-500" />
-                  Tablero de Tareas
-                </h2>
-                <button
-                  onClick={onViewFeedback}
-                  className="text-sm text-indigo-600 font-bold hover:underline"
-                >
-                  Ver Feedback Detallado
-                </button>
-              </div>
+          </div>
+        ) : (
+          // Otros tabs
+          vistaActiva === 'tareas' ? (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <RoadmapView
                 fases={fases}
                 hitosGrupo={grupo.hitos || []}
@@ -183,83 +206,56 @@ export function DetalleGrupo({ grupo, fases, onBack, onViewFeedback }: DetalleGr
                 layout="compact-grid"
               />
             </div>
+          ) : vistaActiva === 'chat' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-180px)] min-h-[600px] max-w-[1600px] mx-auto">
 
-            {/* ACTIVIDAD IA (Debajo, para evitar scroll excesivo si no es necesario) */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Brain className="w-5 h-5 text-purple-600" />
-                Analítica de Interacción IA
-              </h2>
-
-              {grupo.interacciones_ia > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-6 flex flex-col justify-center items-center text-center">
-                    <div className="text-4xl font-black text-blue-600 mb-1">{grupo.interacciones_ia}</div>
-                    <div className="text-xs font-bold text-blue-400 uppercase tracking-widest">Interacciones Totales</div>
-                    <p className="text-sm text-slate-500 mt-2 max-w-[200px]">Preguntas y respuestas intercambiadas con el Mentor virtual.</p>
-                  </div>
-
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Distribución de Consultas (Estimada)</div>
-                    <div className="flex flex-col gap-3">
-                      {tiposPreguntas.map((tipoPregunta, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <div className="w-24 text-xs font-bold text-slate-600">{tipoPregunta.tipo}</div>
-                          <div className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 h-4 bg-gray-50 rounded-full overflow-hidden border border-gray-100">
-                              <div
-                                className={`h-full ${tipoPregunta.color} opacity-80`}
-                                // Mock distribution logic based on total interactions for "real feel"
-                                style={{ width: `${Math.min(100, (tipoPregunta.cantidad / 10) * 100)}%` }}
-                              />
-                            </div>
-                            <div className="w-6 text-xs font-bold text-slate-500">{tipoPregunta.cantidad}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              {/* Left Column: AI Mentor (PURPLE) */}
+              <div className="lg:col-span-1 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col relative">
+                <div className="absolute top-0 left-0 w-full z-10 bg-white/95 backdrop-blur-sm pt-5 px-6 pb-2">
+                  <div className="flex items-center gap-2 border-b-2 border-indigo-500 pb-2">
+                    <Brain className="w-5 h-5 text-indigo-600" />
+                    <span className="text-sm font-black text-indigo-900 uppercase tracking-widest">Mentor IA</span>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                  <Brain className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <h3 className="text-slate-900 font-bold mb-1">Sin actividad registrada</h3>
-                  <p className="text-slate-500 text-sm">Este grupo aún no ha interactuado con el Mentor IA.</p>
-                </div>
-              )}
-            </div>
-
-
-          </div>
-        ) : vistaActiva === 'compartir' ? (
-          <RepositorioColaborativo grupo={grupo} todosLosGrupos={[]} />
-        ) : (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
-              <div className="flex items-center gap-3 mb-6">
-                <Brain className="w-8 h-8 text-purple-600" />
-                <div>
-                  <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Supervisión del Mentor IA</h2>
-                  <p className="text-sm text-slate-400 font-medium">Observando el diálogo socrático del equipo {grupo.nombre}</p>
+                <div className="pt-20 h-full flex flex-col">
+                  <MentorChat
+                    grupo={grupo}
+                    readOnly={true}
+                  />
                 </div>
               </div>
 
-              <MentorChat grupo={grupo} readOnly={true} />
+              {/* Right Column: Group Chat (GREEN) */}
+              <div className="lg:col-span-1 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col relative">
+                <div className="absolute top-0 left-0 w-full z-10 bg-white/95 backdrop-blur-sm pt-5 px-6 pb-2">
+                  <div className="flex items-center gap-2 border-b-2 border-green-500 pb-2">
+                    <Users className="w-5 h-5 text-green-600" />
+                    <span className="text-sm font-black text-green-900 uppercase tracking-widest">Chat del Equipo</span>
+                  </div>
+                </div>
+                <div className="pt-20 h-full flex flex-col">
+                  <ChatGrupo
+                    grupoId={String(grupo.id)}
+                    miembroActual="Profesor"
+                    esProfesor={true}
+                  />
+                </div>
+              </div>
+
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 animate-in fade-in">
+              <RepositorioColaborativo grupo={grupo} todosLosGrupos={[]} />
+            </div>
+          )
         )}
       </main>
 
-      {/* Floating Config Button (If user is teacher) or placed in header */}
-      {/* Actually, looking at the code, we need a button to OPEN this modal. The user showed a modal image. 
-           In DetalleGrupo, I need to find where this modal is effectively used or add a button to open it. 
-           I see I was importing it but maybe not using it? Wait, I don't see ModalConfiguracionIA used in DetalleGrupo in previous context.
-           I need to import it and add a button to open it.
-       */}
+      {/* Modal Configuración IA */}
       {showConfigModal && (
         <ModalConfiguracionIA
-          grupo={grupo}
           onClose={() => setShowConfigModal(false)}
+          grupo={grupo}
         />
       )}
     </div>

@@ -17,7 +17,7 @@ interface ProjectDetailProps {
 export function ProjectDetail({ proyecto, onSelectGrupo, onBack, onSwitchProject }: ProjectDetailProps) {
     const [localGrupos, setLocalGrupos] = useState<Grupo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('resumen');
+    const [currentSection, setCurrentSection] = useState<import('../types').DashboardSection>('grupos');
 
     const [isDemoMode, setIsDemoMode] = useState(() => {
         return localStorage.getItem(`is_demo_project_${proyecto.id}`) === 'true';

@@ -1,20 +1,17 @@
-import { User, LogOut, Award, MessageSquare, Users, TrendingUp, Share2, Loader2, CircleHelp, Sparkles, Upload, Globe, ChevronDown, History } from 'lucide-react';
+import { Plus, Users, Layout, LogOut, MessageSquare, History, Globe, Sparkles, Award, Key, CircleHelp, Upload, Loader2, Bot } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Grupo } from '../types';
+import { Perfil, Grupo, HitoGrupo, ProyectoFase } from '../types';
 import { supabase } from '../lib/supabase';
 import { MentorChat } from './MentorChat';
+import { ChatGrupo } from './ChatGrupo';
 import { RepositorioColaborativo } from './RepositorioColaborativo';
 import { ModalSubirRecurso } from './ModalSubirRecurso';
 import { TutorialInteractivo } from './TutorialInteractivo';
-import { PASOS_TUTORIAL_ALUMNO } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
-import { UnirseClaseScreen } from './UnirseClaseScreen';
 import { ModalUnirseClase } from './ModalUnirseClase';
-import { Key } from 'lucide-react';
 import { RoadmapView } from './RoadmapView';
 import { LivingTree } from './LivingTree';
-import { PROYECTOS_MOCK } from '../data/mockData';
-import { HitoGrupo } from '../types';
+import { PROYECTOS_MOCK, getMockEvaluacion, PASOS_TUTORIAL_ALUMNO } from '../data/mockData'; // Keep this for now, as getMockEvaluacion is not in the original
 import { toast } from 'sonner';
 import { ModalProponerHitos } from './ModalProponerHitos';
 import {
@@ -42,10 +39,12 @@ interface DashboardAlumnoProps {
 }
 
 export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
-  // 4 Pestañas: 'grupo' | 'comunidad' | 'chat' | 'perfil'
+  // Estados de Vista
   const [vistaActiva, setVistaActiva] = useState<'grupo' | 'comunidad' | 'chat' | 'perfil'>('grupo');
+  const [chatTab, setChatTab] = useState<'ia' | 'equipo'>('ia');
 
-  useEffect(() => { console.log("Dashboard Alumno: Multi-Class Update Active"); }, []);
+  // Custom Hook for Tracking
+  useGroupTracking(alumno.grupo_id ? Number(alumno.grupo_id) : 0);
 
   const [grupoReal, setGrupoReal] = useState<Grupo | null>(null);
   const [nombreProyecto, setNombreProyecto] = useState<string>(''); // New state for AI context
@@ -555,7 +554,7 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
             >
               <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
                 <MessageSquare className="w-4 h-4" />
-                <span>Mentor IA</span>
+                <span>Chat</span>
               </div>
             </button>
             <button
@@ -869,11 +868,50 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
           )
         }
 
-        {/* VISTA MENTOR IA */}
+        {/* VISTA MENTOR IA / EQUIPO */}
         {
           vistaActiva === 'chat' && grupoDisplay && (
-            <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 min-h-[600px]">
-              <MentorChat grupo={grupoDisplay} mostrarEjemplo={showExample} proyectoNombre={nombreProyecto} />
+            <div className="bg-white rounded-[2.5rem] p-4 md:p-6 shadow-sm border border-slate-200 h-[calc(100vh-180px)] min-h-[500px] flex flex-col overflow-hidden">
+              {/* Header Toggles - Better visual separation */}
+              <div className="flex bg-slate-50 p-1.5 rounded-3xl mb-4 shrink-0 shadow-inner">
+                <button
+                  onClick={() => setChatTab('ia')}
+                  className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 ${chatTab === 'ia'
+                    ? 'bg-white text-indigo-600 shadow-md transform scale-100 ring-1 ring-black/5'
+                    : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                >
+                  <Bot className={`w-4 h-4 ${chatTab === 'ia' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                  <span>Hablar con TICO</span>
+                </button>
+                <div className="w-px bg-slate-200 mx-1 my-2"></div>
+                <button
+                  onClick={() => setChatTab('equipo')}
+                  className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 ${chatTab === 'equipo'
+                    ? 'bg-white text-emerald-600 shadow-md transform scale-100 ring-1 ring-black/5'
+                    : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                >
+                  <Users className={`w-4 h-4 ${chatTab === 'equipo' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <span>Chat de Grupo</span>
+                </button>
+              </div>
+
+              {/* Chat Container - Managed to fit space */}
+              <div className="flex-1 min-h-0 relative rounded-2xl overflow-hidden border border-slate-100 bg-white">
+                {chatTab === 'ia' ? (
+                  <div className="h-full">
+                    <MentorChat grupo={grupoDisplay} mostrarEjemplo={showExample} proyectoNombre={nombreProyecto} />
+                  </div>
+                ) : (
+                  <div className="h-full">
+                    <ChatGrupo
+                      grupoId={String(grupoDisplay.id)}
+                      miembroActual={alumno.nombre || 'Alumno'}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )
         }

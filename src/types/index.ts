@@ -1,10 +1,10 @@
-
 export interface MensajeIA {
     id: string;
-    tipo: 'alumno' | 'ia';
+    tipo: 'alumno' | 'ia' | 'compañero' | 'profesor';
     contenido: string;
-    categoria: 'Metacognitiva' | 'Técnica' | 'Organizativa' | 'Creativa';
+    categoria: 'Metacognitiva' | 'Técnica' | 'Organizativa' | 'Creativa' | 'General';
     timestamp: Date;
+    remitente?: string; // Optional for compatibility
 }
 
 export interface Conversacion {

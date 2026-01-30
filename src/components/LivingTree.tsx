@@ -5,9 +5,10 @@ interface LivingTreeProps {
     health?: number; // 0 to 100
     size?: number;
     isDark?: boolean;
+    showLabels?: boolean;
 }
 
-export function LivingTree({ progress, health = 100, size = 300, isDark = false }: LivingTreeProps) {
+export function LivingTree({ progress, health = 100, size = 300, isDark = false, showLabels = true }: LivingTreeProps) {
     const isSad = health < 50;
 
     // Configuración de colores
@@ -175,9 +176,11 @@ export function LivingTree({ progress, health = 100, size = 300, isDark = false 
             </svg>
 
             {/* Etiqueta de Porcentaje Flotante */}
-            <div className="absolute bottom-4 bg-white/80 backdrop-blur-md border border-slate-200 px-3 py-1 rounded-full text-[10px] font-black text-slate-600 shadow-sm uppercase tracking-widest">
-                {progress.toFixed(0)}% Progreso
-            </div>
+            {showLabels && (
+                <div className="absolute bottom-4 bg-white/80 backdrop-blur-md border border-slate-200 px-3 py-1 rounded-full text-[10px] font-black text-slate-600 shadow-sm uppercase tracking-widest">
+                    {progress.toFixed(0)}% Progreso
+                </div>
+            )}
         </div>
     );
 }

@@ -196,3 +196,10 @@ export const PASOS_TUTORIAL_ALUMNO = [
         vista: 'notas'
     }
 ];
+
+export const getMockEvaluacion = () => [
+    { criterio: 'Investigación', puntos: 8.5 },
+    { criterio: 'Trabajo en Equipo', puntos: 9.0 },
+    { criterio: 'Uso de IA', puntos: 7.5 },
+    { criterio: 'Producto Final', puntos: 8.0 }
+];

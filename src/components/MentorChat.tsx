@@ -229,6 +229,7 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
         .from('mensajes_chat')
         .select('*')
         .eq('grupo_id', grupo.id)
+        .eq('modo', 'ia')
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -291,7 +292,8 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
         grupo_id: grupo.id,
         usuario_id: user?.id,
         tipo: 'user',
-        contenido: mensajeTexto
+        contenido: mensajeTexto,
+        modo: 'ia'
       }]);
 
       if (errorAlumno) throw errorAlumno;
@@ -315,7 +317,8 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
       const { error: errorIA } = await supabase.from('mensajes_chat').insert([{
         grupo_id: grupo.id,
         tipo: 'assistant',
-        contenido: respuestaTexto
+        contenido: respuestaTexto,
+        modo: 'ia'
       }]);
 
       if (errorIA) {
@@ -370,28 +373,9 @@ export function MentorChat({ grupo, onNuevoMensaje, readOnly, mostrarEjemplo, pr
   }
 
   return (
-    <div className="flex flex-col h-[600px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       {/* Header */}
-      <div className="bg-slate-900 p-4 text-white flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
-            <Bot className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm">Mentor IA <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded ml-1">v3.7.0</span></h3>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SISTEMA SOCRÁTICO ACTIVO</p>
-          </div>
-        </div>
-        {vozPermitidaAdmin && (
-          <button
-            onClick={toggleMute}
-            className={`p-2 rounded-full transition-colors ml-auto ${isMuted ? 'bg-slate-700 text-slate-400' : 'bg-slate-700 text-white'}`}
-            title={isMuted ? "Activar voz" : "Silenciar voz"}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-        )}
-      </div>
+      {/* Header Eliminado a petición */}
 
 
       {/* Mensajes */}
