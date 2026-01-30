@@ -65,6 +65,7 @@ export interface Proyecto {
     codigo_sala: string;
     clase?: string;
     grupos?: Grupo[];
+    created_by?: string;
 }
 
 export interface AlumnoConectado {

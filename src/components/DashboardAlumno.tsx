@@ -204,8 +204,6 @@ export function DashboardAlumno({ alumno, onLogout }: DashboardAlumnoProps) {
 
       if (miGrupo) {
         setGrupoReal(miGrupo);
-      } else if (grupos && grupos.length > 0) {
-        setGrupoReal(grupos[0]);
       } else {
         const placeholderGrupo: Grupo = {
           id: 0,

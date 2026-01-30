@@ -23,26 +23,45 @@ export function LoginPage() {
 
         try {
             const targetRole = (view === 'teacher-auth') ? 'profesor' : 'alumno';
+            let authEmail = email;
+
+            // Lógica para Alumnos: Generar Email Sintético
+            if (targetRole === 'alumno') {
+                if (!studentName || !password) {
+                    throw new Error("Por favor completa Nombre y Contraseña");
+                }
+                const cleanUser = studentName.trim().replace(/\s+/g, '').toLowerCase();
+                // Si hay código, lo usamos, si no, generamos uno genérico
+                // NEW FORMAT: username.student@tico.ia (Simplificado)
+                authEmail = `${cleanUser}.student@tico.ia`;
+            }
 
             let sessionData = null;
 
             if (isSignUp) {
-                // Pre-set flags to avoid race condition with auto-login/redirect
-                if (view === 'teacher-auth') {
+                // Flags para onboarding
+                if (targetRole === 'profesor') {
                     localStorage.setItem('isNewTeacher', 'true');
                 } else {
                     localStorage.setItem('isNewStudent', 'true');
                 }
 
+                // Prepare metadata
+                const metaData: any = {
+                    rol: targetRole,
+                    nombre: targetRole === 'alumno' ? studentName : (email.split('@')[0])
+                };
+
+                // Only add codigo_sala if provided
+                if (targetRole === 'alumno' && roomCode) {
+                    metaData.codigo_sala = roomCode.trim().toUpperCase();
+                }
+
                 const { data, error } = await supabase.auth.signUp({
-                    email,
+                    email: authEmail,
                     password,
                     options: {
-                        data: {
-                            rol: targetRole,
-                            nombre: studentName || email.split('@')[0],
-                            codigo_sala: roomCode
-                        }
+                        data: metaData
                     }
                 });
 
@@ -52,32 +71,45 @@ export function LoginPage() {
                     throw error;
                 }
 
-                // Si hay sesión, es que no requiere confirmación o se autoconfirmó
                 if (data.session) {
                     sessionData = data.session;
-                    // Forzar refresco y dar un pequeño margen para que el perfil se detecte
                     await refreshPerfil();
                 } else {
-                    // Si no hay sesión, probablemente requiere verificar email
-                    alert('Cuenta creada. Revisa tu email para confirmar e iniciar sesión.');
+                    // Si no hay sesión inmediata (confirmación email), en nuestro caso de alumno (sintético)
+                    // debería haber sesión. Si es profe con email real, avisar.
+                    if (targetRole === 'alumno') {
+                        // Should not happen with auto-confirm off, but safety check
+                        alert('Cuenta creada. Intenta iniciar sesión.');
+                        return;
+                    }
+                    alert('Cuenta creada. Revisa tu email para confirmar.');
                     return;
                 }
             } else {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                // Login Normal
+                // Recalc email for student based on input name if simple login
+                // NOTE: This assumes user knows they are 'name.student@tico.ia'. 
+                // UX Improvement: If they type "Juan", auto-suffix it.
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: authEmail,
+                    password
+                });
                 if (error) throw error;
                 sessionData = data.session;
             }
 
             if (sessionData) {
-                // Check Role Mismatch
+                // Validar Rol
                 const currentRole = sessionData.user?.user_metadata?.rol;
-
                 if (currentRole && currentRole !== targetRole) {
-                    const msg = currentRole === 'profesor'
-                        ? '⚠️ Esta cuenta es de Profesor. Accediendo al panel docente...'
-                        : '⚠️ Esta cuenta es de Alumno. Accediendo al panel de alumno...';
-                    // We can use a toast here if available, or just alert. Since we rely on error state for UI messages:
-                    alert(msg);
+                    // Si intenta entrar como alumno con cuenta de profe o viceversa
+                    if (targetRole === 'alumno' && currentRole === 'profesor') {
+                        throw new Error("Esta cuenta es de Profesor. Usa el acceso de Profesores.");
+                    }
+                    if (targetRole === 'profesor' && currentRole === 'alumno') {
+                        throw new Error("Esta cuenta es de Alumno. Usa el acceso de Alumnos.");
+                    }
                 }
 
                 setSessionData(sessionData);
@@ -86,7 +118,9 @@ export function LoginPage() {
         } catch (error: any) {
             console.error(error);
             if (error.message?.toLowerCase().includes("limit") || error.message?.toLowerCase().includes("rate")) {
-                setError("🛑 Límite de seguridad alcanzado: Demasiados registros seguidos. Espera unos segundos o pide al profesor que revise la configuración de 'Rate Limits' en Supabase.");
+                setError("🛑 Límite de seguridad alcanzado. Espera unos segundos.");
+            } else if (error.message?.includes("Invalid login")) {
+                setError("Usuario o contraseña incorrectos.");
             } else {
                 setError(error.message || 'Error desconocido al iniciar sesión.');
             }
@@ -115,6 +149,7 @@ export function LoginPage() {
         }
     };
 
+    // Verificación de código solo para redirigir a registro inicialmente
     const handleVerifyCode = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -128,13 +163,13 @@ export function LoginPage() {
                 .single();
 
             if (error || !data) {
-                setError('Código de sala no válido. Revisa que esté bien escrito.');
+                setError('Código de sala no válido.');
                 return;
             }
 
             setFoundProject(data);
             setView('student-auth');
-            setIsSignUp(true); // Los alumnos suelen registrarse por primera vez así
+            setIsSignUp(true);
         } catch (err) {
             setError('Error al verificar el código.');
         } finally {
@@ -146,14 +181,15 @@ export function LoginPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center p-4">
                 <div className="max-w-6xl w-full">
+                    {/* Header y Botones de Selección (Igual que antes) */}
                     <div className="text-center mb-12">
                         <div className="flex justify-center mb-6">
                             <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-2xl">
                                 <Brain className="w-12 h-12 text-purple-600" />
                             </div>
                         </div>
-                        <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg text-center font-sans tracking-tight">Panel ABP + IA</h1>
-                        <p className="text-2xl text-white font-medium drop-shadow-md text-center opacity-90">Aprendizaje Basado en Proyectos con Inteligencia Artificial</p>
+                        <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg text-center font-sans tracking-tight">tico.ia</h1>
+                        <p className="text-2xl text-white font-medium drop-shadow-md text-center opacity-90">Plataforma de Innovación ABP</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -171,9 +207,9 @@ export function LoginPage() {
                                     <GraduationCap className="w-9 h-9 text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold text-gray-900 mb-3">Soy Profesor/a</h2>
-                                <p className="text-gray-700 mb-6 font-medium leading-relaxed">Gestiona tus proyectos ABP, supervisa grupos y configura el Mentor IA.</p>
+                                <p className="text-gray-700 mb-6 font-medium leading-relaxed">Gestiona proyectos, evalúa y configura a Tico.</p>
                                 <div className="flex items-center justify-end gap-2 text-blue-600 font-bold group-hover:gap-4 transition-all">
-                                    <span>Iniciar sesión</span>
+                                    <span>Acceso Docente</span>
                                     <ArrowRight className="w-5 h-5" />
                                 </div>
                             </div>
@@ -182,7 +218,7 @@ export function LoginPage() {
                         {/* Alumno */}
                         <button
                             onClick={() => {
-                                setView('student-auth');
+                                setView('student-auth'); // DIRECT TO AUTH, SKIP VERIFY
                                 setIsSignUp(false);
                             }}
                             className="group relative bg-white rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden text-left"
@@ -193,9 +229,9 @@ export function LoginPage() {
                                     <User className="w-9 h-9 text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold text-gray-900 mb-3">Soy Alumno/a</h2>
-                                <p className="text-gray-700 mb-6 font-medium leading-relaxed">Accede con tu correo para hablar con el Mentor IA y ver tu progreso.</p>
+                                <p className="text-gray-700 mb-6 font-medium leading-relaxed">Únete a tu clase, habla con Tico y mira tu progreso.</p>
                                 <div className="flex items-center justify-end gap-2 text-pink-600 font-bold group-hover:gap-4 transition-all">
-                                    <span>Entrar ahora</span>
+                                    <span>Acceso Alumno</span>
                                     <ArrowRight className="w-5 h-5" />
                                 </div>
                             </div>
@@ -206,14 +242,19 @@ export function LoginPage() {
         );
     }
 
+    const isTeacher = view === 'teacher-auth';
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center p-4">
             <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-8 relative">
                 <button
                     onClick={() => {
-                        if (view === 'student-auth' && isSignUp) setView('student-verify');
-                        else setView('selection');
+                        setView('selection');
                         setError('');
+                        setEmail('');
+                        setPassword('');
+                        setStudentName('');
+                        setRoomCode('');
                     }}
                     className="absolute top-6 left-6 text-gray-400 hover:text-gray-600 transition-colors"
                 >
@@ -221,74 +262,95 @@ export function LoginPage() {
                 </button>
 
                 <div className="flex justify-center mb-6">
-                    <div className={`w-16 h-16 bg-gradient-to-br rounded-2xl flex items-center justify-center shadow-lg ${view === 'teacher-auth' ? 'from-blue-500 to-purple-600' : 'from-pink-500 to-rose-600'}`}>
-                        {view === 'teacher-auth' ? <GraduationCap className="w-8 h-8 text-white" /> : (view === 'student-verify' ? <Key className="w-8 h-8 text-white" /> : <User className="w-8 h-8 text-white" />)}
+                    <div className={`w-16 h-16 bg-gradient-to-br rounded-2xl flex items-center justify-center shadow-lg ${isTeacher ? 'from-blue-500 to-purple-600' : 'from-pink-500 to-rose-600'}`}>
+                        {isTeacher ? <GraduationCap className="w-8 h-8 text-white" /> : <User className="w-8 h-8 text-white" />}
                     </div>
                 </div>
 
                 <h1 className="text-2xl font-black text-gray-900 text-center mb-2 uppercase tracking-tight">
-                    {view === 'teacher-auth' ? 'Panel Docente' : 'Acceso Alumno'}
+                    {isTeacher ? 'Panel Docente' : 'Acceso Alumno'}
                 </h1>
                 <p className="text-gray-500 text-center mb-6 font-medium leading-relaxed text-sm">
-                    {view === 'teacher-auth'
-                        ? (isSignUp ? 'Crea tu cuenta profesional' : 'Inicia sesión para gestionar tus clases')
-                        : 'Accede para unirte a tu clase'}
+                    {isTeacher
+                        ? (isSignUp ? 'Crea tu cuenta profesional' : 'Inicia sesión en tu cuenta')
+                        : (isSignUp ? 'Crea tu cuenta (Código opcional)' : 'Entra con tu usuario')}
                 </p>
 
                 <form onSubmit={handleAuth} className="space-y-4">
-                    {/* Social Login Buttons */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <button
-                            type="button"
-                            onClick={() => handleSocialLogin('google')}
-                            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
-                        >
-                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                            Google
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleSocialLogin('azure')}
-                            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
-                        >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="w-4 h-4" />
-                            Microsoft
-                        </button>
-                    </div>
 
-                    <div className="relative mb-4">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-200"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-slate-400 font-bold uppercase tracking-widest text-[10px]">O usa tu email</span>
-                        </div>
-                    </div>
-
-                    {isSignUp && (
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre Completo</label>
-                            <input
-                                type="text"
-                                value={studentName}
-                                onChange={(e) => setStudentName(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
-                                placeholder="Ej: Juan Pérez"
-                                required={isSignUp}
-                            />
-                        </div>
+                    {/* Campos para ALUMNOS */}
+                    {!isTeacher && (
+                        <>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre de Usuario</label>
+                                <input
+                                    type="text"
+                                    value={studentName}
+                                    onChange={(e) => setStudentName(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
+                                    placeholder="Ej: JuanPerez"
+                                    required
+                                />
+                            </div>
+                            {/* Campo Código de Clase eliminado a petición del usuario. Solo nombre. */}
+                        </>
                     )}
-                    <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
-                            placeholder="tu@email.com"
-                            required
-                        />
-                    </div>
+
+                    {/* Campos para PROFESORES */}
+                    {isTeacher && (
+                        <>
+                            {/* Social Login solo para profes (opcional, o para todos?) 
+                                El usuario solo pidió login sin email para ALUMNOS. Profes siguen igual.
+                            */}
+                            {!isSignUp && (
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSocialLogin('google')}
+                                        className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                                    >
+                                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                                        Google
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSocialLogin('azure')}
+                                        className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm"
+                                    >
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" className="w-4 h-4" />
+                                        Microsoft
+                                    </button>
+                                </div>
+                            )}
+
+                            {isSignUp && (
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Tu Nombre</label>
+                                    <input
+                                        type="text"
+                                        value={studentName} // Reutilizamos studentName para nombre del profe
+                                        onChange={(e) => setStudentName(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
+                                        placeholder="Profesor García"
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email Profesional</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all font-bold text-sm"
+                                    placeholder="profe@escuela.edu"
+                                    required
+                                />
+                            </div>
+                        </>
+                    )}
+
                     <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Contraseña</label>
                         <input
@@ -300,24 +362,25 @@ export function LoginPage() {
                             required
                         />
                     </div>
-                    {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold border border-rose-100">{error}</div>}
+
+                    {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold border border-rose-100 animate-in slide-in-from-top-2">{error}</div>}
+
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${view === 'teacher-auth' ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
+                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${isTeacher ? 'bg-blue-600' : 'bg-rose-600'} text-white`}
                     >
-                        {loading ? 'Cargando...' : sessionData ? 'Redirigiendo...' : isSignUp ? 'Crear Cuenta' : 'Entrar al Panel'}
+                        {loading ? 'Procesando...' : sessionData ? 'Entrando...' : isSignUp ? 'Crear Cuenta' : 'Entrar'}
                     </button>
-                    <div className="mt-4 text-center space-y-4">
+
+                    <div className="mt-4 text-center">
                         <button
                             type="button"
                             onClick={() => setIsSignUp(!isSignUp)}
-                            className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors block w-full"
+                            className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors"
                         >
                             {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                         </button>
-
-
                     </div>
                 </form>
             </div>

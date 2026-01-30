@@ -179,7 +179,13 @@ export function DashboardDocente({
       {modalCrearGrupoAbierto && (
         <ModalCrearGrupo
           onClose={() => setModalCrearGrupoAbierto(false)}
-          onCrear={onCrearGrupo}
+          onCrear={(grupoData) => {
+            if (grupoEditando) {
+              onEditarGrupo(grupoEditando.id, grupoData);
+            } else {
+              onCrearGrupo(grupoData);
+            }
+          }}
           grupoEditando={grupoEditando}
           proyectoId={proyectoActual?.id}
           codigoSala={proyectoActual?.codigo_sala}
@@ -737,6 +743,7 @@ export function DashboardDocente({
                 {modalSubirRecursoAbierto && (
                   <ModalSubirRecurso
                     grupo={{ id: 0, nombre: 'Docente', miembros: [], progreso: 0, estado: 'En progreso', interacciones_ia: 0 }}
+                    proyectoId={proyectoActual?.id}
                     onClose={() => setModalSubirRecursoAbierto(false)}
                     onSuccess={() => {
                       setModalSubirRecursoAbierto(false);

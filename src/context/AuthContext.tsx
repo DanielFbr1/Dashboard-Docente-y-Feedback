@@ -36,10 +36,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [perfil, setPerfil] = useState<Perfil | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchPerfil = (user: User) => {
+    const fetchPerfil = async (user: User) => {
         try {
             console.log("👤 Analizando metadata para:", user.id);
-            const metadata = user.user_metadata;
+            let metadata = user.user_metadata;
+
+            // Fallback: Si no hay metadata, consultar la tabla profiles
+            if (!metadata?.rol) {
+                console.warn("⚠️ Metadata vacía, consultando DB...");
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileData) {
+                    metadata = { ...metadata, rol: profileData.rol, nombre: profileData.nombre, codigo_sala: profileData.codigo_sala };
+                }
+            }
 
             if (metadata?.rol) {
                 const fetchedPerfil: Perfil = {
@@ -51,14 +65,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     proyecto_id: metadata.proyecto_id
                 };
                 setPerfil(fetchedPerfil);
-
                 console.log("✅ Perfil cargado:", metadata.rol);
             } else {
-                console.warn("⚠️ Usuario sin rol en metadata - Defaulting to teacher");
+                console.error("❌ Usuario sin rol en Metadata ni DB. Asignando 'alumno' por defecto para seguridad.");
                 setPerfil({
                     id: user.id,
-                    nombre: user.email?.split('@')[0] || 'Profesor',
-                    rol: 'profesor'
+                    nombre: user.email?.split('@')[0] || 'Usuario',
+                    rol: 'alumno' // Safer default than teacher
                 });
             }
         } catch (err) {
@@ -116,8 +129,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             console.log("🔌 Iniciando cierre de sesión...");
             setLoading(true);
+            localStorage.clear(); // Limpieza profunda local
             await supabase.auth.signOut();
             setPerfil(null);
+            setSession(null);
+            setUser(null);
             console.log("👋 Sesión cerrada correctamente");
         } catch (err) {
             console.error("❌ Error en signOut:", err);

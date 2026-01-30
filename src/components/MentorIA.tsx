@@ -146,7 +146,9 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
     };
 
     const handleSend = async (e: React.FormEvent) => {
-        e.preventDefault();
+        e.preventDefault(); // Critical: Stop form submission refresh
+        e.stopPropagation();
+
         if (!input.trim() || loading) return;
 
         const userMsg = input;
@@ -154,7 +156,8 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
         setLoading(true);
 
         try {
-            const { data: newMsg } = await supabase
+            // 1. Save User Message
+            const { data: newMsg, error: sendError } = await supabase
                 .from('mensajes_chat')
                 .insert([{
                     grupo_id: grupoId,
@@ -165,16 +168,26 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 .select()
                 .single();
 
+            if (sendError) throw sendError;
             if (newMsg) setMensajes(prev => [...prev, newMsg]);
 
+            // 2. AI Generation
             const historial = mensajes.slice(-50).map(m => ({
                 role: m.tipo === 'alumno' ? 'user' as const : 'assistant' as const,
                 content: m.contenido
             }));
 
-            const respuesta = await generarRespuestaIA(userMsg, departamento, "Proyecto ABP", historial);
+            // Safe AI Call
+            let respuesta = '';
+            try {
+                respuesta = await generarRespuestaIA(userMsg, departamento, "Proyecto ABP", historial);
+            } catch (aiErr) {
+                console.error("AI Error:", aiErr);
+                respuesta = "Lo siento, tuve un problema pensando. ¿Me lo repites?";
+            }
 
-            const { data: iaMsg } = await supabase
+            // 3. Save AI Message
+            const { data: iaMsg, error: iaError } = await supabase
                 .from('mensajes_chat')
                 .insert([{
                     grupo_id: grupoId,
@@ -185,14 +198,16 @@ export function MentorIA({ grupoId, proyectoId, departamento, miembro }: MentorI
                 .select()
                 .single();
 
+            if (iaError) throw iaError;
+
             if (iaMsg) {
-                // Añadimos el mensaje y luego lanzamos el typing
                 setMensajes(prev => [...prev, iaMsg]);
-                setTypingId(iaMsg.id); // Esto disparará el efecto
+                setTypingId(iaMsg.id);
             }
 
-        } catch (error) {
-            toast.error('Error con el Mentor IA');
+        } catch (error: any) {
+            console.error('Chat Error:', error);
+            // toast.error('Error al enviar mensaje'); // Silent fail better than crash
         } finally {
             setLoading(false);
         }

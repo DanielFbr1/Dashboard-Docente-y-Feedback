@@ -66,9 +66,20 @@ function AppContent() {
       });
     }
   }, []);
+
   const [currentScreen, setCurrentScreen] = useState<'projects' | 'project-detail' | 'group-detail'>('projects');
   const [selectedProject, setSelectedProject] = useState<Proyecto | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<Grupo | null>(null);
+
+  // RESET STATE ON LOGOUT
+  useEffect(() => {
+    if (!user) {
+      // Si el usuario se desconecta, limpiamos el estado visual
+      setSelectedProject(null);
+      setSelectedGrupo(null);
+      setCurrentScreen('projects');
+    }
+  }, [user]);
 
   const handleSelectProject = (proyecto: Proyecto) => {
     setSelectedProject(proyecto);

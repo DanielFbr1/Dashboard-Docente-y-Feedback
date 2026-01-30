@@ -77,13 +77,33 @@ create policy "Public access" on public.grupos for all using (true);
 create policy "Public access" on public.mensajes_chat for all using (true);
 create policy "Public access" on public.alumnos_conectados for all using (true);
 
+-- PROFILES (Rol de usuario)
+create table if not exists public.profiles (
+  id uuid references auth.users not null primary key,
+  email text,
+  rol text check (rol in ('profesor', 'alumno')) default 'alumno',
+  full_name text, -- Nuevo campo
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- (Rest of tables omitted for brevity, but trigger is key)
+
 -- TRIGGER (Handle gracefully)
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, rol)
-  values (new.id, new.email, 'profesor')
-  on conflict (id) do nothing; -- Prevent error if profile exists
+  insert into public.profiles (id, email, rol, full_name)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'rol', 'alumno'), -- Prioriza metadata, fallback alumno
+    coalesce(new.raw_user_meta_data ->> 'nombre', new.raw_user_meta_data ->> 'full_name', new.email)
+  )
+  on conflict (id) do update
+  set 
+    rol = excluded.rol,
+    full_name = excluded.full_name,
+    email = excluded.email;
   return new;
 end;
 $$ language plpgsql security definer;

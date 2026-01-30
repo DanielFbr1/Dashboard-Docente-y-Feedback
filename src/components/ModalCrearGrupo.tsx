@@ -178,30 +178,7 @@ export function ModalCrearGrupo({ onClose, onCrear, grupoEditando, proyectoId, c
               </div>
             </div>
 
-            {/* Añadir manualmente */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-3">
-                <UserPlus className="w-4 h-4 text-orange-500" />
-                Añadir Manualmente
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={nuevoMiembro}
-                  onChange={(e) => setNuevoMiembro(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAgregarMiembro())}
-                  placeholder="Nombre del alumno..."
-                  className="flex-1 px-5 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-orange-500 outline-none font-bold"
-                />
-                <button
-                  type="button"
-                  onClick={handleAgregarMiembro}
-                  className="p-3 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 transition-all shadow-lg active:scale-95"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
+            {/* Añadir manualmente ELIMINADO */}
 
             {/* Lista de Miembros */}
             <div className="space-y-2">

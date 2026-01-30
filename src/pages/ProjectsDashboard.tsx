@@ -12,7 +12,7 @@ interface ProjectsDashboardProps {
 import { useAuth } from '../context/AuthContext';
 
 export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
-    const { signOut: authSignOut } = useAuth();
+    const { signOut: authSignOut, session } = useAuth();
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSeeding, setIsSeeding] = useState(false);
@@ -25,10 +25,18 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
     const fetchProyectos = async () => {
         try {
             setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            console.log("🔍 DEBUG: ProjectsDashboard User:", user?.id, user?.email);
+
+            if (!user) return;
+
             const { data, error } = await supabase
                 .from('proyectos')
                 .select('*')
+                .eq('created_by', user.id) // Filter by owner explicitly
                 .order('created_at', { ascending: false });
+
+            console.log("🔍 DEBUG: Fetched Projects for User:", user.id, data);
 
             if (error) throw error;
             setProyectos(data || []);
@@ -249,7 +257,7 @@ export function ProjectsDashboard({ onSelectProject }: ProjectsDashboardProps) {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {proyectosClase.map((proyecto) => (
+                                {proyectosClase.filter(p => p.created_by === session?.user?.id).map((proyecto) => (
                                     <div
                                         key={proyecto.id}
                                         onClick={() => onSelectProject(proyecto)}
